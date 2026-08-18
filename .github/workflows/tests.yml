@@ -1,0 +1,43 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: pytest (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest
+      - run: python -m vais validate-policy policies/default.yaml
+      - run: python -m vais validate-invariants invariants/default.yaml
+      - run: python -m vais benchmark-default --mode protected --fail-on-protected-violation --fail-on-clean-utility-loss --fail-on-target-failure --output results/ci-protected.jsonl
+
+  package-smoke:
+    name: wheel smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Install built wheel
+        run: |
+          python -m pip uninstall -y verifiable-ai-security || true
+          python -m pip install --no-deps dist/verifiable_ai_security-*.whl
+      - run: python -c "import vais; assert vais.__version__ == '0.5.0'; assert vais.load_default_policy().version == 2"
+      - run: vais version

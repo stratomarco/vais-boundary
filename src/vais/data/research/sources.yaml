@@ -1,0 +1,31 @@
+sources:
+  - id: SRC-CAPSTONE-2026
+    title: "Reinforcement Learning with Verifiable Rewards for Adversarial Prompt Generation: A Behavioral-Gated Approach for AI Security"
+    source_type: capstone_manuscript
+    artifact_name: submission.pdf
+    sha256: f831236d6a5ae7cf1a3a2af408c5d06551f2321387f6203be57f40811f47b230
+    role: Research origin for behavioral perturbation, verifiable reward, and attack-success separation.
+    ingestion_status: artifact_expected_external
+
+  - id: SRC-DOUBLE-TRINITY
+    title: "The Double Trinity: How Machine Learning Didn't Replace the Old Security Problems — It Doubled Them"
+    source_type: author_essay
+    artifact_name: The Double Trinity.docx
+    sha256: 40349ed3c62797519081339e0605a61833cef420f30670fe25017974a5c4aa44
+    role: Intellectual lineage for structural AI/ML security risks and architectural responses.
+    ingestion_status: artifact_expected_external
+
+  - id: SRC-TRUSTING-TRUST-AI
+    title: "Trust Me, I am Compiled: From Ken Thompson to the Age of Poisoned Models"
+    source_type: author_essay
+    artifact_name: reflectionsontrustringtrustAIVF1.docx
+    sha256: 59da4f0aae931144ece904fa48d910552e09a998a7d922b1de0229df21c92e9e
+    role: Intellectual lineage for trust surfaces, supply chains, assumed compromise, and resiliency.
+    ingestion_status: artifact_expected_external
+
+  - id: SRC-TRUST-THE-PEOPLE
+    title: "Trust the People: On the Human Half of the Security Problem"
+    source_type: author_essay_external
+    role: Broader human/trust framing related to the VAIS research program.
+    ingestion_status: metadata_only
+    limitation: Full source text was not part of the repository evidence at v0.10.1; do not quote or attribute detailed claims until the original article is ingested.

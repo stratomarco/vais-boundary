@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.pytest-tmp/
+.release-validation/
+*.py[cod]
+*.egg-info/
+build/
+tmp/
+dist/*
+!dist/VAIS-v0.12.0rc6-source.zip
+!dist/VAIS-v0.12.0rc6-reviewer-pack.zip
+!dist/VAIS-v0.12.0rc6-release-summary.json
+!dist/verifiable_ai_security-0.12.0rc6-py3-none-any.whl
+!dist/verifiable_ai_security-0.12.0rc6.tar.gz
+!dist/SHA256SUMS
+.env
+results/
+# Generated research evidence/indexes
+research/db/*.sqlite
+research/evidence/*.json
+research/evidence/*.jsonl

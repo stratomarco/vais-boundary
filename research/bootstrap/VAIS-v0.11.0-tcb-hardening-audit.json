@@ -1,0 +1,44 @@
+{
+  "artifact_type": "tcb_hardening_audit",
+  "framework_version": "0.11.0",
+  "scope": [
+    "canonicalization_and_type_confusion",
+    "unicode_normalization",
+    "nested_mutability_and_toctou",
+    "scoped_persistent_consume_once_approvals",
+    "numeric_edge_cases",
+    "undeclared_arguments",
+    "identity_and_capability_binding",
+    "cross_session_and_cross_tenant_isolation",
+    "mcp_indeterminate_effect_and_retry_semantics",
+    "audit_hash_chain",
+    "policy_fail_closed_paths",
+    "secret_bearing_exception_messages",
+    "single_process_concurrency"
+  ],
+  "source_test_result": {
+    "collected": 179,
+    "failed": 0,
+    "passed": 179
+  },
+  "fresh_source_zip_test_result": {
+    "collected": 179,
+    "failed": 0,
+    "passed": 179
+  },
+  "research_integrity": {
+    "findings": 20,
+    "decisions": 15,
+    "limitations": 14,
+    "expected_external_unresolved": 3,
+    "unexpected_unresolved": 0,
+    "hash_mismatches": 0,
+    "strict_result": "ok"
+  },
+  "findings": ["FIND-016", "FIND-017", "FIND-018", "FIND-019", "FIND-020"],
+  "decisions": ["DEC-014", "DEC-015"],
+  "limitations": ["LIM-012", "LIM-013", "LIM-014"],
+  "claim_boundary": "Passing results support only the enumerated implementation and regression cases; they are not proof of universal security.",
+  "ai_judge_in_authorization_path": false,
+  "independent_effect_verification_semantics_preserved": true
+}

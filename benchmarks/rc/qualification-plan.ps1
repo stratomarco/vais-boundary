@@ -1,0 +1,242 @@
+# VAIS 0.12.0rc6 qualification campaign plan
+# Load one named model in LM Studio before running its command.
+
+vais adaptive-reference-lmstudio `
+  --target-model "qwen/qwen3-0.6b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\qwen3-0.6b-qualification.jsonl `
+  --summary .\results\rc\qwen3-0.6b-qualification-summary.json `
+  --rlvr-output .\results\rc\qwen3-0.6b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "qwen/qwen3-4b-instruct-2507" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\qwen3-4b-instruct-qualification.jsonl `
+  --summary .\results\rc\qwen3-4b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\qwen3-4b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "qwen/qwen2.5-7b-instruct" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\qwen2.5-7b-instruct-qualification.jsonl `
+  --summary .\results\rc\qwen2.5-7b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\qwen2.5-7b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "qwen/qwen3.5-9b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\qwen3.5-9b-qualification.jsonl `
+  --summary .\results\rc\qwen3.5-9b-qualification-summary.json `
+  --rlvr-output .\results\rc\qwen3.5-9b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "meta-llama/llama-3.2-1b-instruct" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\llama-3.2-1b-instruct-qualification.jsonl `
+  --summary .\results\rc\llama-3.2-1b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\llama-3.2-1b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "meta-llama/llama-3.1-8b-instruct" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\llama-3.1-8b-instruct-qualification.jsonl `
+  --summary .\results\rc\llama-3.1-8b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\llama-3.1-8b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "google/gemma-3-1b-it" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\gemma-3-1b-it-qualification.jsonl `
+  --summary .\results\rc\gemma-3-1b-it-qualification-summary.json `
+  --rlvr-output .\results\rc\gemma-3-1b-it-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "google/gemma-4-12b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\gemma-4-12b-qualification.jsonl `
+  --summary .\results\rc\gemma-4-12b-qualification-summary.json `
+  --rlvr-output .\results\rc\gemma-4-12b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "microsoft/phi-4-mini-instruct" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\phi-4-mini-instruct-qualification.jsonl `
+  --summary .\results\rc\phi-4-mini-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\phi-4-mini-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "microsoft/phi-4" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\phi-4-qualification.jsonl `
+  --summary .\results\rc\phi-4-qualification-summary.json `
+  --rlvr-output .\results\rc\phi-4-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "mistralai/mistral-7b-instruct-v0.3" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\mistral-7b-instruct-qualification.jsonl `
+  --summary .\results\rc\mistral-7b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\mistral-7b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "ibm-granite/granite-4.1-8b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\granite-4.1-8b-qualification.jsonl `
+  --summary .\results\rc\granite-4.1-8b-qualification-summary.json `
+  --rlvr-output .\results\rc\granite-4.1-8b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "deepseek/deepseek-r1-distill-llama-8b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\deepseek-r1-distill-llama-8b-qualification.jsonl `
+  --summary .\results\rc\deepseek-r1-distill-llama-8b-qualification-summary.json `
+  --rlvr-output .\results\rc\deepseek-r1-distill-llama-8b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "huggingfacetb/smollm3-3b" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\smollm3-3b-qualification.jsonl `
+  --summary .\results\rc\smollm3-3b-qualification-summary.json `
+  --rlvr-output .\results\rc\smollm3-3b-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation
+
+vais adaptive-reference-lmstudio `
+  --target-model "liquidai/lfm2.5-1.2b-instruct" `
+  --target-reasoning-mode off `
+  --target-disable-thinking `
+  --episodes 2 `
+  --scenario attack-03 `
+  --scenario attack-09 `
+  --scenario attack-14 `
+  --target-truncation-retry-tokens 4096 `
+  --output .\results\rc\lfm2.5-1.2b-instruct-qualification.jsonl `
+  --summary .\results\rc\lfm2.5-1.2b-instruct-qualification-summary.json `
+  --rlvr-output .\results\rc\lfm2.5-1.2b-instruct-qualification-rlvr.jsonl `
+  --fail-on-target-failure `
+  --fail-on-reasoning-mode-mismatch `
+  --fail-on-protected-violation

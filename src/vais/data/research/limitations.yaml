@@ -1,0 +1,59 @@
+limitations:
+  - id: LIM-001
+    limitation: Zero observed protected invariant violations in a bounded experiment is not proof of universal security.
+  - id: LIM-002
+    limitation: Adaptive episodes within a campaign are intentionally dependent and should not be analyzed as IID Bernoulli trials without a justified model.
+  - id: LIM-003
+    limitation: The v0.10 feedback-vs-fixed-search advantage has not yet been isolated because later episodes also use composed mutation operators.
+  - id: LIM-004
+    limitation: The independent adaptive verifier is separate from ReferenceMonitor.evaluate but shares the security specification, task contracts, policy data, and evidence model.
+  - id: LIM-005
+    limitation: A model target generation failure is unevaluated security evidence rather than a successful defense.
+  - id: LIM-006
+    limitation: Gemma v0.10 has a 52/240 protected-episode truncation gap and should not be reported as 0/240 protected violations.
+  - id: LIM-007
+    limitation: MCP delivery experiments demonstrate context-placement effects but do not establish that MCP is intrinsically safer than direct context.
+  - id: LIM-008
+    limitation: VAIS shrinks the trusted computing base but does not eliminate trust; policy, canonicalization, identity, capability binding, mediation, and effect observation remain trusted components.
+  - id: LIM-009
+    limitation: Workflow utility is scenario-specific and must be interpreted using matched controls when attributing attack or enforcement effects.
+  - id: LIM-010
+    limitation: Current empirical evidence is concentrated on local Qwen3.5-9B and Gemma-4-12B targets and the VAIS reference scenarios.
+  - id: LIM-011
+    limitation: Research-archive instance counts include provenance-preserving historical copies and must not be reported as counts of independent scientific runs; content-addressed counts should be reported alongside raw archive counts.
+  - id: LIM-012
+    limitation: The v0.11 approval store provides thread-safe single-process consumption and atomic file replacement, not distributed locking or guaranteed durability across arbitrary filesystem/power failure.
+  - id: LIM-013
+    limitation: The v0.11 audit chain is tamper-evident only relative to a retained trusted head; it is not externally anchored append-only storage.
+  - id: LIM-014
+    limitation: MCP request identity and indeterminate classification do not provide exactly-once remote execution; safe retry requires server-specific idempotency or effect reconciliation.
+  - id: LIM-015
+    limitation: The v0.12 RC panel is a curated hardware-bounded diversity sample, not a statistically representative sample of Hugging Face models; quantization and runtime configuration are part of every tested system.
+  - id: LIM-016
+    limitation: The RC2 OpenAI-compatible LM Studio adapter can request a model-specific non-thinking template switch but cannot guarantee the server honors it; observed reasoning conformance is detected after generation, and a documented native reasoning-control adapter remains future work.
+  - id: LIM-017
+    limitation: RC1 Qwen3.5-9B and Gemma-4-12B runs are bounded qualification evidence under RC1 configuration hashes, not official RC2 full-campaign results.
+  - id: LIM-018
+    limitation: The portable RC2 source tree does not bundle every historical Qwen/Gemma run artifact referenced by the research knowledge base; research-doctor --strict requires the corresponding historical evidence roots and fails closed when they are absent.
+  - id: LIM-019
+    limitation: RC3 reasoning_effort=none behavior is verified only for the recorded LM Studio runtime and bounded Qwen3-0.6B probe; other runtime versions or model templates may reject or ignore the control, so observed post-generation reasoning conformance remains mandatory.
+  - id: LIM-020
+    limitation: RC4 records and rechecks the local model key, API identifier, quantization, size and runtime configuration but does not hash multi-gigabyte GGUF model files, so it does not establish portable cryptographic model-byte identity.
+  - id: LIM-021
+    limitation: RC4 automatic model lifecycle management is intentionally restricted to a local LM Studio HTTP endpoint and the tested lms CLI contract; remote runtimes and future incompatible CLI schemas require separate adapters and validation.
+  - id: LIM-022
+    limitation: RC4 HTML and SVG comparisons are descriptive views of bounded, configuration-specific runs; explicit denominators reduce ambiguity but do not make family, parameter-size or quantization differences causal.
+  - id: LIM-023
+    limitation: RC5's conservative model-output lineage can overtaint text that is semantically safe but was generated while protected values were visible; applications need a trusted, auditable declassification step to recover that utility rather than weakening the default propagation rule.
+  - id: LIM-024
+    limitation: The completed RC4 campaign is defect-discovery evidence under RC4 code and configuration; it does not establish RC5 protected-violation or utility rates, which require a new version-matched panel run.
+  - id: LIM-025
+    limitation: RC5 all-stage headline totals include distinct preflight, qualification, screening and full executions with unequal budgets; they preserve safety evidence but cannot be used as a balanced cross-model ranking denominator.
+  - id: LIM-026
+    limitation: Raw benchmark JSONL and RLVR trajectories intentionally preserve synthetic secret-bearing fixtures and detailed traces for independent verification; public reports omit those contents, and raw artifacts still require review and controlled handling before publication.
+  - id: LIM-027
+    limitation: A representative episode in the RC6 report is an illustrative recorded trace, not a prevalence estimate or a causal explanation of model behavior.
+  - id: LIM-028
+    limitation: Denied or not-called episode counts measure deterministic enforcement activity under the tested scenarios; they are not protected-violation rates and not model safety scores.
+  - id: LIM-029
+    limitation: RC6 verifies the RC5 manifest, checkpoint and recorded artifact hashes but does not establish portable cryptographic identity for the multi-gigabyte GGUF model files or the external LM Studio runtime binary.

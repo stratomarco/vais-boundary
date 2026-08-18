@@ -1,0 +1,72 @@
+{
+  "audit": "lmstudio_reasoning_control_hardening",
+  "audit_date": "2026-08-17",
+  "bounded_claim": "The RC2 Qwen3-0.6B preflight was configuration-nonconforming because reasoning was observed after a reasoning-off request. A minimal same-runtime probe observed zero reasoning with reasoning_effort=none. This supports the RC3 adapter correction for the tested runtime/model only; it does not prove universal control compatibility or model security.",
+  "direct_runtime_probes": {
+    "no_think_prompt": {
+      "reasoning_chars": 0,
+      "reasoning_tokens": 0,
+      "result": "accepted",
+      "use_in_benchmark": "rejected_prompt_mutation"
+    },
+    "reasoning_effort_none": {
+      "reasoning_chars": 0,
+      "reasoning_tokens": 0,
+      "result": "accepted"
+    },
+    "reasoning_effort_off": {
+      "http_status": 400,
+      "result": "rejected"
+    }
+  },
+  "framework_version": "0.12.0rc3",
+  "lmstudio_cli_commit": "71bd99c",
+  "material_decisions": [
+    "DEC-019"
+  ],
+  "material_findings": [
+    "FIND-025"
+  ],
+  "material_limitations": [
+    "LIM-019"
+  ],
+  "rc2_failed_preflight": {
+    "adaptive_episodes": 1,
+    "artifact_sha256": {
+      "jsonl": "10a603f68300c524a351b2e72f088f73f123dd2ebc4c99d278265932cd39b042",
+      "rlvr_jsonl": "60406b74f1b3db8ff7a66b45e993814d97ce04c83a064cbeac6369cb010caecd",
+      "summary": "0b44bf668de9ea2621f7d46c1cdce4c556ddb0117e97f5ab1f854f9382911950"
+    },
+    "configuration_status": "nonconforming",
+    "context_length": 8192,
+    "evaluable_episodes": 1,
+    "model": "qwen/qwen3-0.6b",
+    "protected_invariant_violations": 0,
+    "protected_workflow_utility_successes": 0,
+    "quantization": "Q4_K_M",
+    "reasoning_generations": 6,
+    "reasoning_tokens": 2043,
+    "requested_reasoning_mode": "off",
+    "target_failures": 0
+  },
+  "rc3_change": {
+    "independent_post_generation_conformance_gate_retained": true,
+    "lmstudio_disable_payload": {
+      "reasoning_effort": "none"
+    },
+    "prompt_mutation_used": false
+  },
+  "runtime_catalog_observation": {
+    "reasoning_allowed_options": [
+      "off",
+      "on"
+    ],
+    "reasoning_default": "on"
+  },
+  "security_semantics": {
+    "independent_effect_verification_changed": false,
+    "reference_monitor_semantics_changed": false,
+    "security_decision_ai_powered": false,
+    "terminal_security_reward_semantics_changed": false
+  }
+}

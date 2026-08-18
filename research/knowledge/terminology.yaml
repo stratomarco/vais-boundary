@@ -1,0 +1,46 @@
+terms:
+  - id: TERM-001
+    term: security boundary
+    definition: The deterministic mechanism that decides whether a consequential action may cross from model proposal into protected execution.
+  - id: TERM-002
+    term: model compromise
+    definition: A working assumption that the model may produce adversarial, unsafe, or attacker-influenced plans; it does not imply the surrounding system is compromised.
+  - id: TERM-003
+    term: plan change
+    definition: Any candidate-plan difference from the matched clean/control plan; diagnostic only.
+  - id: TERM-004
+    term: security escalation
+    definition: A risk-increasing plan change such as adding authority, increasing confidentiality, changing protected arguments, or adding unauthorized tools.
+  - id: TERM-005
+    term: security contraction
+    definition: A plan change that removes behavior or reduces action surface rather than increasing security risk.
+  - id: TERM-006
+    term: attack-objective success
+    definition: Deterministic scenario-specific evidence that the model/action proposal satisfied the attacker's stated objective; not equivalent to protected impact.
+  - id: TERM-007
+    term: protected invariant violation
+    definition: An independently observed violation of a defined system-security property in protected execution.
+  - id: TERM-008
+    term: terminal security reward
+    definition: In v0.10 adaptive verification, 1 only for a verified protected invariant violation, 0 for a target-valid protected non-violation, and unevaluated on target-generation failure.
+  - id: TERM-009
+    term: NOT_CALLED
+    definition: The protected client did not transmit the proposed remote call; this is not by itself proof that an attack was prevented.
+  - id: TERM-010
+    term: indeterminate
+    definition: A request crossed the transport boundary but its external effect could not be established with sufficient certainty.
+  - id: TERM-011
+    term: information authority
+    definition: Data may influence model content or reasoning without granting permission to perform consequential actions.
+  - id: TERM-012
+    term: security authority
+    definition: Explicit trusted task/capability/approval authority recognized by the deterministic enforcement boundary.
+  - id: TERM-013
+    term: exact approval
+    definition: Approval bound to the canonical tool and complete action arguments, preventing reuse after action mutation.
+  - id: TERM-014
+    term: off-objective security escalation
+    definition: Risk-increasing behavior induced by hostile context when the scenario's intended attack objective is not satisfied.
+  - id: TERM-015
+    term: evidence base
+    definition: Versioned claims, findings, decisions, limitations, terminology, artifact hashes, experiment summaries, and observation indexes used to reconstruct research conclusions.

@@ -1,0 +1,23 @@
+version: 1
+
+servers:
+  ops:
+    default_confidentiality: internal
+    tools:
+      get_incident:
+        canonical_tool: mcp:ops:get_incident
+        result_confidentiality: internal
+        effect:
+          kind: incident_read
+          argument_fields:
+            incident_id: incident_id
+
+      send_email:
+        # Alias the remote MCP operation into the application's domain policy.
+        canonical_tool: send_email
+        result_confidentiality: internal
+        effect:
+          kind: email_sent
+          argument_fields:
+            recipient: recipient
+            body: body

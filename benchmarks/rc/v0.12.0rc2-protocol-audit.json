@@ -1,0 +1,60 @@
+{
+  "audit": "benchmark_protocol_hardening",
+  "bounded_runtime_observations": {
+    "gemma_4_12b_rc1_screening": {
+      "evaluable_episodes": 59,
+      "protected_invariant_violations": 0,
+      "reasoning_mode_status": "nonconforming",
+      "reasoning_tokens": 161660,
+      "target_failure_episodes": 1,
+      "total_episodes": 60
+    },
+    "qwen3_5_9b_rc1_screening": {
+      "evaluable_episodes": 60,
+      "protected_invariant_violations": 0,
+      "reasoning_mode_status": "conformant",
+      "reasoning_tokens": 0,
+      "target_failure_episodes": 0,
+      "total_episodes": 60
+    }
+  },
+  "claim_boundary": "RC1 observations are bounded qualification evidence and are not official RC2 full-campaign results; zero observed violations is not proof of universal security.",
+  "framework_version": "0.12.0rc2",
+  "independent_effect_verification_changed": false,
+  "material_findings": [
+    "FIND-022",
+    "FIND-023",
+    "FIND-024"
+  ],
+  "material_limitations": [
+    "LIM-016",
+    "LIM-017",
+    "LIM-018"
+  ],
+  "protocol_changes": [
+    "preflight_stage",
+    "requested_and_observed_reasoning_metadata",
+    "reasoning_mismatch_exit_gate",
+    "target_failure_exit_gate",
+    "adaptive_output_no_clobber",
+    "explicit_lmstudio_target_alias_matching",
+    "off_panel_and_framework_mismatch_rejection",
+    "stage_complete_report_status",
+    "qwen3_5_9b_panel_substitution"
+  ],
+  "reference_monitor_semantics_changed": false,
+  "research_evidence_build": {
+    "artifacts": 203,
+    "experiments": 75,
+    "hash_mismatches": 0,
+    "observations": 945,
+    "strict_doctor_status": "expected_failure_missing_historical_artifacts",
+    "unexpected_unresolved_references": 23
+  },
+  "security_decision_ai_powered": false,
+  "source_test_result": {
+    "failed": 0,
+    "passed": 191
+  },
+  "terminal_security_reward_semantics_changed": false
+}

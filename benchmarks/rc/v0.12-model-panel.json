@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "framework_version": "0.12.0rc6",
+  "selection_date": "2026-08-16",
+  "selection_policy": "Diverse locally runnable instruction-model panel; popularity informs selection but family diversity and 16 GB VRAM feasibility override a literal download ranking.",
+  "hardware": {"gpu": "NVIDIA RTX 4080 Super", "vram_gb": 16},
+  "runtime": {"context_length": 8192, "gpu": "max", "parallel": 1},
+  "claim_boundary": "Bounded to the recorded model keys, Q4_K_M quantizations, LM Studio runtime, RTX 4080 Super 16 GB configuration, twenty scenarios and staged episode budgets; zero observed violations is not proof of universal security.",
+  "run_order": ["qwen3-0.6b", "llama-3.2-1b-instruct", "gemma-3-1b-it", "lfm2.5-1.2b-instruct", "smollm3-3b", "phi-4-mini-instruct", "qwen3-4b-instruct", "mistral-7b-instruct", "qwen2.5-7b-instruct", "llama-3.1-8b-instruct", "granite-4.1-8b", "deepseek-r1-distill-llama-8b", "qwen3.5-9b", "gemma-4-12b", "phi-4"],
+  "stages": {
+    "preflight": {"episodes": 1, "scenarios": ["attack-01"]},
+    "qualification": {"episodes": 2, "scenarios": ["attack-03", "attack-09", "attack-14"]},
+    "screening": {"episodes": 3, "scenarios": "all_20"},
+    "full": {"episodes": 12, "scenarios": "all_20"}
+  },
+  "models": [
+    {"id":"qwen3-0.6b","family":"Qwen","hf_repo":"Qwen/Qwen3-0.6B","local_model_key":"qwen3-0.6b","lmstudio_model":"qwen/qwen3-0.6b","quantization":"Q4_K_M","parameter_class":"0.6B","role":"capability floor","truncation_retry_tokens":4096},
+    {"id":"qwen3-4b-instruct","family":"Qwen","hf_repo":"Qwen/Qwen3-4B-Instruct-2507","local_model_key":"qwen/qwen3-4b-2507","lmstudio_model":"qwen/qwen3-4b-instruct-2507","quantization":"Q4_K_M","parameter_class":"4B","role":"current midrange","truncation_retry_tokens":4096},
+    {"id":"qwen2.5-7b-instruct","family":"Qwen","hf_repo":"Qwen/Qwen2.5-7B-Instruct","local_model_key":"qwen2.5-7b-instruct","lmstudio_model":"qwen/qwen2.5-7b-instruct","quantization":"Q4_K_M","parameter_class":"7B","role":"established baseline","truncation_retry_tokens":4096},
+    {"id":"qwen3.5-9b","family":"Qwen","hf_repo":"Qwen/Qwen3.5-9B","local_model_key":"qwen/qwen3.5-9b","lmstudio_model":"qwen/qwen3.5-9b","quantization":"Q4_K_M","parameter_class":"9B","role":"current larger baseline","truncation_retry_tokens":4096},
+    {"id":"llama-3.2-1b-instruct","family":"Meta","hf_repo":"meta-llama/Llama-3.2-1B-Instruct","local_model_key":"llama-3.2-1b-instruct","lmstudio_model":"meta-llama/llama-3.2-1b-instruct","quantization":"Q4_K_M","parameter_class":"1B","role":"small-family comparison","truncation_retry_tokens":4096},
+    {"id":"llama-3.1-8b-instruct","family":"Meta","hf_repo":"meta-llama/Llama-3.1-8B-Instruct","local_model_key":"meta-llama-3.1-8b-instruct","lmstudio_model":"meta-llama/llama-3.1-8b-instruct","quantization":"Q4_K_M","parameter_class":"8B","role":"popular baseline","truncation_retry_tokens":4096},
+    {"id":"gemma-3-1b-it","family":"Google","hf_repo":"google/gemma-3-1b-it","local_model_key":"gemma-3-1b-it","lmstudio_model":"google/gemma-3-1b-it","quantization":"Q4_K_M","parameter_class":"1B","role":"small Gemma","truncation_retry_tokens":4096},
+    {"id":"gemma-4-12b","family":"Google","hf_repo":"google/gemma-4-12b","local_model_key":"google/gemma-4-12b","lmstudio_model":"google/gemma-4-12b","quantization":"Q4_K_M","parameter_class":"12B","role":"VAIS continuity","truncation_retry_tokens":4096},
+    {"id":"phi-4-mini-instruct","family":"Microsoft","hf_repo":"microsoft/Phi-4-mini-instruct","local_model_key":"phi-4-mini-instruct","lmstudio_model":"microsoft/phi-4-mini-instruct","quantization":"Q4_K_M","parameter_class":"3B","role":"compact instruction","truncation_retry_tokens":4096},
+    {"id":"phi-4","family":"Microsoft","hf_repo":"microsoft/phi-4","local_model_key":"phi-4","lmstudio_model":"microsoft/phi-4","quantization":"Q4_K_M","parameter_class":"15B","role":"upper hardware boundary","truncation_retry_tokens":4096},
+    {"id":"mistral-7b-instruct","family":"Mistral","hf_repo":"mistralai/Mistral-7B-Instruct-v0.3","local_model_key":"mistral-7b-instruct-v0.3","lmstudio_model":"mistralai/mistral-7b-instruct-v0.3","quantization":"Q4_K_M","parameter_class":"7B","role":"independent family","truncation_retry_tokens":4096},
+    {"id":"granite-4.1-8b","family":"IBM","hf_repo":"ibm-granite/granite-4.1-8b","local_model_key":"granite-4.1-8b","lmstudio_model":"ibm-granite/granite-4.1-8b","quantization":"Q4_K_M","parameter_class":"8B","role":"enterprise-oriented","truncation_retry_tokens":4096},
+    {"id":"deepseek-r1-distill-llama-8b","family":"DeepSeek","hf_repo":"deepseek-ai/DeepSeek-R1-Distill-Llama-8B","local_model_key":"deepseek-r1-distill-llama-8b","lmstudio_model":"deepseek/deepseek-r1-distill-llama-8b","quantization":"Q4_K_M","parameter_class":"8B","role":"distilled reasoning","truncation_retry_tokens":4096},
+    {"id":"smollm3-3b","family":"Hugging Face","hf_repo":"HuggingFaceTB/SmolLM3-3B","local_model_key":"smollm3-3b","lmstudio_model":"huggingfacetb/smollm3-3b","quantization":"Q4_K_M","parameter_class":"3B","role":"compact open model","truncation_retry_tokens":4096},
+    {"id":"lfm2.5-1.2b-instruct","family":"Liquid AI","hf_repo":"LiquidAI/LFM2.5-1.2B-Instruct","local_model_key":"lfm2.5-1.2b-instruct","lmstudio_model":"liquidai/lfm2.5-1.2b-instruct","quantization":"Q4_K_M","parameter_class":"1.2B","role":"architecture diversity","truncation_retry_tokens":4096}
+  ]
+}

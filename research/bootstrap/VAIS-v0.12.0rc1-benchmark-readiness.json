@@ -1,0 +1,19 @@
+{
+  "artifact_type": "rc_benchmark_readiness",
+  "framework_version": "0.12.0rc1",
+  "panel_models": 15,
+  "panel_families": 9,
+  "qwen_models": 4,
+  "hardware_boundary": "NVIDIA RTX 4080 Super 16 GB",
+  "campaign_results_present": false,
+  "report_rows": "pending",
+  "source_tests": {"collected": 183, "passed": 183, "failed": 0},
+  "claim": "Benchmark and reporting infrastructure readiness only; no cross-model empirical result is claimed before campaigns run.",
+  "evidence": [
+    "benchmarks/rc/v0.12-model-panel.json",
+    "benchmarks/rc/report/executive-summary.md",
+    "benchmarks/rc/report/technical-report.md",
+    "benchmarks/rc/report/benchmark-table.svg",
+    "tests/test_rc_benchmark.py"
+  ]
+}

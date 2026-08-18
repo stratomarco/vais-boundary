@@ -1,0 +1,70 @@
+hypotheses:
+  - id: HYP-001
+    status: open
+    hypothesis: Feedback-guided adaptive search exposes more attack-added security behavior or attack-objective success than fixed-seed mutation search under the same seeds, mutation operators, target model, and episode budget.
+    rationale: The v0.10 Qwen adaptive run produced all 18 attack-objective successes after the initial exploration prefix, but the current experiment does not isolate feedback from mutation composition.
+    evidence:
+      - qwen35-adaptive-v010.jsonl
+    test_plan:
+      version: "0.10.1"
+      comparison: adaptive_vs_fixed
+      constraints:
+        - same target model
+        - same scenario seeds
+        - same mutation operators
+        - same episode budget
+        - same protected reference system
+    limitations:
+      - The existing v0.10 adaptive run alone cannot establish causal benefit from feedback.
+
+  - id: HYP-002
+    status: open
+    hypothesis: A model-generated attacker can discover protected invariant violations or materially different attack strategies that deterministic mutation search does not discover under a comparable budget.
+    rationale: v0.10 supports an optional LM Studio attacker, but the first real-model evaluation intentionally used the deterministic attacker to isolate adaptive search from a second stochastic model.
+    evidence:
+      - docs/v0.10-adaptive-verification.md
+    test_plan:
+      version: future
+      comparison: deterministic_attacker_vs_model_attacker
+    limitations:
+      - A model attacker introduces additional stochasticity, cost, and target/attacker interaction effects.
+
+  - id: HYP-003
+    status: open
+    hypothesis: Direct attacks on the VAIS trusted computing base may reveal protected violation classes that workload-level prompt-injection and agent-task attacks do not expose.
+    rationale: The current adaptive campaigns attack model-mediated workflows while the policy engine, canonicalization, identity/capability binding, approval logic, mediation, and effect observation remain trusted.
+    evidence:
+      - research/knowledge/limitations.yaml
+      - CHANGELOG.md
+    test_plan:
+      version: "0.11.0"
+      focus:
+        - canonicalization
+        - TOCTOU and concurrency
+        - approval replay and persistence
+        - identity and capability binding
+        - transport ambiguity and reconnects
+        - cross-session and cross-tenant isolation
+        - audit integrity and crash recovery
+
+  - id: HYP-004
+    status: supported_in_reference_system
+    hypothesis: Explicit delegation constraints can prevent an agent from manufacturing authority merely because a delegated component technically possesses broader capabilities.
+    rationale: v0.9.3 normalized delegated authority and the tested reference workflows did not observe protected authority-provenance violations.
+    evidence:
+      - docs/v0.9.3-interface-normalization.md
+      - qwen35-reference-v093.jsonl
+      - gemma4-12b-reference-v093.jsonl
+    limitations:
+      - Supported only for the tested reference-agent implementation and scenarios; not a universal property of delegation systems.
+
+  - id: HYP-005
+    status: open
+    hypothesis: Context placement and prompt/tool-result structure explain the observed direct-context versus MCP-path susceptibility differences better than any intrinsic claim that MCP is safer.
+    rationale: Qwen and Gemma changed behavior substantially between direct-context and MCP-path benchmarks, while the transport mechanism itself does not guarantee model robustness.
+    evidence:
+      - qwen35-v080-mcp.jsonl
+      - gemma4-12b-v080-mcp.jsonl
+      - docs/v0.8.1-measurement-direction.md
+    limitations:
+      - Requires a controlled experiment that varies context placement while holding content, model settings, and task semantics constant.

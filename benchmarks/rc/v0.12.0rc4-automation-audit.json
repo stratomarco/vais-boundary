@@ -1,0 +1,66 @@
+{
+  "audit": "automated_rc_benchmark_orchestration",
+  "bounded_claim": "RC4 validates the frozen local LM Studio inventory, binds each staged run to one exact loaded key/identifier/quantization/context/parallel configuration, checkpoints artifact hashes, resumes without overwriting completed evidence, and renders contextual reports. This is bounded implementation and local dry-run evidence; official RC4 model-campaign results remain pending.",
+  "framework_version": "0.12.0rc4",
+  "interface": {
+    "dry_run": "vais benchmark --all --dry-run",
+    "run_or_resume": "vais benchmark --all"
+  },
+  "live_inventory_dry_run": {
+    "downloaded_panel_models_resolved": 15,
+    "expected_panel_models": 15,
+    "independent_cli_and_native_api_catalog_agreement": true,
+    "lmstudio_cli_commit": "71bd99c",
+    "model_loading_performed": false,
+    "quantization": "Q4_K_M",
+    "result": "passed"
+  },
+  "source_test_result": {
+    "passed": 204,
+    "failed": 0
+  },
+  "official_runtime_sources": [
+    "https://lmstudio.ai/docs/cli/local-models/load",
+    "https://lmstudio.ai/docs/developer/rest/list"
+  ],
+  "prototype_findings": [
+    {
+      "finding": "Path.with_suffix treated the dot in qwen3-0.6b as a filename suffix and collapsed distinct stage stems to qwen3-0.jsonl.",
+      "resolution": "Construct artifact extensions by appending to the complete canonical stem and retain a dotted-ID regression test."
+    },
+    {
+      "finding": "The first expanded SVG row covered the new contextual table headings.",
+      "resolution": "Separate header and row coordinates and verify the rendered SVG in a browser."
+    },
+    {
+      "finding": "The frozen panel described local Phi-4 Mini and Phi-4 artifacts as 4B and 14B while the installed LM Studio metadata reports 3B and 15B.",
+      "resolution": "Correct descriptive parameter classes to the observed local artifacts; model keys and Q4_K_M selections are unchanged."
+    }
+  ],
+  "reporting_contract": {
+    "composite_score": false,
+    "context_before_graph": true,
+    "explicit_numerators_and_denominators": true,
+    "html_external_scripts": false,
+    "separate_metrics": [
+      "protected_invariant_violations",
+      "protected_workflow_utility",
+      "attack_added_security_events",
+      "target_failures",
+      "reasoning_conformance"
+    ]
+  },
+  "runtime_contract": {
+    "context_length": 8192,
+    "gpu": "max",
+    "parallel": 1,
+    "post_stage_loaded_identity_reverification": true,
+    "pre_stage_loaded_identity_verification": true,
+    "single_loaded_llm_required": true
+  },
+  "security_semantics": {
+    "independent_effect_verifier_changed": false,
+    "reference_monitor_changed": false,
+    "terminal_security_reward_changed": false
+  }
+}

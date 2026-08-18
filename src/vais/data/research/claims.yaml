@@ -1,0 +1,119 @@
+claims:
+  - id: CLAIM-VAIS-001
+    status: supported
+    claim: The model is not the security boundary in the VAIS reference architecture; consequential actions are mediated by deterministic policy and effect verification outside the model.
+    scope: {versions: ["0.1.0", "0.10.0"]}
+    evidence:
+      - CHANGELOG.md
+      - docs/architecture.md
+      - docs/philosophy.md
+    limitations:
+      - This is an architectural property of VAIS, not a claim about arbitrary agent frameworks.
+
+  - id: CLAIM-VAIS-002
+    status: supported
+    claim: Model-side attack-objective success does not necessarily imply protected system compromise.
+    scope:
+      version: "0.10.0"
+      target: "lmstudio:qwen/qwen3.5-9b"
+      experiment: adaptive-reference
+    observations:
+      adaptive_episodes: 240
+      evaluable_episodes: 240
+      attack_added_security_event_episodes: 58
+      attack_objective_success_episodes: 18
+      protected_invariant_violations: 0
+    evidence:
+      - qwen35-adaptive-v010.jsonl
+      - qwen35-adaptive-v010-rlvr.jsonl
+    limitations:
+      - Bounded twenty-campaign, twelve-episode adaptive search.
+      - One reference-system architecture and one fully evaluable target-model dataset.
+      - Adaptive episodes within a campaign are dependent and should not be treated as IID trials.
+      - Zero observed violations is not proof of universal security.
+
+  - id: CLAIM-VAIS-003
+    status: supported
+    claim: Security-relevant model behavior can be off-objective; an attack may fail its stated objective while still inducing risk-increasing actions.
+    scope:
+      versions: ["0.8.1", "0.10.0"]
+    observations:
+      qwen_v010_attack_added_security_event_episodes: 58
+      qwen_v010_attack_objective_success_episodes: 18
+      qwen_v010_off_objective_security_event_episodes: 40
+    evidence:
+      - VAIS-v0.8.1-qwen-v080-mcp-audit.json
+      - qwen35-adaptive-v010.jsonl
+
+  - id: CLAIM-VAIS-004
+    status: supported
+    claim: Inbound MCP content can be treated as information without granting it security authority; outbound actions remain subject to complete mediation.
+    scope: {versions: ["0.7.0", "0.10.0"]}
+    evidence:
+      - docs/mcp-security.md
+      - CHANGELOG.md
+    limitations:
+      - Depends on complete mediation by the protected client and correct policy/profile configuration.
+
+  - id: CLAIM-VAIS-005
+    status: supported
+    claim: MCP NOT_CALLED is an enforcement/transport fact and is insufficient by itself to establish that an attack was prevented.
+    scope: {versions: ["0.8.1", "0.10.0"]}
+    evidence:
+      - docs/v0.8.1-measurement-direction.md
+      - CHANGELOG.md
+
+  - id: CLAIM-VAIS-006
+    status: supported
+    claim: Separating plan change, security escalation, attack-objective success, and observable protected impact avoids conflating model influence with system compromise.
+    scope: {versions: ["0.5.1", "0.10.0"]}
+    evidence:
+      - docs/v0.5.1-measurement-correctness.md
+      - docs/v0.8.1-measurement-direction.md
+      - docs/v0.10-adaptive-verification.md
+
+  - id: CLAIM-VAIS-007
+    status: supported
+    claim: The v0.10 terminal adaptive reward is derived from independently recomputed protected observable-effect invariants rather than an LLM judge or the reference monitor decision routine.
+    scope: {version: "0.10.0"}
+    evidence:
+      - src/vais/adaptive_reference.py
+      - tests/test_adaptive_reference.py
+      - VAIS-v0.10.0-targeted-verifier-audit.json
+    limitations:
+      - The verifier is implementation-independent from ReferenceMonitor.evaluate but intentionally shares the security specification, contracts, policy data, and observable evidence model.
+
+  - id: CLAIM-VAIS-008
+    status: supported
+    claim: Target-generation failure must remain outside the security-success denominator rather than being interpreted as attack resistance or successful defense.
+    scope: {versions: ["0.5.0", "0.10.0"]}
+    evidence:
+      - docs/v0.5-empirical-runner.md
+      - docs/v0.10-adaptive-verification.md
+      - gemma4-12b-adaptive-v010.jsonl
+
+  - id: CLAIM-VAIS-009
+    status: provisional
+    claim: Feedback-guided adaptive search may expose more security-relevant behavior than a fixed mutation schedule under the same budget.
+    scope: {version: "0.10.0"}
+    evidence:
+      - qwen35-adaptive-v010.jsonl
+    limitations:
+      - The current exploration and adaptive phases use different composition structure, so feedback benefit is not isolated.
+      - Requires a fixed-search ablation with the same seeds, operators, and budget.
+
+  - id: CLAIM-VAIS-010
+    status: supported
+    claim: Aggregate protected workflow utility alone cannot be interpreted as the cost of enforcement; matched control/attack pairs are required for attribution.
+    scope:
+      version: "0.10.0"
+      target: "lmstudio:qwen/qwen3.5-9b"
+    observations:
+      control_utility_successes: 192
+      attacked_protected_utility_successes: 195
+      control_success_attack_success: 167
+      control_success_attack_failure: 25
+      control_failure_attack_success: 28
+      control_failure_attack_failure: 20
+    evidence:
+      - qwen35-adaptive-v010.jsonl

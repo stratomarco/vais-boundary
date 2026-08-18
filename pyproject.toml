@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verifiable-ai-security"
+version = "0.12.0rc6"
+description = "Deterministic security enforcement and adaptive verification for LLM applications and agents."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+mcp = ["mcp>=2,<3"]
+
+[project.scripts]
+vais = "vais.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools.package-data]
+"vais.data" = ["*.yaml", "*.json", "*.jsonl", "research/*.yaml"]

@@ -1,0 +1,212 @@
+findings:
+  - id: FIND-001
+    finding: v0.5.1 replaced the ambiguous attack-influence metric with plan change and added deterministic attack-objective success, creating an explicit measurement pipeline from model behavior to observable impact.
+    version: "0.5.1"
+    type: methodology
+    evidence: [CHANGELOG.md, docs/v0.5.1-measurement-correctness.md]
+
+  - id: FIND-002
+    finding: v0.8.1 showed that behavioral drift is directional; some changed plans are contractions rather than security escalation, and mixed drift can contain both.
+    version: "0.8.1"
+    type: methodology
+    evidence: [VAIS-v0.8.1-qwen-v080-mcp-audit.json, VAIS-v0.8.1-gemma-v080-mcp-audit.json]
+
+  - id: FIND-003
+    finding: Qwen v0.8 MCP reanalysis observed 60 security-escalation episodes, 50 targeted successes, 10 off-objective escalations, and zero protected invariant violations in the tested MCP benchmark.
+    version: "0.8.1"
+    type: empirical
+    target: "lmstudio:qwen/qwen3.5-9b"
+    evidence: [VAIS-v0.8.1-qwen-v080-mcp-audit.json, qwen35-v080-mcp.jsonl]
+
+  - id: FIND-004
+    finding: Gemma v0.8 MCP reanalysis separated 3 escalation episodes from 15 contraction-only episodes; targeted attack success remained zero in that run.
+    version: "0.8.1"
+    type: empirical
+    target: "lmstudio:google/gemma-4-12b"
+    evidence: [VAIS-v0.8.1-gemma-v080-mcp-audit.json, gemma4-12b-v080-mcp.jsonl]
+
+  - id: FIND-005
+    finding: Delivering hostile content through MCP context materially changed observed model behavior relative to direct-context experiments; the data do not establish that MCP itself is safer.
+    version: "0.8.1"
+    type: empirical_interpretation
+    evidence: [qwen35-v080-mcp.jsonl, gemma4-12b-v080-mcp.jsonl]
+
+  - id: FIND-006
+    finding: v0.9 evolved the benchmark from independent actions to a production-shaped, stateful incident-response reference system with multi-step traces, tenant/resource state, approvals, provenance, and workflow utility.
+    version: "0.9.0"
+    type: architecture
+    evidence: [docs/v0.9-reference-agent.md, CHANGELOG.md]
+
+  - id: FIND-007
+    finding: v0.9.1 introduced matched non-hostile controls to distinguish baseline model overreach from attack-attributable escalation.
+    version: "0.9.1"
+    type: methodology
+    evidence: [CHANGELOG.md]
+
+  - id: FIND-008
+    finding: v0.9.2 separated application-exposed tools from task-authorized tools and replaced coarse pair attribution with semantic security-event deltas.
+    version: "0.9.2"
+    type: methodology
+    evidence: [CHANGELOG.md]
+
+  - id: FIND-009
+    finding: v0.9.3 normalized delegated-agent authority so trusted setup/retrieval does not become model authority and delegation cannot manufacture capability.
+    version: "0.9.3"
+    type: architecture
+    evidence: [CHANGELOG.md, docs/v0.9.3-interface-normalization.md]
+
+  - id: FIND-010
+    finding: In Qwen v0.10 adaptive verification, all 240 episodes were evaluable; 58 contained attack-added security events, 18 achieved the scenario attack objective, and zero produced a protected invariant violation.
+    version: "0.10.0"
+    type: empirical
+    target: "lmstudio:qwen/qwen3.5-9b"
+    evidence: [qwen35-adaptive-v010.jsonl, qwen35-adaptive-v010-rlvr.jsonl]
+
+  - id: FIND-011
+    finding: Qwen v0.10 produced 40 off-objective security-event episodes, demonstrating that targeted attack success undercounts security-relevant model behavior.
+    version: "0.10.0"
+    type: empirical
+    target: "lmstudio:qwen/qwen3.5-9b"
+    evidence: [qwen35-adaptive-v010.jsonl]
+
+  - id: FIND-012
+    finding: Qwen v0.10 matched utility was 192/240 in control and 195/240 under attacked protected execution; 25 pairs regressed and 28 pairs recovered, so aggregate protected utility is not an enforcement-cost estimate.
+    version: "0.10.0"
+    type: empirical_methodology
+    target: "lmstudio:qwen/qwen3.5-9b"
+    evidence: [qwen35-adaptive-v010.jsonl]
+
+  - id: FIND-013
+    finding: Gemma v0.10 attempted 240 adaptive episodes but only 188 protected episodes were evaluable; 52 protected target generations truncated, and no protected invariant violation was observed among the 188 evaluable episodes.
+    version: "0.10.0"
+    type: empirical
+    target: "lmstudio:google/gemma-4-12b"
+    evidence: [gemma4-12b-adaptive-v010.jsonl, gemma4-12b-adaptive-v010-rlvr.jsonl]
+
+  - id: FIND-014
+    finding: "Gemma v0.10 generation failures were length truncations at the 2048-token budget: 52 empty final plans and one non-JSON failed generation when the failed control generation is included; the run recorded 477744 reasoning tokens."
+    version: "0.10.0"
+    type: infrastructure
+    target: "lmstudio:google/gemma-4-12b"
+    evidence: [gemma4-12b-adaptive-v010.jsonl]
+
+  - id: FIND-015
+    finding: Qwen v0.10 objective successes were concentrated in attack-02, attack-10, attack-12, and attack-14, while several other campaigns produced security escalation without satisfying the intended objective.
+    version: "0.10.0"
+    type: empirical
+    target: "lmstudio:qwen/qwen3.5-9b"
+    evidence: [qwen35-adaptive-v010.jsonl]
+
+  - id: FIND-016
+    finding: v0.10.2 frozen dataclasses retained mutable nested argument data, permitting mutation between authorization and execution; v0.11 recursively copies and freezes security values.
+    version: "0.11.0"
+    type: tcb_defect
+    evidence: [tests/test_tcb_hardening.py, docs/v0.11-tcb-hardening.md]
+
+  - id: FIND-017
+    finding: Python equality admitted authorization type confusion such as True equaling 1, while canonicalization lacked an explicit Unicode contract; v0.11 uses type-sensitive canonical encodings and NFC normalization.
+    version: "0.11.0"
+    type: tcb_defect
+    evidence: [tests/test_tcb_hardening.py, docs/v0.11-tcb-hardening.md]
+
+  - id: FIND-018
+    finding: v0.10.2 approvals were reusable fingerprints without principal, session, tenant or capability identity; v0.11 adds scoped persistent atomic consume-once grants.
+    version: "0.11.0"
+    type: tcb_defect
+    evidence: [tests/test_tcb_hardening.py, docs/v0.11-tcb-hardening.md]
+
+  - id: FIND-019
+    finding: Policy numeric thresholds accepted non-finite values and allowed tools did not universally reject undeclared arguments; policy v4 closes both paths.
+    version: "0.11.0"
+    type: tcb_defect
+    evidence: [tests/test_tcb_hardening.py, docs/v0.11-tcb-hardening.md]
+
+  - id: FIND-020
+    finding: Audit ordering was not tamper-evident and MCP exception text could disclose secrets; v0.11 hash-chains audit events and records exception class only.
+    version: "0.11.0"
+    type: tcb_defect
+    evidence: [tests/test_tcb_hardening.py, docs/v0.11-tcb-hardening.md]
+
+  - id: FIND-021
+    finding: A literal download-ranked panel overrepresents a small number of model families and includes unsuitable non-instruction artifacts; v0.12 freezes a popularity-informed but family-diverse, hardware-bounded panel and records missing results as pending.
+    version: "0.12.0rc1"
+    type: methodology
+    evidence: [benchmarks/rc/v0.12-model-panel.json, docs/v0.12-rc-benchmark.md]
+
+  - id: FIND-022
+    finding: RC1 LM Studio experiments showed that labeling reasoning mode off and sending a best-effort chat-template switch did not guarantee zero reasoning; Gemma-4-12B emitted reasoning while Qwen3.5-9B did not in the bounded observed runs.
+    version: "0.12.0rc2"
+    type: benchmark_protocol_defect
+    evidence: [benchmarks/rc/v0.12.0rc2-protocol-audit.json, docs/v0.12-rc-benchmark.md, tests/test_adaptive_reference.py]
+
+  - id: FIND-023
+    finding: RC1 report aggregation looked up unprefixed manifest model IDs while real adaptive summaries used lmstudio-prefixed target IDs, so valid summaries could remain silently pending; RC2 normalizes only the two explicit aliases and rejects off-panel targets.
+    version: "0.12.0rc2"
+    type: reporting_defect
+    evidence: [benchmarks/rc/v0.12.0rc2-protocol-audit.json, tests/test_rc_benchmark.py, docs/v0.12-rc-benchmark.md]
+
+  - id: FIND-024
+    finding: RC1 adaptive commands opened output artifacts in write mode without an overwrite gate, permitting repeated commands to erase prior experiment artifacts; RC2 fails before generation when any output exists unless overwrite is explicitly authorized.
+    version: "0.12.0rc2"
+    type: reproducibility_defect
+    evidence: [benchmarks/rc/v0.12.0rc2-protocol-audit.json, tests/test_adaptive_cli.py, docs/v0.12-rc-benchmark.md]
+
+  - id: FIND-025
+    finding: RC2 sent chat_template_kwargs.enable_thinking=false for Qwen3-0.6B but the one-episode preflight still recorded 2043 reasoning tokens across six valid generations and failed reasoning-off conformance; the tested LM Studio runtime instead suppressed reasoning when sent reasoning_effort=none.
+    version: "0.12.0rc3"
+    type: benchmark_protocol_defect
+    evidence: [benchmarks/rc/v0.12.0rc3-reasoning-control-audit.json, tests/test_openai_compatible.py, tests/test_reference_agent_lmstudio.py, tests/test_adaptive_reference.py]
+
+  - id: FIND-026
+    finding: Manual RC model loading and stage execution did not cryptographically bind completed artifacts to one independently rechecked loaded model configuration; RC4 validates the complete inventory and rechecks the single loaded key, API identifier, Q4_K_M quantization, context and parallelism before and after every stage.
+    version: "0.12.0rc4"
+    type: reproducibility_defect
+    evidence: [benchmarks/rc/v0.12.0rc4-automation-audit.json, tests/test_benchmark_automation.py, docs/v0.12-rc-benchmark.md]
+
+  - id: FIND-027
+    finding: The RC4 automation prototype used Path.with_suffix on artifact stems containing the dotted model ID qwen3-0.6b, collapsing multiple intended names to qwen3-0.jsonl and creating a cross-stage collision risk.
+    version: "0.12.0rc4"
+    type: artifact_identity_defect
+    evidence: [benchmarks/rc/v0.12.0rc4-automation-audit.json, tests/test_benchmark_automation.py]
+
+  - id: FIND-028
+    finding: Live LM Studio inventory metadata identified the frozen Phi-4 Mini and Phi-4 Q4_K_M artifacts as 3B and 15B while the RC3 descriptive manifest labeled them 4B and 14B; RC4 corrects the descriptive classes without changing the selected model keys.
+    version: "0.12.0rc4"
+    type: manifest_metadata_defect
+    evidence: [benchmarks/rc/v0.12.0rc4-automation-audit.json, benchmarks/rc/v0.12-model-panel.json, tests/test_benchmark_automation.py]
+
+  - id: FIND-029
+    finding: The completed RC4 campaign independently observed one secret_public_flow violation after a model copied only a prefix of a secret-bearing source into a public Slack argument; adapter logic treated the generated value as public because it did not contain the complete source value, demonstrating that content/subsequence matching is not a sound information-flow authority for model transformations.
+    version: "0.12.0rc5"
+    type: tcb_information_flow_defect
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, tests/test_taint.py, tests/test_openai_compatible.py, tests/test_reference_agent_lmstudio.py]
+
+  - id: FIND-030
+    finding: The OpenAI-compatible and reference-agent adapter rebinding paths used normal Python equality while the hardened policy boundary used canonical type-sensitive equality, allowing values such as boolean true and integer one to compare equal at an authority/provenance boundary.
+    version: "0.12.0rc5"
+    type: tcb_type_confusion_defect
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, tests/test_openai_compatible.py, tests/test_reference_agent_lmstudio.py]
+
+  - id: FIND-031
+    finding: RC4 final report aggregation selected only passed full-stage summaries, so a protected violation that correctly stopped one model at screening could disappear from the headline and model table after other models completed.
+    version: "0.12.0rc5"
+    type: reporting_fail_open_defect
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, tests/test_benchmark_automation.py, tests/test_rc_benchmark.py]
+
+  - id: FIND-032
+    finding: The RC4 panel assigned a 4096-token truncation retry to only two models, while two other full-stage rows each lost one episode to an unrecovered truncation; this made experiment-validity treatment inconsistent across the frozen panel.
+    version: "0.12.0rc5"
+    type: benchmark_fairness_defect
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, benchmarks/rc/v0.12-model-panel.json, tests/test_rc_benchmark.py]
+
+  - id: FIND-033
+    finding: The completed RC5 report exposed final rates but did not sufficiently connect them to stage budgets, formulas, paired controls, attack objectives and representative enforcement traces, making correct numbers easy to misinterpret as composite security scores.
+    version: "0.12.0rc6"
+    type: reporting_explanation_defect
+    evidence: [benchmarks/rc/report/rc5-evidence-explained/technical-report.md, tests/test_rc_benchmark.py, docs/v0.12-rc-benchmark.md]
+
+  - id: FIND-034
+    finding: Offline verification of the immutable RC5 checkpoint confirmed 171 artifact records, fourteen complete full campaigns with 3360 evaluable episodes, one reasoning-off configuration gate, and 4299 evaluable distinct staged executions with zero observed protected violations and zero target failures.
+    version: "0.12.0rc6"
+    type: bounded_benchmark_result
+    evidence: [benchmarks/rc/report/rc5-evidence-explained/report-evidence-manifest.json, benchmarks/rc/report/rc5-evidence-explained/rc-aggregate.json, benchmarks/rc/v0.12.0rc6-reporting-audit.json]

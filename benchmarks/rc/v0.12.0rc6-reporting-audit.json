@@ -1,0 +1,36 @@
+{
+  "schema_version": "vais-rc6-reporting-audit-v1",
+  "renderer_version": "0.12.0rc6",
+  "evidence_version": "0.12.0rc5",
+  "date": "2026-08-19",
+  "change_class": "reporting_only",
+  "input_integrity": {
+    "status": "verified",
+    "checkpoint_sha256": "255e1337e89c215163207717caa3982dd82d3a44532472accb3ba8e3369737da",
+    "manifest_sha256": "2537eaaf794e84134aa7f69e501f7a65ca009bec77396d1059bf73ed8587a810",
+    "artifact_records_verified": 171
+  },
+  "bounded_result": {
+    "models_planned": 15,
+    "models_full": 14,
+    "models_gate_failed": 1,
+    "full_cohort_evaluable_episodes": 3360,
+    "full_cohort_protected_violations": 0,
+    "full_cohort_utility_successes": 2203,
+    "full_cohort_attack_added_security_event_episodes": 1226,
+    "all_stage_attempted_episodes": 4299,
+    "all_stage_evaluable_episodes": 4299,
+    "all_stage_protected_violations": 0,
+    "all_stage_target_failures": 0,
+    "configuration_gate": "deepseek-r1-distill-llama-8b reasoning-off nonconformance at preflight"
+  },
+  "reporting_controls": [
+    "evidence version and renderer version are separate",
+    "checkpoint, manifest and every recorded artifact are verified before rendering",
+    "public examples are deterministic and structurally sanitized",
+    "protected violations, utility, attack-added diagnostics and failures remain separate",
+    "no composite score and no AI judge"
+  ],
+  "security_semantics_changed": false,
+  "claim_boundary": "Zero observed protected violations is bounded evidence for the recorded executions, not proof of universal security. The gate-failed model has no inferred full-campaign score. Representative traces are illustrative, not prevalence estimates or causal explanations."
+}

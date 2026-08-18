@@ -1,0 +1,157 @@
+decisions:
+  - id: DEC-001
+    date: 2026-08-11
+    decision: Treat the model as an untrusted component rather than the security boundary.
+    rationale: Security authorization and effect constraints must remain enforceable under model compromise.
+    evidence: [docs/philosophy.md, CHANGELOG.md]
+
+  - id: DEC-002
+    date: 2026-08-11
+    decision: Keep VAIS security decisions deterministic and do not place an LLM judge in the authorization path.
+    rationale: Security properties should be reproducible, auditable, and independent of another stochastic model.
+    evidence: [docs/architecture.md, docs/security-invariants.md]
+
+  - id: DEC-003
+    date: 2026-08-11
+    decision: Separate behavior diagnostics from observable security impact.
+    rejected: [model refusal as security proof, attack influence as impact, plan drift as impact]
+    evidence: [docs/v0.5.1-measurement-correctness.md]
+
+  - id: DEC-004
+    date: 2026-08-11
+    decision: Treat inbound MCP data as non-authoritative information by default and mediate outbound MCP calls through VAIS.
+    evidence: [docs/mcp-security.md]
+
+  - id: DEC-005
+    date: 2026-08-12
+    decision: Treat NOT_CALLED only as evidence that a proposed call did not cross the protected boundary, not as proof of attack prevention.
+    evidence: [docs/v0.8.1-measurement-direction.md]
+
+  - id: DEC-006
+    date: 2026-08-12
+    decision: Use matched control workflows to attribute attack-added security behavior instead of assuming all attacked-run behavior is caused by the attack.
+    evidence: [CHANGELOG.md]
+
+  - id: DEC-007
+    date: 2026-08-12
+    decision: Separate application-exposed tools from task-authorized tools.
+    rationale: Technical availability must not imply task authority.
+    evidence: [CHANGELOG.md]
+
+  - id: DEC-008
+    date: 2026-08-12
+    decision: Use opaque trusted public-artifact IDs for declassification rather than allowing model-generated text to downgrade confidentiality.
+    evidence: [CHANGELOG.md]
+
+  - id: DEC-009
+    date: 2026-08-13
+    decision: Freeze v0.9.3 reference-system authorization semantics before adaptive verification.
+    rationale: Adaptive attack evaluation must not change the defense while measuring it.
+    evidence: [CHANGELOG.md]
+
+  - id: DEC-010
+    date: 2026-08-13
+    decision: Define terminal adaptive reward as 1 only for an independently observed protected invariant violation, 0 only for a target-valid protected non-violation, and unevaluated on target generation failure.
+    rejected: [LLM judge success, behavioral drift, attack-objective success, monitor DENY, MCP NOT_CALLED]
+    evidence: [docs/v0.10-adaptive-verification.md, CHANGELOG.md]
+
+  - id: DEC-011
+    date: 2026-08-13
+    decision: Do not expose internal reference-monitor policy reasons to the adaptive attacker feedback interface.
+    rationale: The attacker may observe outcome classes and verifier evidence without being given implementation-internal authorization rationale.
+    evidence: [CHANGELOG.md]
+
+  - id: DEC-012
+    date: 2026-08-13
+    decision: Make the research evidence base canonical in text/YAML/JSON and generate SQLite from those sources plus immutable experiment artifacts.
+    rationale: Git-reviewable evidence and decisions should remain authoritative; the database is a query/index layer, not the sole source of truth.
+
+  - id: DEC-013
+    date: 2026-08-13
+    decision: Distinguish historical artifact and experiment instances from content-addressed unique evidence when summarizing the research archive.
+    rationale: Historical version folders intentionally preserve copied artifacts for provenance; counting every copy as an independent experiment or observation would overstate the empirical evidence base.
+    evidence: [docs/v0.10.2-research-integrity.md]
+
+  - id: DEC-014
+    date: 2026-08-14
+    decision: Bind persistent exact approvals to action, principal, session, tenant and capability and consume them atomically once.
+    rationale: An action-only reusable fingerprint cannot distinguish legitimate reuse from cross-context replay.
+    evidence: [docs/v0.11-tcb-hardening.md, tests/test_tcb_hardening.py]
+
+  - id: DEC-015
+    date: 2026-08-14
+    decision: Treat an MCP exception after dispatch as an indeterminate effect and prohibit automatic retry without application-specific reconciliation.
+    rationale: A transport failure cannot establish whether the remote side effect occurred.
+    evidence: [docs/v0.11-tcb-hardening.md, tests/test_mcp.py]
+
+  - id: DEC-016
+    date: 2026-08-15
+    decision: Separate RC qualification, screening and full campaigns, and generate public graphics only from validated single-target summary artifacts.
+    rationale: Compatibility failures and missing runs must remain visible rather than becoming favorable security outcomes or inferred scores.
+    evidence: [docs/v0.12-rc-benchmark.md, tests/test_rc_benchmark.py]
+
+  - id: DEC-017
+    date: 2026-08-16
+    decision: Treat requested reasoning mode as experiment metadata and observed reasoning activity as the conformance evidence; a mismatch invalidates cohort comparability but is not a security reward or protected invariant violation.
+    rationale: Compatibility endpoints may accept or ignore model-specific reasoning controls, so configuration claims must be checked against recorded runtime behavior.
+    evidence: [docs/v0.12-rc-benchmark.md, tests/test_adaptive_reference.py, tests/test_rc_benchmark.py]
+
+  - id: DEC-018
+    date: 2026-08-16
+    decision: Replace Qwen3-8B with Qwen3.5-9B before official full campaigns while retaining exactly four Qwen entries.
+    rationale: Qwen3.5-9B is the locally available current larger Qwen candidate and passed bounded RC1 compatibility screening; making the substitution before RC2 campaign freeze avoids a silent off-panel replacement.
+    evidence: [benchmarks/rc/v0.12-model-panel.json, docs/v0.12-rc-benchmark.md]
+
+  - id: DEC-019
+    date: 2026-08-17
+    decision: Request LM Studio non-thinking inference with reasoning_effort=none and retain observed reasoning tokens and characters as the independent conformance gate.
+    rationale: The tested runtime accepted but ignored the legacy chat-template switch, accepted reasoning_effort=none with zero observed reasoning, and rejected reasoning_effort=off; prompt-level /no_think was rejected because it would mutate benchmark inputs.
+    evidence: [benchmarks/rc/v0.12.0rc3-reasoning-control-audit.json, tests/test_openai_compatible.py, tests/test_reference_agent_lmstudio.py, tests/test_adaptive_reference.py]
+
+  - id: DEC-020
+    date: 2026-08-17
+    decision: Automate the frozen RC panel with exact local inventory validation, single-model lifecycle control, before-and-after runtime identity checks, staged fail-closed gates, atomic checkpointing and SHA-256 artifact resume validation; never relabel RC3 outputs as RC4 evidence.
+    rationale: A convenient all-model command must reduce operator error without weakening model/configuration identity, evidence immutability, stage separation or version provenance.
+    evidence: [benchmarks/rc/v0.12.0rc4-automation-audit.json, tests/test_benchmark_automation.py, docs/v0.12-rc-benchmark.md]
+
+  - id: DEC-021
+    date: 2026-08-17
+    decision: Report protected violations, attacked-workflow utility, attack-added diagnostic events, target failures and reasoning conformance separately with explicit numerators and denominators; do not produce a composite benchmark score.
+    rationale: A single percentage would conceal whether a model preserved security, remained useful, failed generation or merely produced diagnostic drift, and would invite incorrect interpretations such as treating utility as security.
+    evidence: [benchmarks/rc/v0.12.0rc4-automation-audit.json, tests/test_rc_benchmark.py, docs/v0.12-rc-benchmark.md]
+
+  - id: DEC-022
+    date: 2026-08-18
+    decision: Attribute every non-exact model-generated value to all values visible to that generation and propagate their maximum confidentiality; permit lower confidentiality only through an explicit trusted declassifier.
+    rationale: A model can copy prefixes, paraphrase, encode, summarize or combine inputs, so neither content equality nor absence of a full substring match proves independent public origin.
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, src/vais/taint.py, tests/test_taint.py, tests/test_openai_compatible.py, tests/test_reference_agent_lmstudio.py]
+
+  - id: DEC-023
+    date: 2026-08-18
+    decision: Preserve each model's highest reached benchmark stage and compute safety-critical headline totals across every executed stage, including gate failures; label those totals as distinct staged executions rather than a ranking denominator.
+    rationale: Gate-triggering evidence must remain visible after the runner continues to later models, while readers must not compare unbalanced stage budgets as if they were one common cohort.
+    evidence: [benchmarks/rc/v0.12.0rc5-tcb-regression-audit.json, tests/test_benchmark_automation.py, tests/test_rc_benchmark.py, docs/v0.12-rc-benchmark.md]
+
+  - id: DEC-024
+    date: 2026-08-18
+    decision: Give all frozen panel models the same 4096-token truncation retry allowance and retain the first failed attempt in generation metadata.
+    rationale: A cross-model protocol should not grant recovery only to selected model families, and recovery must not erase evidence that a physical attempt truncated.
+    evidence: [benchmarks/rc/v0.12-model-panel.json, tests/test_rc_benchmark.py, docs/v0.12-rc-benchmark.md]
+
+  - id: DEC-025
+    date: 2026-08-19
+    decision: Permit offline benchmark rerendering only after fail-closed checkpoint, manifest and artifact verification, and report evidence_version separately from renderer_version.
+    rationale: Improving presentation must not relabel an old campaign, silently accept modified inputs or imply that a newer benchmark execution occurred.
+    evidence: [src/vais/rc_benchmark.py, tests/test_rc_benchmark.py, benchmarks/rc/report/rc5-evidence-explained/report-evidence-manifest.json]
+
+  - id: DEC-026
+    date: 2026-08-19
+    decision: Select representative report examples deterministically and structurally remove prompts, arguments, results, effect attributes, secret-bearing values and detailed invariant messages.
+    rationale: Public reports need enough trace structure to explain enforcement without reproducing sensitive fixtures or treating raw traces as publication-safe.
+    evidence: [src/vais/rc_benchmark.py, tests/test_rc_benchmark.py, benchmarks/rc/report/rc5-evidence-explained/technical-report.md]
+
+  - id: DEC-027
+    date: 2026-08-19
+    decision: Explain protected violations, utility and attack-added events with separate formulas, denominators and paired outcomes and retain the prohibition on a composite benchmark score.
+    rationale: The measures answer different questions; collapsing them would conceal configuration gates, target failures and the difference between diagnostic drift and verified protected impact.
+    evidence: [docs/v0.12-rc-benchmark.md, benchmarks/rc/report/rc5-evidence-explained/executive-summary.md, benchmarks/rc/report/rc5-evidence-explained/technical-report.md]

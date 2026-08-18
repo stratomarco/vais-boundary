@@ -1,0 +1,36 @@
+{
+  "version": "0.12.0rc6",
+  "release_class": "reporting_only",
+  "evidence_version": "0.12.0rc5",
+  "renderer_version": "0.12.0rc6",
+  "date": "2026-08-19",
+  "bounded_status": "The immutable RC5 checkpoint and 171 artifact records were verified before RC6 rendering. Fourteen models completed the balanced full cohort; one stopped at a reasoning-off configuration gate. Zero protected violations were observed in 4299 evaluable staged executions. This is bounded evidence, not proof of universal security.",
+  "validation": {
+    "source_tests": "214 passed",
+    "fresh_source_zip_tests": "214 passed",
+    "wheel_install": "passed in isolated Python 3.14 environment with PyYAML 6.0.3",
+    "wheel_offline_report": "verified 171 RC5 artifacts and rendered evidence 0.12.0rc5 with renderer 0.12.0rc6",
+    "html_visual_qa": "one-page, full report and full GitHub SVG inspected in browser",
+    "pdf_visual_qa": "all one-page and six technical-report pages rendered and inspected",
+    "pdf_text_metadata_qa": "passed; no JavaScript, encryption or synthetic-secret marker",
+    "report_examples": "structurally sanitized and regression tested",
+    "source_zip_deterministic": true,
+    "pdfs_deterministic": true,
+    "research_doctor": "0 hash mismatches; 23 unexpected unresolved historical portable-tree references remain"
+  },
+  "sha256": {
+    "VAIS-v0.12.0rc6-source.zip": "0ec9e72b89d05a01ec6414946d11902434a72aaa32439f622bbea3307d7352d9",
+    "verifiable_ai_security-0.12.0rc6-py3-none-any.whl": "e76bbc01a11d552c61bd30bf644fd7b2adbff94060ef0a8f47925997098f51d7",
+    "verifiable_ai_security-0.12.0rc6.tar.gz": "32a7229576919c048a615b5de20530d3aef6f232879511f601c7a956a28e06ef",
+    "VAIS-RC5-evidence-RC6-one-page-summary.pdf": "abb3d75320fbb08e3d4f1aca12d69705322173c0c42677bbe84095c6238c7d5a",
+    "VAIS-RC5-evidence-RC6-technical-report.pdf": "82131fed4a2fcc19bfd8ae4c5af5af20dfc36f90fce9caf02c88d9d085cbbb6e"
+  },
+  "unchanged_security_semantics": [
+    "authorization and policy",
+    "approval and identity binding",
+    "information-flow enforcement",
+    "MCP effect and retry semantics",
+    "independent effect verification",
+    "terminal security reward"
+  ]
+}

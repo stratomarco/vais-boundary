@@ -1,0 +1,24 @@
+include README.md
+include CHANGELOG.md
+include CITATION.md
+include CONTRIBUTING.md
+include SECURITY.md
+include LICENSING.md
+include LICENSE-DECISION.md
+include pyproject.toml
+recursive-include docs *.md
+recursive-include attackers *.md
+recursive-include examples *.py
+recursive-include policies *.yaml
+recursive-include invariants *.yaml
+recursive-include mcp *.yaml
+recursive-include benchmarks *.md *.json *.jsonl
+recursive-include benchmarks *.svg
+recursive-include benchmarks *.html
+recursive-include benchmarks *.ps1
+recursive-include output *.pdf
+recursive-include tools *.py
+recursive-include tests *.py
+recursive-include .github *.yml
+
+recursive-include research *.md *.yaml *.json *.jsonl

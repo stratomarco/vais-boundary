@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="958" viewBox="0 0 1500 958" role="img" aria-labelledby="title desc">
+<title id="title">VAIS release-candidate model benchmark</title>
+<desc id="desc">Cross-model benchmark table with bounded security and utility measurements.</desc>
+<rect width="100%" height="100%" fill="#08111f"/>
+<text x="42" y="52" fill="#f8fafc" font-family="Arial" font-size="30" font-weight="700">VAIS cross-model security benchmark</text>
+<text x="42" y="84" fill="#94a3b8" font-family="Arial" font-size="16">15 models · 9 families · Q4_K_M · 8,192 context · RTX 4080 Super 16 GB</text>
+<text x="42" y="118" fill="#cbd5e1" font-family="Arial" font-size="15">WHAT: 20 attack stories × 12 adaptive episodes = 240 attempted episodes per completed model.</text>
+<text x="42" y="146" fill="#cbd5e1" font-family="Arial" font-size="15">WHY: VAIS tests whether protected observable effects preserve invariants while the attacked workflow remains useful.</text>
+<text x="42" y="174" fill="#94a3b8" font-family="Arial" font-size="14">READ: each row shows its highest reached stage; VIOL. is independently verified violations/evaluable; UTILITY is successful workflows/evaluable.</text>
+<text x="42" y="198" fill="#64748b" font-family="Arial" font-size="13">No composite score. Attack-added events are diagnostic drift, not the terminal security reward. Every percentage shows its denominator.</text>
+<text x="42" y="224" fill="#64748b" font-family="Arial" font-size="13">MODEL</text><text x="360" y="224" fill="#64748b" font-family="Arial" font-size="13">FAMILY</text><text x="515" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">EVAL</text><text x="680" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">VIOL.</text><text x="875" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">UTILITY</text><text x="1070" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">ATTACK-ADDED</text><text x="1240" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">CONFIG</text><text x="1400" y="224" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="13">STATUS</text>
+<rect x="30" y="243" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="270" fill="#e2e8f0" font-family="Arial" font-size="15">qwen3-0.6b</text>
+<text x="360" y="270" fill="#cbd5e1" font-family="Arial" font-size="14">Qwen · full</text>
+<text x="515" y="270" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="270" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="270" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">120/240 (50.0%)</text>
+<text x="1070" y="270" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">37/240 (15.4%)</text>
+<text x="1240" y="270" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="270" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="285" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="312" fill="#e2e8f0" font-family="Arial" font-size="15">qwen3-4b-instruct</text>
+<text x="360" y="312" fill="#cbd5e1" font-family="Arial" font-size="14">Qwen · full</text>
+<text x="515" y="312" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="312" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="312" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">153/240 (63.7%)</text>
+<text x="1070" y="312" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">69/240 (28.7%)</text>
+<text x="1240" y="312" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="312" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="327" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="354" fill="#e2e8f0" font-family="Arial" font-size="15">qwen2.5-7b-instruct</text>
+<text x="360" y="354" fill="#cbd5e1" font-family="Arial" font-size="14">Qwen · screening</text>
+<text x="515" y="354" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">60</text>
+<text x="680" y="354" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">1/60 (1.7%)</text>
+<text x="875" y="354" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">42/60 (70.0%)</text>
+<text x="1070" y="354" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">16/60 (26.7%)</text>
+<text x="1240" y="354" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="354" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="12" font-weight="700">GATE_FAILED</text>
+<rect x="30" y="369" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="396" fill="#e2e8f0" font-family="Arial" font-size="15">qwen3.5-9b</text>
+<text x="360" y="396" fill="#cbd5e1" font-family="Arial" font-size="14">Qwen · full</text>
+<text x="515" y="396" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="396" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="396" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">195/240 (81.2%)</text>
+<text x="1070" y="396" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">58/240 (24.2%)</text>
+<text x="1240" y="396" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="396" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="411" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="438" fill="#e2e8f0" font-family="Arial" font-size="15">llama-3.2-1b-instruct</text>
+<text x="360" y="438" fill="#cbd5e1" font-family="Arial" font-size="14">Meta · full</text>
+<text x="515" y="438" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">239</text>
+<text x="680" y="438" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/239 (0.0%)</text>
+<text x="875" y="438" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">93/239 (38.9%)</text>
+<text x="1070" y="438" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">150/239 (62.8%)</text>
+<text x="1240" y="438" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="438" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="12" font-weight="700">GATE_FAILED</text>
+<rect x="30" y="453" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="480" fill="#e2e8f0" font-family="Arial" font-size="15">llama-3.1-8b-instruct</text>
+<text x="360" y="480" fill="#cbd5e1" font-family="Arial" font-size="14">Meta · full</text>
+<text x="515" y="480" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="480" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="480" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">189/240 (78.8%)</text>
+<text x="1070" y="480" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">122/240 (50.8%)</text>
+<text x="1240" y="480" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="480" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="495" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="522" fill="#e2e8f0" font-family="Arial" font-size="15">gemma-3-1b-it</text>
+<text x="360" y="522" fill="#cbd5e1" font-family="Arial" font-size="14">Google · full</text>
+<text x="515" y="522" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="522" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="522" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">127/240 (52.9%)</text>
+<text x="1070" y="522" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">47/240 (19.6%)</text>
+<text x="1240" y="522" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="522" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="537" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="564" fill="#e2e8f0" font-family="Arial" font-size="15">gemma-4-12b</text>
+<text x="360" y="564" fill="#cbd5e1" font-family="Arial" font-size="14">Google · full</text>
+<text x="515" y="564" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="564" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="564" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">218/240 (90.8%)</text>
+<text x="1070" y="564" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">11/240 (4.6%)</text>
+<text x="1240" y="564" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="564" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="579" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="606" fill="#e2e8f0" font-family="Arial" font-size="15">phi-4-mini-instruct</text>
+<text x="360" y="606" fill="#cbd5e1" font-family="Arial" font-size="14">Microsoft · full</text>
+<text x="515" y="606" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="606" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="606" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">182/240 (75.8%)</text>
+<text x="1070" y="606" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">113/240 (47.1%)</text>
+<text x="1240" y="606" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="606" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="621" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="648" fill="#e2e8f0" font-family="Arial" font-size="15">phi-4</text>
+<text x="360" y="648" fill="#cbd5e1" font-family="Arial" font-size="14">Microsoft · full</text>
+<text x="515" y="648" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="648" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="648" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">206/240 (85.8%)</text>
+<text x="1070" y="648" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">58/240 (24.2%)</text>
+<text x="1240" y="648" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="648" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="663" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="690" fill="#e2e8f0" font-family="Arial" font-size="15">mistral-7b-instruct</text>
+<text x="360" y="690" fill="#cbd5e1" font-family="Arial" font-size="14">Mistral · full</text>
+<text x="515" y="690" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="690" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="690" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">173/240 (72.1%)</text>
+<text x="1070" y="690" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">142/240 (59.2%)</text>
+<text x="1240" y="690" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="690" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="705" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="732" fill="#e2e8f0" font-family="Arial" font-size="15">granite-4.1-8b</text>
+<text x="360" y="732" fill="#cbd5e1" font-family="Arial" font-size="14">IBM · full</text>
+<text x="515" y="732" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="732" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="732" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">168/240 (70.0%)</text>
+<text x="1070" y="732" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">36/240 (15.0%)</text>
+<text x="1240" y="732" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="732" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<rect x="30" y="747" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="774" fill="#e2e8f0" font-family="Arial" font-size="15">deepseek-r1-distill-llama-8b</text>
+<text x="360" y="774" fill="#cbd5e1" font-family="Arial" font-size="14">DeepSeek · preflight</text>
+<text x="515" y="774" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">1</text>
+<text x="680" y="774" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/1 (0.0%)</text>
+<text x="875" y="774" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/1 (0.0%)</text>
+<text x="1070" y="774" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/1 (0.0%)</text>
+<text x="1240" y="774" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="13">MISMATCH</text>
+<text x="1400" y="774" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="12" font-weight="700">GATE_FAILED</text>
+<rect x="30" y="789" width="1440" height="38" rx="6" fill="#0b1728"/>
+<text x="42" y="816" fill="#e2e8f0" font-family="Arial" font-size="15">smollm3-3b</text>
+<text x="360" y="816" fill="#cbd5e1" font-family="Arial" font-size="14">Hugging Face · full</text>
+<text x="515" y="816" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">239</text>
+<text x="680" y="816" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/239 (0.0%)</text>
+<text x="875" y="816" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">142/239 (59.4%)</text>
+<text x="1070" y="816" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">146/239 (61.1%)</text>
+<text x="1240" y="816" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="816" text-anchor="middle" fill="#ef4444" font-family="Arial" font-size="12" font-weight="700">GATE_FAILED</text>
+<rect x="30" y="831" width="1440" height="38" rx="6" fill="#0f1d30"/>
+<text x="42" y="858" fill="#e2e8f0" font-family="Arial" font-size="15">lfm2.5-1.2b-instruct</text>
+<text x="360" y="858" fill="#cbd5e1" font-family="Arial" font-size="14">Liquid AI · full</text>
+<text x="515" y="858" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="15">240</text>
+<text x="680" y="858" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">0/240 (0.0%)</text>
+<text x="875" y="858" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">63/240 (26.2%)</text>
+<text x="1070" y="858" text-anchor="middle" fill="#cbd5e1" font-family="Arial" font-size="14">139/240 (57.9%)</text>
+<text x="1240" y="858" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="13">OK</text>
+<text x="1400" y="858" text-anchor="middle" fill="#22c55e" font-family="Arial" font-size="12" font-weight="700">COMPLETED</text>
+<text x="42" y="936" fill="#fb7185" font-family="Arial" font-size="13">ALERT: 1 protected violation(s) observed across all executed stages; inspect gate-failed rows.</text>
+</svg>
