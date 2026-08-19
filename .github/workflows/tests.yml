@@ -33,11 +33,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - run: python -m pip install --upgrade pip
-      - run: python -m pip wheel . --no-deps --wheel-dir dist
-      - name: Install built wheel
+
+      - name: Build wheel
+        run: python -m pip wheel . --no-deps --wheel-dir wheelhouse
+
+      - name: Install built wheel with dependencies
         run: |
-          python -m pip uninstall -y verifiable-ai-security || true
-          python -m pip install --no-deps dist/verifiable_ai_security-*.whl
-      - run: python -c "import vais; assert vais.__version__ == '0.5.0'; assert vais.load_default_policy().version == 2"
-      - run: vais version
+          python -m pip install --force-reinstall wheelhouse/verifiable_ai_security-*.whl
+          python -m pip check
+
+      - name: Verify installed package
+        run: |
+          python -c "from importlib.metadata import version; import vais; assert vais.__version__ == version('verifiable-ai-security'); policy = vais.load_default_policy(); assert policy.default_action == 'deny'; assert policy.tools"
+          vais version
