@@ -434,8 +434,29 @@ def validate_stage_summary(
         metrics.get("unique_target_generation_failures", 0)
     ):
         gates.append("target_failure")
-    if bool(metrics.get("reasoning_mode_mismatch")):
+    expected_reasoning_mode = str(model.get("reasoning_mode", "off"))
+    from .reasoning import reasoning_mode_mismatch
+
+    reasoning_observed = bool(
+        metrics.get("reasoning_observed")
+        or metrics.get("reasoning_tokens")
+        or metrics.get("reasoning_chars")
+    )
+    derived_reasoning_mismatch = reasoning_mode_mismatch(
+        expected_reasoning_mode, reasoning_observed
+    )
+    reported_reasoning_mismatch = bool(metrics.get("reasoning_mode_mismatch"))
+    if derived_reasoning_mismatch or reported_reasoning_mismatch:
         gates.append("reasoning_mode_mismatch")
+    if derived_reasoning_mismatch != reported_reasoning_mismatch:
+        gates.append("reasoning_conformance_derivation_mismatch")
+    if metrics.get("reasoning_mode_label") != expected_reasoning_mode:
+        gates.append("reasoning_mode_label_mismatch")
+    expected_disable = str(
+        model.get("reasoning_control", "adapter_request") == "adapter_request"
+    ).lower()
+    if metrics.get("disable_thinking_request") != expected_disable:
+        gates.append("reasoning_control_mismatch")
     if int(metrics.get("attacker_generation_failures", 0)):
         gates.append("attacker_generation_failure")
     if int(metrics.get("pair_delta_unavailable_episodes", 0)):
@@ -470,6 +491,8 @@ def _stage_argv(
 ) -> list[str]:
     config = manifest["stages"][stage]
     paths = _stage_paths(options.output_dir, model["id"], stage)
+    reasoning_mode = str(model.get("reasoning_mode", "off"))
+    reasoning_control = str(model.get("reasoning_control", "adapter_request"))
     argv = [
         sys.executable,
         "-m",
@@ -478,11 +501,13 @@ def _stage_argv(
         "--target-model",
         model["lmstudio_model"],
         "--target-reasoning-mode",
-        "off",
-        "--target-disable-thinking",
+        reasoning_mode,
         "--episodes",
         str(config["episodes"]),
     ]
+    if reasoning_control == "adapter_request":
+        insert_at = argv.index("--episodes")
+        argv.insert(insert_at, "--target-disable-thinking")
     if isinstance(config["scenarios"], list):
         for scenario in config["scenarios"]:
             argv.extend(("--scenario", scenario))
@@ -677,7 +702,12 @@ def run_benchmark_all(
                     code = (
                         2 if "protected_violation" in gates
                         else 4 if "target_failure" in gates or "unevaluable_episode" in gates
-                        else 5 if "reasoning_mode_mismatch" in gates
+                        else 5 if any(gate in gates for gate in (
+                            "reasoning_mode_mismatch",
+                            "reasoning_mode_label_mismatch",
+                            "reasoning_control_mismatch",
+                            "reasoning_conformance_derivation_mismatch",
+                        ))
                         else 7
                     )
                     exit_codes.append(code)
@@ -748,7 +778,12 @@ def run_benchmark_all(
                                 recovered_code = (
                                     2 if "protected_violation" in recovered_gates
                                     else 4 if "target_failure" in recovered_gates or "unevaluable_episode" in recovered_gates
-                                    else 5 if "reasoning_mode_mismatch" in recovered_gates
+                                    else 5 if any(gate in recovered_gates for gate in (
+                                        "reasoning_mode_mismatch",
+                                        "reasoning_mode_label_mismatch",
+                                        "reasoning_control_mismatch",
+                                        "reasoning_conformance_derivation_mismatch",
+                                    ))
                                     else 7
                                 )
                                 exit_codes.append(recovered_code)
@@ -782,6 +817,9 @@ def run_benchmark_all(
                         "protected_violation": 2,
                         "target_failure": 4,
                         "reasoning_mode_mismatch": 5,
+                        "reasoning_mode_label_mismatch": 5,
+                        "reasoning_control_mismatch": 5,
+                        "reasoning_conformance_derivation_mismatch": 5,
                     }
                     expected_nonzero = {expected_codes[g] for g in gates if g in expected_codes}
                     if code == 0 and gates:

@@ -35,7 +35,7 @@ def _inventory(manifest):
     ]
 
 
-def _metrics(episodes, campaigns):
+def _metrics(episodes, campaigns, model):
     return {
         "campaigns": campaigns,
         "episodes": episodes,
@@ -48,6 +48,12 @@ def _metrics(episodes, campaigns):
         "pair_delta_unavailable_episodes": 0,
         "reasoning_mode_mismatch": False,
         "reasoning_tokens": 0,
+        "reasoning_chars": 0,
+        "reasoning_observed": model.get("reasoning_mode", "off") == "on",
+        "reasoning_mode_label": model.get("reasoning_mode", "off"),
+        "disable_thinking_request": str(
+            model.get("reasoning_control", "adapter_request") == "adapter_request"
+        ).lower(),
         "protected_workflow_utility_successes": episodes,
         "protected_workflow_utility_rate": 1.0,
         "attack_added_security_event_episodes": 0,
@@ -68,7 +74,7 @@ def _write_summary(path, manifest, model, stage):
                 "framework_version": manifest["framework_version"],
                 "campaigns": {},
                 "by_target": {
-                    f"lmstudio:{model['lmstudio_model']}": _metrics(episodes, campaigns)
+                    f"lmstudio:{model['lmstudio_model']}": _metrics(episodes, campaigns, model)
                 },
             }
         ),
@@ -203,10 +209,72 @@ def test_stage_validation_rejects_reasoning_failures_and_incomplete_pairs(tmp_pa
     raw = json.loads(path.read_text(encoding="utf-8"))
     metrics = next(iter(raw["by_target"].values()))
     metrics["reasoning_mode_mismatch"] = True
+    metrics["reasoning_observed"] = True
+    metrics["reasoning_tokens"] = 1
     metrics["pair_delta_unavailable_episodes"] = 1
     path.write_text(json.dumps(raw), encoding="utf-8")
     _, gates = validate_stage_summary(manifest, model, "preflight", path)
     assert gates == ["reasoning_mode_mismatch", "pair_delta_unavailable"]
+
+
+def test_deepseek_uses_native_reasoning_profile_without_disable_request(tmp_path):
+    from vais.benchmark_automation import _stage_argv
+
+    manifest = load_rc_manifest(MANIFEST)
+    deepseek = next(
+        model for model in manifest["models"]
+        if model["id"] == "deepseek-r1-distill-llama-8b"
+    )
+    options = AutomationOptions(
+        output_dir=tmp_path / "results", report_dir=tmp_path / "report"
+    )
+    argv = _stage_argv(manifest, deepseek, "preflight", options)
+
+    assert argv[argv.index("--target-reasoning-mode") + 1] == "on"
+    assert "--target-disable-thinking" not in argv
+
+
+def test_stage_validation_binds_reasoning_label_and_control_to_manifest(tmp_path):
+    manifest = load_rc_manifest(MANIFEST)
+    model = next(
+        item for item in manifest["models"]
+        if item["id"] == "deepseek-r1-distill-llama-8b"
+    )
+    path = tmp_path / "summary.json"
+    _write_summary(path, manifest, model, "preflight")
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    metrics = next(iter(raw["by_target"].values()))
+    metrics["reasoning_mode_label"] = "off"
+    metrics["disable_thinking_request"] = "true"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+
+    _, gates = validate_stage_summary(manifest, model, "preflight", path)
+
+    assert gates == ["reasoning_mode_label_mismatch", "reasoning_control_mismatch"]
+
+
+def test_stage_validation_independently_derives_native_reasoning_conformance(tmp_path):
+    manifest = load_rc_manifest(MANIFEST)
+    model = next(
+        item for item in manifest["models"]
+        if item["id"] == "deepseek-r1-distill-llama-8b"
+    )
+    path = tmp_path / "summary.json"
+    _write_summary(path, manifest, model, "preflight")
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    metrics = next(iter(raw["by_target"].values()))
+    metrics["reasoning_observed"] = False
+    metrics["reasoning_tokens"] = 0
+    metrics["reasoning_chars"] = 0
+    metrics["reasoning_mode_mismatch"] = False
+    path.write_text(json.dumps(raw), encoding="utf-8")
+
+    _, gates = validate_stage_summary(manifest, model, "preflight", path)
+
+    assert gates == [
+        "reasoning_mode_mismatch",
+        "reasoning_conformance_derivation_mismatch",
+    ]
 
 
 def test_automation_runs_four_stages_and_resumes_without_overwrite(tmp_path):
@@ -439,7 +507,7 @@ def test_offline_report_verifies_checkpoint_artifacts_before_rendering(tmp_path)
         artifact_root=options.output_dir,
     )
     assert rendered["input_integrity"]["artifacts_verified"] == 12
-    assert rendered["evidence_version"] == "0.12.0rc6"
+    assert rendered["evidence_version"] == "0.12.0rc7"
     assert (tmp_path / "offline-report" / "report-evidence-manifest.json").is_file()
 
     summary = Path(state["models"][model["id"]]["stages"]["full"]["artifacts"]["summary"]["path"])

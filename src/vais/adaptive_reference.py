@@ -1351,7 +1351,9 @@ def summarize_adaptive_campaigns(campaigns: Iterable[AdaptiveCampaignResult]) ->
             generation_health["reasoning_tokens"]
             or generation_health["reasoning_chars"]
         )
-        reasoning_mode_mismatch = reasoning_mode_label == "off" and reasoning_observed
+        from .reasoning import reasoning_mode_mismatch
+
+        mode_mismatch = reasoning_mode_mismatch(reasoning_mode_label, reasoning_observed)
         summary["by_target"][target_id] = {
             "campaigns": len(target_campaigns),
             "episodes": len(target_episodes),
@@ -1377,7 +1379,7 @@ def summarize_adaptive_campaigns(campaigns: Iterable[AdaptiveCampaignResult]) ->
             "reasoning_chars": generation_health["reasoning_chars"],
             "reasoning_observed": reasoning_observed,
             "reasoning_mode_label": reasoning_mode_label,
-            "reasoning_mode_mismatch": reasoning_mode_mismatch,
+            "reasoning_mode_mismatch": mode_mismatch,
             "disable_thinking_request": target_metadata.get("disable_thinking_request"),
             "target_generation_health": generation_health,
             "attacker_generation_calls": len(attacker_generations),

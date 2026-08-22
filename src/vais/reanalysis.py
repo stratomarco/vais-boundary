@@ -145,10 +145,12 @@ def _reasoning_mode_audit(rows: list[dict[str, Any]]) -> dict[str, Any]:
                     isinstance(chars, (int, float)) and chars > 0
                 ):
                     reasoning_observed = True
+        from .reasoning import reasoning_mode_mismatch
+
         report[target_id] = {
             "reasoning_mode_label": label,
             "reasoning_observed": reasoning_observed,
-            "reasoning_mode_mismatch": label == "off" and reasoning_observed,
+            "reasoning_mode_mismatch": reasoning_mode_mismatch(label, reasoning_observed),
         }
     return report
 

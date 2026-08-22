@@ -1,4 +1,4 @@
-# VAIS 0.12.0rc6 screening campaign plan
+# VAIS 0.12.0rc7 screening campaign plan
 # Load one named model in LM Studio before running its command.
 
 vais adaptive-reference-lmstudio `
@@ -159,8 +159,7 @@ vais adaptive-reference-lmstudio `
 
 vais adaptive-reference-lmstudio `
   --target-model "deepseek/deepseek-r1-distill-llama-8b" `
-  --target-reasoning-mode off `
-  --target-disable-thinking `
+  --target-reasoning-mode on `
   --episodes 3 `
   --target-truncation-retry-tokens 4096 `
   --output .\results\rc\deepseek-r1-distill-llama-8b-screening.jsonl `

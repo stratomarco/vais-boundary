@@ -155,3 +155,9 @@ decisions:
     decision: Explain protected violations, utility and attack-added events with separate formulas, denominators and paired outcomes and retain the prohibition on a composite benchmark score.
     rationale: The measures answer different questions; collapsing them would conceal configuration gates, target failures and the difference between diagnostic drift and verified protected impact.
     evidence: [docs/v0.12-rc-benchmark.md, benchmarks/rc/report/rc5-evidence-explained/executive-summary.md, benchmarks/rc/report/rc5-evidence-explained/technical-report.md]
+
+  - id: DEC-028
+    date: 2026-08-19
+    decision: Keep the RC5 DeepSeek reasoning-off failure intact, then evaluate the model in RC7 as a separately labeled native-reasoning profile with observed reasoning required; bind every stage summary to its manifest reasoning label and control request and compare utility only within a reasoning profile.
+    rationale: The tested DeepSeek model/runtime exposes no off configuration, and every non-prompt compatibility control still emitted reasoning. Relabeling that output as off or weakening the gate would invalidate the experiment, while excluding the family would reduce panel diversity. A separate cohort preserves both evidence and interpretability.
+    evidence: [benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json, benchmarks/rc/v0.12-model-panel.json, tests/test_reasoning.py, tests/test_benchmark_automation.py]

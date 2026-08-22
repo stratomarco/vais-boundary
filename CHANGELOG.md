@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.0-rc7 - 2026-08-19
+
+- Replace the release-history-heavy front page with a concise project overview, bounded benchmark status, quick start, capability summary, limitations and documentation map.
+- Add `HOWTO.md` covering source/wheel installation, ASSESS/ENFORCE/VERIFY workflows, LM Studio operation, automated panel campaigns, outputs and troubleshooting.
+- Clarify the reasoning-conformance CLI help so the documented exit-code-5 gate covers both reasoning unexpectedly observed and required reasoning unexpectedly absent.
+- Investigate the RC5 DeepSeek-R1-Distill-Llama-8B reasoning gate against the archived summary, the live LM Studio model catalog, four OpenAI-compatible control variants and the native reasoning API.
+- Confirm that the tested model/runtime exposes no reasoning configuration: `reasoning_effort=none`, the legacy template switch, both controls and no control all emitted reasoning, while native `reasoning=off` returned HTTP 400.
+- Keep the RC5 failure immutable and introduce an explicit native-reasoning profile for DeepSeek; the fourteen remaining models stay in the reasoning-off comparison cohort.
+- Make reasoning conformance bidirectional: off requires no observed reasoning, while on/low/medium/high require observed reasoning. Auto and undeclared labels remain descriptive rather than enforced.
+- Bind stage evidence to the manifest reasoning label and control request so a mislabeled or wrongly controlled run fails closed before promotion.
+- Label reasoning profiles throughout generated plans and reports and prohibit direct utility comparison between reasoning-off and native-reasoning cohorts.
+- Record a bounded one-episode RC7 DeepSeek preflight with six valid target generations, 4,651 observed reasoning tokens, zero target failures and zero protected violations. This is compatibility evidence, not a full benchmark result.
+- Preserve enforcement, policy, information-flow, approval, MCP, independent-effect-verifier and terminal-reward semantics. A new full RC7 panel run is required before claiming a 15/15 completed benchmark.
+
 ## 0.12.0-rc6 - 2026-08-19
 
 - Add a fail-closed `vais benchmark-report` command that verifies the checkpoint schema, framework version, manifest hash, and every recorded artifact size and SHA-256 before rendering an existing run.

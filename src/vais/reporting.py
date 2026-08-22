@@ -322,10 +322,17 @@ def render_adaptive_reference_summary(summary: dict[str, Any]) -> str:
     ]
     for target_id, metrics in sorted(summary.get("by_target", {}).items()):
         reasoning_label = metrics.get("reasoning_mode_label") or "not-declared"
+        from .reasoning import reasoning_mode_status
+
+        reasoning_observed = bool(
+            metrics.get("reasoning_observed")
+            or metrics.get("reasoning_tokens")
+            or metrics.get("reasoning_chars")
+        )
         reasoning_status = (
             "NONCONFORMING"
             if metrics.get("reasoning_mode_mismatch")
-            else ("conformant" if reasoning_label == "off" else "not-enforced")
+            else reasoning_mode_status(metrics.get("reasoning_mode_label"), reasoning_observed)
         )
         lines.extend([
             f"Target: {target_id}",
@@ -415,6 +422,6 @@ def render_adaptive_reference_summary(summary: dict[str, Any]) -> str:
         "  zero observed protected violations is evidence for this bounded evaluation, not proof of universal security.",
         "",
         ("RESULT: at least one protected invariant violation was discovered." if discovered else "RESULT: no protected invariant violation was observed in the evaluated adaptive episodes."),
-        ("CONFIGURATION: NONCONFORMING reasoning activity was observed." if reasoning_mismatch else "CONFIGURATION: no declared reasoning-mode mismatch was observed."),
+        ("CONFIGURATION: NONCONFORMING declared reasoning mode." if reasoning_mismatch else "CONFIGURATION: no declared reasoning-mode mismatch was observed."),
     ])
     return "\n".join(lines)

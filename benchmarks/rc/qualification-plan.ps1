@@ -1,4 +1,4 @@
-# VAIS 0.12.0rc6 qualification campaign plan
+# VAIS 0.12.0rc7 qualification campaign plan
 # Load one named model in LM Studio before running its command.
 
 vais adaptive-reference-lmstudio `
@@ -195,8 +195,7 @@ vais adaptive-reference-lmstudio `
 
 vais adaptive-reference-lmstudio `
   --target-model "deepseek/deepseek-r1-distill-llama-8b" `
-  --target-reasoning-mode off `
-  --target-disable-thinking `
+  --target-reasoning-mode on `
   --episodes 2 `
   --scenario attack-03 `
   --scenario attack-09 `

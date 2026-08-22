@@ -320,7 +320,14 @@ def _parser() -> argparse.ArgumentParser:
     adaptive_lmstudio.add_argument("--overwrite", action="store_true", help="replace existing output artifacts")
     adaptive_lmstudio.add_argument("--fail-on-protected-violation", action="store_true", help="return exit code 2 if adaptive verification discovers a protected invariant violation")
     adaptive_lmstudio.add_argument("--fail-on-target-failure", action="store_true", help="return exit code 4 if any target generation makes an episode unevaluable")
-    adaptive_lmstudio.add_argument("--fail-on-reasoning-mode-mismatch", action="store_true", help="return exit code 5 when reasoning is observed for a target labeled reasoning_mode=off")
+    adaptive_lmstudio.add_argument(
+        "--fail-on-reasoning-mode-mismatch",
+        action="store_true",
+        help=(
+            "return exit code 5 when observed reasoning does not conform to the "
+            "declared target reasoning mode"
+        ),
+    )
 
     audit_results = subparsers.add_parser(
         "audit-results",
@@ -905,7 +912,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             metrics.get("reasoning_mode_mismatch")
             for metrics in summary["by_target"].values()
         ):
-            print("configuration regression: reasoning was observed for a target labeled reasoning_mode=off")
+            print("configuration regression: observed output contradicted the declared target reasoning mode")
             return 5
         return 0
 

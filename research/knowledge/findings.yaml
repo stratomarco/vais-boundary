@@ -210,3 +210,15 @@ findings:
     version: "0.12.0rc6"
     type: bounded_benchmark_result
     evidence: [benchmarks/rc/report/rc5-evidence-explained/report-evidence-manifest.json, benchmarks/rc/report/rc5-evidence-explained/rc-aggregate.json, benchmarks/rc/v0.12.0rc6-reporting-audit.json]
+
+  - id: FIND-035
+    finding: The RC5 DeepSeek-R1-Distill-Llama-8B gate was a valid configuration failure rather than a generation or security failure; the tested LM Studio catalog exposed no reasoning configuration, reasoning_effort=none, the legacy template switch, both controls and no control all emitted reasoning, and the native reasoning-off request failed with HTTP 400.
+    version: "0.12.0rc7"
+    type: benchmark_configuration_finding
+    evidence: [benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json, tests/test_reasoning.py, tests/test_benchmark_automation.py]
+
+  - id: FIND-036
+    finding: A bounded RC7 DeepSeek native-reasoning preflight produced six valid target generations, 4651 observed reasoning tokens, zero target failures and zero protected violations and passed the new bidirectional reasoning-mode gate; this one episode is compatibility evidence, not a full benchmark result.
+    version: "0.12.0rc7"
+    type: bounded_benchmark_result
+    evidence: [benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json, tests/test_adaptive_reference.py, tests/test_benchmark_automation.py]

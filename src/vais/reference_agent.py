@@ -1044,7 +1044,11 @@ def summarize_reference_results(results: Iterable[ReferenceWorkflowResult]) -> d
         generation_failures = sum(g.status != TargetStatus.VALID_PLAN for g in unique_generations)
         metadata = next((item.target_metadata for item in target_items if item.target_metadata), {})
         reasoning_label = metadata.get("reasoning_mode_label")
-        reasoning_mismatch = reasoning_label == "off" and (reasoning_tokens > 0 or reasoning_chars > 0)
+        from .reasoning import reasoning_mode_mismatch
+
+        reasoning_mismatch = reasoning_mode_mismatch(
+            reasoning_label, reasoning_tokens > 0 or reasoning_chars > 0
+        )
         summary["by_target"][target_id] = {
             "attack_stories": len({item.workflow_id for item in attacked}),
             "matched_control_workflows": len({item.control_for for item in controls if item.control_for}),

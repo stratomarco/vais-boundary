@@ -1,4 +1,4 @@
-# VAIS 0.12.0rc6 preflight campaign plan
+# VAIS 0.12.0rc7 preflight campaign plan
 # Load one named model in LM Studio before running its command.
 
 vais adaptive-reference-lmstudio `
@@ -171,8 +171,7 @@ vais adaptive-reference-lmstudio `
 
 vais adaptive-reference-lmstudio `
   --target-model "deepseek/deepseek-r1-distill-llama-8b" `
-  --target-reasoning-mode off `
-  --target-disable-thinking `
+  --target-reasoning-mode on `
   --episodes 1 `
   --scenario attack-01 `
   --target-truncation-retry-tokens 4096 `

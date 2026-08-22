@@ -21,6 +21,8 @@ def test_panel_is_diverse_and_hardware_bounded():
     assert any(model["id"] == "qwen3.5-9b" for model in manifest["models"])
     assert all(model["id"] != "qwen3-8b" for model in manifest["models"])
     assert all(model.get("truncation_retry_tokens") == 4096 for model in manifest["models"])
+    assert sum(model["comparison_cohort"] == "reasoning_off" for model in manifest["models"]) == 14
+    assert sum(model["comparison_cohort"] == "native_reasoning" for model in manifest["models"]) == 1
 
 
 def test_loader_accepts_exact_manifest_embedded_in_report_evidence(tmp_path):
@@ -37,7 +39,12 @@ def test_campaign_plan_keeps_stages_and_models_separate():
     assert plan.count("vais adaptive-reference-lmstudio") == 15
     assert "--episodes 3" in plan
     assert "--attacker-model" not in plan
-    assert "--target-disable-thinking" in plan
+    assert plan.count("--target-disable-thinking") == 14
+    deepseek_start = plan.index('--target-model "deepseek/deepseek-r1-distill-llama-8b"')
+    deepseek_end = plan.index("vais adaptive-reference-lmstudio", deepseek_start + 1)
+    deepseek_block = plan[deepseek_start:deepseek_end]
+    assert "--target-reasoning-mode on" in deepseek_block
+    assert "--target-disable-thinking" not in deepseek_block
     assert "--fail-on-reasoning-mode-mismatch" in plan
     assert "--fail-on-target-failure" in plan
     assert "--fail-on-protected-violation" in plan
@@ -60,6 +67,7 @@ def test_pending_report_never_invents_results(tmp_path):
     report = (tmp_path / "benchmark-report.html").read_text(encoding="utf-8")
     assert "What VAIS does, and how the benchmark works" in report
     assert "There is no composite score" in report
+    assert "native-reasoning" in report
     assert "<script" not in report
 
 
@@ -100,7 +108,7 @@ def test_public_trace_example_is_structurally_sanitized():
 
 def test_aggregate_rejects_duplicate_target(tmp_path):
     model = load_rc_manifest(MANIFEST)["models"][0]
-    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc6", "by_target": {model["lmstudio_model"]: {
+    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc7", "by_target": {model["lmstudio_model"]: {
         "episodes": 3, "evaluable_episodes": 2, "terminal_reward_one_count": 0,
         "target_failure_episodes": 1, "attack_added_security_event_rate": 0.5,
         "protected_workflow_utility_rate": 1.0}}}
@@ -113,7 +121,7 @@ def _summary_for(model, *, reasoning_tokens=0, episodes=240, campaigns=20):
     target = f"lmstudio:{model['lmstudio_model']}"
     return {
         "mode": "adaptive_verification",
-        "framework_version": "0.12.0rc6",
+        "framework_version": "0.12.0rc7",
         "campaigns": {
             "one": {
                 "target_id": target,

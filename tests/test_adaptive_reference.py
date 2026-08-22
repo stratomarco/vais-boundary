@@ -129,6 +129,29 @@ def test_adaptive_summary_marks_reasoning_off_mismatch():
     assert metrics["reasoning_mode_mismatch"] is True
 
 
+def test_adaptive_summary_requires_observed_reasoning_when_mode_is_on():
+    class SilentReasoningTarget(PatternAdaptiveReferenceTarget):
+        def metadata(self):
+            return {
+                "adapter": "test",
+                "reasoning_mode_label": "on",
+                "disable_thinking_request": "false",
+            }
+
+    workflow = selected_attack_workflows(["attack-03"])[0]
+    campaign = asyncio.run(
+        AdaptiveReferenceVerifier(
+            config=AdaptiveVerifierConfig(episodes_per_campaign=1)
+        ).run_campaign(workflow, SilentReasoningTarget(), MutationSearchAttacker())
+    )
+
+    metrics = summarize_adaptive_campaigns([campaign])["by_target"][campaign.target_id]
+
+    assert metrics["reasoning_mode_label"] == "on"
+    assert metrics["reasoning_observed"] is False
+    assert metrics["reasoning_mode_mismatch"] is True
+
+
 def test_lmstudio_adaptive_attacker_uses_structured_candidate_without_reasoning_text():
     captured = {}
 

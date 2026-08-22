@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v010_version_preserves_frozen_reference_baseline():
-    assert __version__ == "0.12.0rc6"
+    assert __version__ == "0.12.0rc7"
     assert REFERENCE_BASELINE_VERSION == "0.9.3"
     assert (ROOT / "src" / "vais" / "adaptive_reference.py").exists()
     assert (ROOT / "docs" / "v0.10-adaptive-verification.md").exists()
@@ -23,3 +23,11 @@ def test_v0102_research_evidence_files_are_packaged_in_source_tree():
 
 def test_v0102_packaged_hypotheses_match_canonical_knowledge():
     assert (ROOT / "src" / "vais" / "data" / "research" / "hypotheses.yaml").read_text(encoding="utf-8") == (ROOT / "research" / "knowledge" / "hypotheses.yaml").read_text(encoding="utf-8")
+
+
+def test_reviewer_facing_readme_and_howto_ship_in_source_package():
+    assert (ROOT / "README.md").exists()
+    assert (ROOT / "HOWTO.md").exists()
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8").splitlines()
+    assert "include README.md" in manifest
+    assert "include HOWTO.md" in manifest

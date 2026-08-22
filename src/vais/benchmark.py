@@ -730,14 +730,14 @@ def _target_health(items: list[EpisodeResult]) -> dict[str, Any]:
 
 
 def _reasoning_mode_mismatch_targets(items: list[EpisodeResult]) -> list[str]:
+    from .reasoning import reasoning_mode_mismatch
+
     mismatches: list[str] = []
     for target_id in sorted({item.target_id for item in items}):
         target_items = [item for item in items if item.target_id == target_id]
         if not target_items:
             continue
         label = target_items[0].target_metadata.get("reasoning_mode_label")
-        if label != "off":
-            continue
         generations = [
             generation
             for item in target_items
@@ -750,10 +750,11 @@ def _reasoning_mode_mismatch_targets(items: list[EpisodeResult]) -> list[str]:
                 for item in target_items
                 for generation in (item.baseline_generation, item.candidate_generation)
             ]
-        if any(
+        observed = any(
             (generation.reasoning_tokens or 0) > 0 or generation.reasoning_chars > 0
             for generation in generations
-        ):
+        )
+        if reasoning_mode_mismatch(label, observed):
             mismatches.append(target_id)
     return mismatches
 

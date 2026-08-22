@@ -1,0 +1,46 @@
+{
+  "version": "0.12.0rc7",
+  "release_class": "benchmark_protocol_correction",
+  "date": "2026-08-19",
+  "documentation_refresh_date": "2026-08-22",
+  "bounded_status": "RC7 corrects the unsupported DeepSeek reasoning-off configuration by introducing a separately labeled native-reasoning cohort. A strict one-episode DeepSeek preflight passed, but no full RC7 panel result is claimed; all fifteen models must be rerun under the RC7 manifest.",
+  "deepseek_investigation": {
+    "rc5_gate_valid": true,
+    "reasoning_off_supported_by_tested_model_runtime": false,
+    "compatibility_controls_tested": 4,
+    "compatibility_controls_with_reasoning_observed": 4,
+    "native_reasoning_off_http_status": 400,
+    "rc7_preflight_evaluable_episodes": 1,
+    "rc7_preflight_valid_target_generations": 6,
+    "rc7_preflight_reasoning_tokens": 4651,
+    "rc7_preflight_target_failures": 0,
+    "rc7_preflight_protected_violations": 0
+  },
+  "validation": {
+    "source_tests": "221 passed",
+    "fresh_source_zip_tests": "221 passed",
+    "wheel_install": "passed in isolated Python 3.14 environment with PyYAML 6.0.3",
+    "wheel_smoke": "version, deny-default policy, packaged resources, README metadata, manifest cohort counts and DeepSeek plan verified",
+    "reviewer_documentation": "clean README plus source-packaged HOWTO with verified local links and commands",
+    "inventory_dry_run": "validated all 15 exact local model entries",
+    "source_zip_deterministic": true,
+    "wheel_deterministic_with_source_date_epoch": true,
+    "sdist_build": "passed; byte-for-byte reproducibility is not claimed",
+    "research_doctor": "0 hash mismatches; 23 unexpected unresolved historical portable-tree references remain"
+  },
+  "sha256": {
+    "VAIS-v0.12.0rc7-source.zip": "1025551561c30e4ad2218f1d996ed99d2ebf638a712efc60e1463f2b570aa2dd",
+    "verifiable_ai_security-0.12.0rc7-py3-none-any.whl": "35db6302eac4ccbabf3da2b35ed181e43bdca9727ae453f9e0a6332ef96eb4ab",
+    "verifiable_ai_security-0.12.0rc7.tar.gz": "3eb4195628f0ef3ed86c020736007cacd7377a62e43baeb4a88d5e0051e08125",
+    "v0.12.0rc7-deepseek-reasoning-audit.json": "e3a9ca321a31372647aaa0768fdf38b67fc0a46afb1e9127ccf70caaa7a680ee",
+    "v0.12-model-panel.json": "1267c88c964d0b84847fb1edb399580efa6943956b8ea32bfc235ab487a1e874"
+  },
+  "unchanged_security_semantics": [
+    "authorization and policy",
+    "approval and identity binding",
+    "information-flow enforcement",
+    "MCP effect and retry semantics",
+    "independent effect verification",
+    "terminal security reward"
+  ]
+}
