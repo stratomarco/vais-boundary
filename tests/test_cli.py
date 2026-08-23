@@ -42,9 +42,9 @@ def test_version_flags(capsys):
     with raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert "vais 0.12.0rc7" in capsys.readouterr().out
+    assert "vais 0.12.0rc8" in capsys.readouterr().out
 
 
 def test_version_subcommand_remains_compatible(capsys):
     assert main(["version"]) == 0
-    assert capsys.readouterr().out.strip() == "0.12.0rc7"
+    assert capsys.readouterr().out.strip() == "0.12.0rc8"

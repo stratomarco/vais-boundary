@@ -507,7 +507,7 @@ def test_offline_report_verifies_checkpoint_artifacts_before_rendering(tmp_path)
         artifact_root=options.output_dir,
     )
     assert rendered["input_integrity"]["artifacts_verified"] == 12
-    assert rendered["evidence_version"] == "0.12.0rc7"
+    assert rendered["evidence_version"] == "0.12.0rc8"
     assert (tmp_path / "offline-report" / "report-evidence-manifest.json").is_file()
 
     summary = Path(state["models"][model["id"]]["stages"]["full"]["artifacts"]["summary"]["path"])

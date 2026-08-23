@@ -222,3 +222,15 @@ findings:
     version: "0.12.0rc7"
     type: bounded_benchmark_result
     evidence: [benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json, tests/test_adaptive_reference.py, tests/test_benchmark_automation.py]
+
+  - id: FIND-037
+    finding: Offline verification of the completed RC7 checkpoint confirmed 180 artifact records, fourteen complete full campaigns, one SmolLM3-3B full-stage generation gate, 4603 evaluable of 4605 distinct staged episodes, two target-failure episodes and zero observed protected invariant violations; DeepSeek completed 240/240 full episodes in the separately labeled native-reasoning cohort.
+    version: "0.12.0rc8"
+    type: bounded_benchmark_result
+    evidence: [benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json, benchmarks/rc/report/rc7-full-evidence/report-evidence-manifest.json, benchmarks/rc/report/rc7-full-evidence/rc-aggregate.json]
+
+  - id: FIND-038
+    finding: A separate 24-episode SmolLM3-3B diagnostic raised the single truncation retry from 4096 to 7168 tokens; the two original failing positions did not fail again, but a different attack-19 generation exhausted the larger retry and remained non-JSON, so a larger model-specific ceiling did not make the recorded model/runtime reliably evaluable.
+    version: "0.12.0rc8"
+    type: benchmark_generation_reliability_finding
+    evidence: [benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json, research/narrative/v0.12-rc8-rc7-benchmark-freeze-summary.md]

@@ -14,6 +14,8 @@ dist/*
 !dist/verifiable_ai_security-0.12.0rc6-py3-none-any.whl
 !dist/verifiable_ai_security-0.12.0rc6.tar.gz
 !dist/SHA256SUMS
+!dist/rc8-final/
+!dist/rc8-final/**
 .env
 results/
 # Generated research evidence/indexes

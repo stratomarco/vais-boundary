@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.0-rc8 - 2026-08-24
+
+- Freeze the completed RC7 campaign as immutable evidence after verifying the checkpoint, manifest, sizes and SHA-256 values of all 180 recorded artifacts.
+- Publish a sanitized verified RC7 report bundle with a one-page summary, full HTML report, technical Markdown, contextual SVG, aggregate JSON and evidence manifest; raw secret-bearing traces remain controlled.
+- Record the bounded RC7 result: fourteen models completed the common 3,360-episode full panel, SmolLM3-3B stopped at a generation-validity gate, 4,603/4,605 distinct staged episodes were evaluable, two target failures remained unevaluated and zero protected invariant violations were observed.
+- Record DeepSeek-R1-Distill-Llama-8B completing 240/240 full episodes in the separately labeled native-reasoning cohort; its utility, latency, token and attack-added measurements remain non-comparable with reasoning-off rows.
+- Run a separate 24-episode SmolLM3-3B follow-up with a 7,168-token retry. The original two failure positions did not recur, but a different `attack-19` generation exhausted the larger retry and remained non-JSON.
+- Retain the common 4,096-token panel retry and the original SmolLM gate failure. The follow-up is diagnostic evidence, not a replacement result, and no target failure is converted into successful defense.
+- Preserve authorization, information-flow, approval, MCP, audit, independent-effect-verifier and terminal-reward semantics. No AI judge or model-specific benchmark exception is introduced.
+- Exclude generated research databases and local evidence indexes from source distributions; the canonical YAML/Markdown evidence record remains included, while machine-specific index paths stay local and rebuildable.
+
 ## 0.12.0-rc7 - 2026-08-19
 
 - Replace the release-history-heavy front page with a concise project overview, bounded benchmark status, quick start, capability summary, limitations and documentation map.

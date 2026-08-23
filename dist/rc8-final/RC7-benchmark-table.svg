@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1030" viewBox="0 0 1700 1030" role="img" aria-labelledby="title desc">
+<title id="title">VAIS cross-model benchmark</title>
+<desc id="desc">Bounded protected-effect security evidence and separate utility measurements.</desc>
+<rect width="100%" height="100%" fill="#07111f"/>
+<text x="48" y="54" fill="#f8fafc" font-family="Arial, sans-serif" font-size="32" font-weight="700">VAIS cross-model benchmark</text>
+<text x="48" y="88" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="15" font-weight="700">EVIDENCE 0.12.0rc7  |  RENDERER 0.12.0rc7</text>
+<text x="42" y="118" fill="#a8bacf" font-family="Arial, sans-serif" font-size="16">15 models | 9 families | Q4_K_M | 8,192 context | RTX 4080 Super 16 GB</text>
+<text x="48" y="158" fill="#d7e2ef" font-family="Arial, sans-serif" font-size="15">METHOD: 20 matched control/attack stories x 12 adaptive episodes = 240 attempts per completed full-stage model.</text>
+<text x="48" y="186" fill="#d7e2ef" font-family="Arial, sans-serif" font-size="15">PIPELINE: model plan -> deterministic policy -> observable protected effects -> independent invariant verification.</text>
+<text x="42" y="224" fill="#9fb1c6" font-family="Arial, sans-serif" font-size="14">UTILITY measures task completion. Compare it only within the same reasoning profile. ATTACK-ADDED is diagnostic drift.</text>
+<text x="48" y="240" fill="#6f849c" font-family="Arial, sans-serif" font-size="13">No composite score. Each rate includes its numerator and denominator. Denied attempts can be secure enforcement activity.</text>
+<line x1="42" y1="260" x2="1658" y2="260" stroke="#263b55"/>
+<text x="48" y="284" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">MODEL</text><text x="390" y="284" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">FAMILY / STAGE</text><text x="625" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">EVAL</text><text x="805" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">PROTECTED VIOL.</text><text x="1035" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">UTILITY</text><text x="1270" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">ATTACK-ADDED</text><text x="1460" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">CONFIG</text><text x="1600" y="284" text-anchor="middle" fill="#7890a9" font-family="Arial, sans-serif" font-size="12">STATUS</text>
+<rect x="38" y="271" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="300" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">qwen3-0.6b</text>
+<text x="390" y="300" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Qwen · full · reasoning off</text>
+<text x="625" y="300" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="300" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="300" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">110/240 (45.8%)</text>
+<text x="1270" y="300" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">42/240 (17.5%)</text>
+<text x="1460" y="300" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="300" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="315" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="344" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">qwen3-4b-instruct</text>
+<text x="390" y="344" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Qwen · full · reasoning off</text>
+<text x="625" y="344" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="344" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="344" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">153/240 (63.7%)</text>
+<text x="1270" y="344" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">70/240 (29.2%)</text>
+<text x="1460" y="344" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="344" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="359" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="388" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">qwen2.5-7b-instruct</text>
+<text x="390" y="388" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Qwen · full · reasoning off</text>
+<text x="625" y="388" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="388" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="388" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">159/240 (66.2%)</text>
+<text x="1270" y="388" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">87/240 (36.2%)</text>
+<text x="1460" y="388" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="388" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="403" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="432" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">qwen3.5-9b</text>
+<text x="390" y="432" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Qwen · full · reasoning off</text>
+<text x="625" y="432" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="432" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="432" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">195/240 (81.2%)</text>
+<text x="1270" y="432" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">58/240 (24.2%)</text>
+<text x="1460" y="432" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="432" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="447" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="476" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">llama-3.2-1b-instruct</text>
+<text x="390" y="476" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Meta · full · reasoning off</text>
+<text x="625" y="476" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="476" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="476" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">93/240 (38.8%)</text>
+<text x="1270" y="476" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">152/240 (63.3%)</text>
+<text x="1460" y="476" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="476" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="491" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="520" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">llama-3.1-8b-instruct</text>
+<text x="390" y="520" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Meta · full · reasoning off</text>
+<text x="625" y="520" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="520" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="520" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">190/240 (79.2%)</text>
+<text x="1270" y="520" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">132/240 (55.0%)</text>
+<text x="1460" y="520" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="520" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="535" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="564" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">gemma-3-1b-it</text>
+<text x="390" y="564" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Google · full · reasoning off</text>
+<text x="625" y="564" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="564" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="564" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">128/240 (53.3%)</text>
+<text x="1270" y="564" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">81/240 (33.8%)</text>
+<text x="1460" y="564" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="564" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="579" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="608" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">gemma-4-12b</text>
+<text x="390" y="608" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Google · full · reasoning off</text>
+<text x="625" y="608" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="608" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="608" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">217/240 (90.4%)</text>
+<text x="1270" y="608" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">13/240 (5.4%)</text>
+<text x="1460" y="608" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="608" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="623" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="652" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">phi-4-mini-instruct</text>
+<text x="390" y="652" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Microsoft · full · reasoning off</text>
+<text x="625" y="652" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="652" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="652" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">182/240 (75.8%)</text>
+<text x="1270" y="652" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">113/240 (47.1%)</text>
+<text x="1460" y="652" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="652" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="667" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="696" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">phi-4</text>
+<text x="390" y="696" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Microsoft · full · reasoning off</text>
+<text x="625" y="696" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="696" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="696" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">215/240 (89.6%)</text>
+<text x="1270" y="696" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">60/240 (25.0%)</text>
+<text x="1460" y="696" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="696" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="711" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="740" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">mistral-7b-instruct</text>
+<text x="390" y="740" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Mistral · full · reasoning off</text>
+<text x="625" y="740" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="740" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="740" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">173/240 (72.1%)</text>
+<text x="1270" y="740" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">141/240 (58.8%)</text>
+<text x="1460" y="740" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="740" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="755" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="784" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">granite-4.1-8b</text>
+<text x="390" y="784" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">IBM · full · reasoning off</text>
+<text x="625" y="784" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="784" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="784" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">168/240 (70.0%)</text>
+<text x="1270" y="784" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">58/240 (24.2%)</text>
+<text x="1460" y="784" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="784" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="799" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="828" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">deepseek-r1-distill-llama-8b</text>
+<text x="390" y="828" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">DeepSeek · full · native reasoning</text>
+<text x="625" y="828" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="828" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="828" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">167/240 (69.6%)</text>
+<text x="1270" y="828" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">159/240 (66.2%)</text>
+<text x="1460" y="828" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="828" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<rect x="38" y="843" width="1624" height="40" rx="6" fill="#0b192c"/>
+<text x="48" y="872" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">smollm3-3b</text>
+<text x="390" y="872" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Hugging Face · full · reasoning off</text>
+<text x="625" y="872" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">238</text>
+<text x="805" y="872" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/238 (0.0%)</text>
+<text x="1035" y="872" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">150/238 (63.0%)</text>
+<text x="1270" y="872" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">133/238 (55.9%)</text>
+<text x="1460" y="872" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="872" text-anchor="middle" fill="#ef4444" font-family="Arial, sans-serif" font-size="11" font-weight="700">GATE_FAILED</text>
+<rect x="38" y="887" width="1624" height="40" rx="6" fill="#102038"/>
+<text x="48" y="916" fill="#e7edf6" font-family="Arial, sans-serif" font-size="14">lfm2.5-1.2b-instruct</text>
+<text x="390" y="916" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">Liquid AI · full · reasoning off</text>
+<text x="625" y="916" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="14">240</text>
+<text x="805" y="916" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">0/240 (0.0%)</text>
+<text x="1035" y="916" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">57/240 (23.8%)</text>
+<text x="1270" y="916" text-anchor="middle" fill="#c9d6e5" font-family="Arial, sans-serif" font-size="13">140/240 (58.3%)</text>
+<text x="1460" y="916" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="12">OK</text>
+<text x="1600" y="916" text-anchor="middle" fill="#22c55e" font-family="Arial, sans-serif" font-size="11" font-weight="700">COMPLETED</text>
+<text x="48" y="1004" fill="#7890a9" font-family="Arial, sans-serif" font-size="13">Zero observed violations is a bounded result, not proof of universal security. Pending rows contain no inferred scores.</text>
+</svg>

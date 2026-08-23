@@ -1,0 +1,1545 @@
+{
+  "benchmark_manifest": {
+    "claim_boundary": "Bounded to the recorded model keys, Q4_K_M quantizations, declared reasoning profiles, LM Studio runtime, RTX 4080 Super 16 GB configuration, twenty scenarios and staged episode budgets; zero observed violations is not proof of universal security.",
+    "framework_version": "0.12.0rc7",
+    "hardware": {
+      "gpu": "NVIDIA RTX 4080 Super",
+      "vram_gb": 16
+    },
+    "models": [
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Qwen",
+        "hf_repo": "Qwen/Qwen3-0.6B",
+        "id": "qwen3-0.6b",
+        "lmstudio_model": "qwen/qwen3-0.6b",
+        "local_model_key": "qwen3-0.6b",
+        "parameter_class": "0.6B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "capability floor",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Qwen",
+        "hf_repo": "Qwen/Qwen3-4B-Instruct-2507",
+        "id": "qwen3-4b-instruct",
+        "lmstudio_model": "qwen/qwen3-4b-instruct-2507",
+        "local_model_key": "qwen/qwen3-4b-2507",
+        "parameter_class": "4B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "current midrange",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Qwen",
+        "hf_repo": "Qwen/Qwen2.5-7B-Instruct",
+        "id": "qwen2.5-7b-instruct",
+        "lmstudio_model": "qwen/qwen2.5-7b-instruct",
+        "local_model_key": "qwen2.5-7b-instruct",
+        "parameter_class": "7B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "established baseline",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Qwen",
+        "hf_repo": "Qwen/Qwen3.5-9B",
+        "id": "qwen3.5-9b",
+        "lmstudio_model": "qwen/qwen3.5-9b",
+        "local_model_key": "qwen/qwen3.5-9b",
+        "parameter_class": "9B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "current larger baseline",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Meta",
+        "hf_repo": "meta-llama/Llama-3.2-1B-Instruct",
+        "id": "llama-3.2-1b-instruct",
+        "lmstudio_model": "meta-llama/llama-3.2-1b-instruct",
+        "local_model_key": "llama-3.2-1b-instruct",
+        "parameter_class": "1B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "small-family comparison",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Meta",
+        "hf_repo": "meta-llama/Llama-3.1-8B-Instruct",
+        "id": "llama-3.1-8b-instruct",
+        "lmstudio_model": "meta-llama/llama-3.1-8b-instruct",
+        "local_model_key": "meta-llama-3.1-8b-instruct",
+        "parameter_class": "8B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "popular baseline",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Google",
+        "hf_repo": "google/gemma-3-1b-it",
+        "id": "gemma-3-1b-it",
+        "lmstudio_model": "google/gemma-3-1b-it",
+        "local_model_key": "gemma-3-1b-it",
+        "parameter_class": "1B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "small Gemma",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Google",
+        "hf_repo": "google/gemma-4-12b",
+        "id": "gemma-4-12b",
+        "lmstudio_model": "google/gemma-4-12b",
+        "local_model_key": "google/gemma-4-12b",
+        "parameter_class": "12B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "VAIS continuity",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Microsoft",
+        "hf_repo": "microsoft/Phi-4-mini-instruct",
+        "id": "phi-4-mini-instruct",
+        "lmstudio_model": "microsoft/phi-4-mini-instruct",
+        "local_model_key": "phi-4-mini-instruct",
+        "parameter_class": "3B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "compact instruction",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Microsoft",
+        "hf_repo": "microsoft/phi-4",
+        "id": "phi-4",
+        "lmstudio_model": "microsoft/phi-4",
+        "local_model_key": "phi-4",
+        "parameter_class": "15B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "upper hardware boundary",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Mistral",
+        "hf_repo": "mistralai/Mistral-7B-Instruct-v0.3",
+        "id": "mistral-7b-instruct",
+        "lmstudio_model": "mistralai/mistral-7b-instruct-v0.3",
+        "local_model_key": "mistral-7b-instruct-v0.3",
+        "parameter_class": "7B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "independent family",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "IBM",
+        "hf_repo": "ibm-granite/granite-4.1-8b",
+        "id": "granite-4.1-8b",
+        "lmstudio_model": "ibm-granite/granite-4.1-8b",
+        "local_model_key": "granite-4.1-8b",
+        "parameter_class": "8B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "enterprise-oriented",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "native_reasoning",
+        "family": "DeepSeek",
+        "hf_repo": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        "id": "deepseek-r1-distill-llama-8b",
+        "lmstudio_model": "deepseek/deepseek-r1-distill-llama-8b",
+        "local_model_key": "deepseek-r1-distill-llama-8b",
+        "parameter_class": "8B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "model_native",
+        "reasoning_mode": "on",
+        "role": "distilled reasoning",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Hugging Face",
+        "hf_repo": "HuggingFaceTB/SmolLM3-3B",
+        "id": "smollm3-3b",
+        "lmstudio_model": "huggingfacetb/smollm3-3b",
+        "local_model_key": "smollm3-3b",
+        "parameter_class": "3B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "compact open model",
+        "truncation_retry_tokens": 4096
+      },
+      {
+        "comparison_cohort": "reasoning_off",
+        "family": "Liquid AI",
+        "hf_repo": "LiquidAI/LFM2.5-1.2B-Instruct",
+        "id": "lfm2.5-1.2b-instruct",
+        "lmstudio_model": "liquidai/lfm2.5-1.2b-instruct",
+        "local_model_key": "lfm2.5-1.2b-instruct",
+        "parameter_class": "1.2B",
+        "quantization": "Q4_K_M",
+        "reasoning_control": "adapter_request",
+        "reasoning_mode": "off",
+        "role": "architecture diversity",
+        "truncation_retry_tokens": 4096
+      }
+    ],
+    "reasoning_protocol": "Reasoning-off is requested and independently verified for the comparable off-mode cohort. DeepSeek-R1-Distill-Llama-8B is reasoning-only in the tested LM Studio model/runtime and runs in a separately labeled native-reasoning cohort with observed reasoning required.",
+    "run_order": [
+      "qwen3-0.6b",
+      "llama-3.2-1b-instruct",
+      "gemma-3-1b-it",
+      "lfm2.5-1.2b-instruct",
+      "smollm3-3b",
+      "phi-4-mini-instruct",
+      "qwen3-4b-instruct",
+      "mistral-7b-instruct",
+      "qwen2.5-7b-instruct",
+      "llama-3.1-8b-instruct",
+      "granite-4.1-8b",
+      "deepseek-r1-distill-llama-8b",
+      "qwen3.5-9b",
+      "gemma-4-12b",
+      "phi-4"
+    ],
+    "runtime": {
+      "context_length": 8192,
+      "gpu": "max",
+      "parallel": 1
+    },
+    "schema_version": 1,
+    "selection_date": "2026-08-16",
+    "selection_policy": "Diverse locally runnable instruction-model panel; popularity informs selection but family diversity and 16 GB VRAM feasibility override a literal download ranking.",
+    "stages": {
+      "full": {
+        "episodes": 12,
+        "scenarios": "all_20"
+      },
+      "preflight": {
+        "episodes": 1,
+        "scenarios": [
+          "attack-01"
+        ]
+      },
+      "qualification": {
+        "episodes": 2,
+        "scenarios": [
+          "attack-03",
+          "attack-09",
+          "attack-14"
+        ]
+      },
+      "screening": {
+        "episodes": 3,
+        "scenarios": "all_20"
+      }
+    }
+  },
+  "evidence_version": "0.12.0rc7",
+  "example_selection": "Deterministic policy-denial priority, then workflow ID and episode index.",
+  "input_integrity": {
+    "artifact_records": [
+      {
+        "kind": "episodes",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "b013b78e5bcefa384ec336ab2281fa12f9559b4f0a0375f9bf292d4b5042b227",
+        "size_bytes": 5965287,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "0249ea66027fb1789d40b6918322e85a238e79dcf14b1773a24507dc6551a58c",
+        "size_bytes": 370141,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "daa16d618baafb4a43d4985f1c659045e18ebb6de8f3784e32e311eec6644341",
+        "size_bytes": 44479,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "a02930665242bae3fc7f408379bc1bde1cceafc047440b3b286722c0bdc1dc2e",
+        "size_bytes": 23842,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "2f8e53e788c261403469620e440b1faec55099326bfd63dc3f1b0e3e4329ed9d",
+        "size_bytes": 1737,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "37f16205547c510dfa18b789e801bc53e5a59fbe7c943e042e808f2890225d6d",
+        "size_bytes": 5715,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "ceaafb2563fc8fceea595c8699f03d88836cf0a58924381de85f3216c211a154",
+        "size_bytes": 152078,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "9ac69706afd560af09115df550dd0857c3a5698240686b86a2140ecd2dc9238c",
+        "size_bytes": 8267,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "ecea654af4cfa96c2b0da041f135ce47c3e7fce6b886f45607bed21cc2840ddf",
+        "size_bytes": 9823,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "f83bad7bde9dc8ff98749e83a7c408e4d6c7f8ca09228073cd9ceb8aaebfafc2",
+        "size_bytes": 1500968,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "a1f1a787983785aaeb1db5e947fafffa434b70ff6d4faa967935596c78181ac6",
+        "size_bytes": 85819,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "deepseek-r1-distill-llama-8b",
+        "sha256": "fc58a8338e387f7e7b613689a6097fd6abc62487c8efec35ee09b939591eab12",
+        "size_bytes": 44400,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "b9d59998d9b26c5ebf2c53585ef2251b59a6f07fd921ae2e35f6ef95df3a3f01",
+        "size_bytes": 5149612,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "188d0910e14b7bcbac2e5078294f9309bb5f0170aeaa4bb9df4d47bdaaa2c261",
+        "size_bytes": 289696,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "aff5806eeb891c99c334a2aa64296d7be537cecf15c5d14b12cd2d88abd8d5be",
+        "size_bytes": 43254,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "2a3a8ceec1cf5a7e7f6dbf19d10246717e0a5d96e39e5a83e23d8efd9d03f0a2",
+        "size_bytes": 22373,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "51eb18a8634de0b25ce9013d42fb19e10a8d3108ae042b2fc2da2a2a5410d90a",
+        "size_bytes": 1227,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "9206408d40daef1afde779172153ff4bdecb07f000d5f8a8231a199ce63bc56f",
+        "size_bytes": 5632,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "7789e08e99e1b7b48e2c318c4e8cf1fe8abcd22bb05c584243084da98b574458",
+        "size_bytes": 139288,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "5685aeb023b076f587a6c0198b230792165fdc97d6d31c89fb61aa1b87476d0c",
+        "size_bytes": 6353,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "ff7eace6ace59f4f0f91194b20924a902da90b40e1a2441df8f40aaacc8e719d",
+        "size_bytes": 9585,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "cceaa3dd2cddcd72a9f983ba13ba375a0a5e97220a46cebfcc90a2b4563fdab8",
+        "size_bytes": 1286212,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "31d5975d3452dbe968ce0458494b815cb0d9c466e213496b63b752558cf86660",
+        "size_bytes": 65997,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-3-1b-it",
+        "sha256": "5c0b34a41e5280593a7a61fad3bcfbfa901c4a9e085c46d6a7e01d5b16772906",
+        "size_bytes": 43154,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-4-12b",
+        "sha256": "a79b45aa61777db548df4aac51c1c452042f0905daba726f035164f713c9be04",
+        "size_bytes": 3904111,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-4-12b",
+        "sha256": "2229a2bf2d77c603370e1660c601f24650d2f187d341a12f88e3473246751362",
+        "size_bytes": 265849,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-4-12b",
+        "sha256": "ef5d281b2cebbed551d2204723b2569524cba5847d8bd94ffb2c8f969d9c180d",
+        "size_bytes": 43139,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-4-12b",
+        "sha256": "6c77a747d5de0f6b41598b4e90a3c1e10be41769fbc752a7095628f810562b2d",
+        "size_bytes": 16608,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-4-12b",
+        "sha256": "f203905d9b32c6e4f2280b29d54a370003d7f5468b602f1a07b401b11cd2c676",
+        "size_bytes": 984,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-4-12b",
+        "sha256": "65e0641389f9bdb01a3d942dfbaaf6fe827256202d3b8035163b60fb4e34cae3",
+        "size_bytes": 5622,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-4-12b",
+        "sha256": "ac2cfe4d2aba2d22c41e4772a538e5051616c13943e31e561dadd866af3cb36a",
+        "size_bytes": 98419,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-4-12b",
+        "sha256": "266a0613a1603a730d4064f19a167aeceae58b2ea922607621b5ef528f48b2b8",
+        "size_bytes": 6250,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-4-12b",
+        "sha256": "460ecb45b20d11ffda7c417674bf72eae84620654fc8e486354390934a6e4fc8",
+        "size_bytes": 9549,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "gemma-4-12b",
+        "sha256": "a922ae275a45f2fcf34a430483297e973e5fec27d3ffa3ed44539df5f050c4a2",
+        "size_bytes": 955729,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "gemma-4-12b",
+        "sha256": "090a0a1640f02ff3038e57cb37db7d42285466c1733a2f491e7a1fc846172837",
+        "size_bytes": 62153,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "gemma-4-12b",
+        "sha256": "21c5aa5317a4b9c3782c93f70d2bcaa9523ee239dd78fb5bc7a0c965ce9f0260",
+        "size_bytes": 43062,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "granite-4.1-8b",
+        "sha256": "e2b00a1354740b75fe8e9f9d7d8114f3d583257b9e145b8b990e5c5ba8b54c28",
+        "size_bytes": 5310886,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "granite-4.1-8b",
+        "sha256": "0b3f162f8c7762c4ec62f37b0141929535f34bb387d2a99239b6ab5f03185f70",
+        "size_bytes": 287190,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "granite-4.1-8b",
+        "sha256": "abbde95a74d3a39ddbfc4db445d842597a6893fc816a4f7c9f41b80d8ef8a705",
+        "size_bytes": 43618,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "granite-4.1-8b",
+        "sha256": "67026b8a5ba60a4f450de81ba5470890dccd1d3598e756e795f6d8fb6c3e3ae3",
+        "size_bytes": 23058,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "granite-4.1-8b",
+        "sha256": "eb66a2ff7b5c765d70a0bf4cfd42d6e9534a4cfb01db4ca030adc399555643e0",
+        "size_bytes": 1000,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "granite-4.1-8b",
+        "sha256": "faaf685516977b04c0894c545389d07fe67681eb4986d8f2d747d145720c0244",
+        "size_bytes": 5654,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "granite-4.1-8b",
+        "sha256": "f7265c9bfbb5e3cc3283948ca3395e05da7cb1a913e49d5b354c886fbe47f509",
+        "size_bytes": 137699,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "granite-4.1-8b",
+        "sha256": "09b2f9c8bbbfb6fc2fd5e785c3efa04485f1fbc933b986cdd69d0a2f591b90bf",
+        "size_bytes": 6483,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "granite-4.1-8b",
+        "sha256": "122856b9e95f1ac1a074d8b0f05bc7c97e9a4fa43d44d655d64e352eabd401bf",
+        "size_bytes": 9676,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "granite-4.1-8b",
+        "sha256": "6721fe79236439a6f093d16453935c501f3ccaf7a677a2f329374bf654902755",
+        "size_bytes": 1321968,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "granite-4.1-8b",
+        "sha256": "793d3eb5d37e2710166979e9c548eb35477648f69172310e941d12abfddc5136",
+        "size_bytes": 67423,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "granite-4.1-8b",
+        "sha256": "20946806e4016ce553d63fcb69dfb88eb496723b51dd2689f14b13c5fa59a5d0",
+        "size_bytes": 43544,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "47e51ba3539580c15b44fda4710a7f031fe220d403a7f4718dddb9ae1cec1e63",
+        "size_bytes": 5487147,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "11b4a7fd861691cb7bf5b32e370ba7537e4808185eb65a0a98e38ed37a7646af",
+        "size_bytes": 335062,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "79f5abdb7735727b0e02b70cb3d5df8ccae5da4f03a9c0a1636ecb490bbb427c",
+        "size_bytes": 43834,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "24efe605b0cae631dd72ef3d7b86065365be4e6e2ab07bc947599ace665b3496",
+        "size_bytes": 23302,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "5f2d4417ecc9063488e812d01eed10864426b3cd1285d5c915522ba3c786bd1e",
+        "size_bytes": 1038,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "8decfab10be07a36e7af139a70f6395f0cf76e3b5fe8e64f256a404404e85d54",
+        "size_bytes": 5667,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "bd29493d152a061985f136c1f2ee2e3e5f3f806625a8b8149674cc193db43bb8",
+        "size_bytes": 140396,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "ed1b5ac25f1930aef4a16c6e28b0b1bfdb36f88c2d87489d9a55853e89d835a6",
+        "size_bytes": 7358,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "4f3f4104eec51d8193e5e3ac64696af5bc294350dd322971c039e396240d9497",
+        "size_bytes": 9708,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "e66b2c92b8aa245c5e8ea94e0c4d478e38eee4a1502ea0205f1be627eec240f9",
+        "size_bytes": 1368218,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "b54a5e40dacd67817e30014ce3e01e51fb571d023e16dd51150dc786c107d280",
+        "size_bytes": 73779,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "lfm2.5-1.2b-instruct",
+        "sha256": "9add86a1236cb73e83bb9c38b7df2e05eb6659af9d305bd1f8cbcaa3483f7e71",
+        "size_bytes": 43755,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "3e8e8b8eba1ba4bab1027e784f0aaaa2fa7346666bb376e1dd0d23c33121a144",
+        "size_bytes": 5751810,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "977fee3db6429b5bfc6eded33c862d89c9303026dcd16ff961b39b169dce124e",
+        "size_bytes": 318252,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "14cfaae61dc1cbdf7482dbed99073feb8080103d02a6cd6799c5d8c78cadcd97",
+        "size_bytes": 44019,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "37c90a096b8cf87e840b9a224365b2c094d6603b6dd3dfb5238eb158d06e76a1",
+        "size_bytes": 27156,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "58f28e2ccea97763d5fc90881b06d17eba39d95347709c223f755f402fe57b4e",
+        "size_bytes": 1012,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "5e10dcea8291d940e53f999b13c1d76504a80a65af1d9d7a291799b90dfa293c",
+        "size_bytes": 5677,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "66e5b26639427ce044b5791f828a91d2c19618f0df14ec22d1ed37e9dd85487d",
+        "size_bytes": 155323,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "75933089a197a0e61ee6192a810298822ead8a6753dadab68c6063814fcd9f68",
+        "size_bytes": 6814,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "5d1d14c3fb4f981d444e12ab394daad103a7765d0d63ec51746c9160b141a10f",
+        "size_bytes": 9723,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "196bcc0f18280046f283cdb48e601d9938842107d7b85abf2159c3af935d6fd1",
+        "size_bytes": 1425839,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "45c11377b98eb7e214a5790df2db4dacbcdcff85d8b6f2c02ffcd1da6450491d",
+        "size_bytes": 71786,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.1-8b-instruct",
+        "sha256": "a94dd0d98002c24c902bfe813c849682b565c335c7adfd36a2aaa4e86d9b48c5",
+        "size_bytes": 43912,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "db42dda9102b3cd9d4c8f32c1d1de4d4745864cb737d418d8e9fe38677854dfa",
+        "size_bytes": 6063940,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "9d97bec2b8ffef9d978768ba99842c643442b4873f303319fce1a25f946a6858",
+        "size_bytes": 337710,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "e97eb56b15baf8c064b1aa830739a905c603f631b88aad1473b9228ee80a9b2b",
+        "size_bytes": 44012,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "701085d15548659468be222e5f6268c2e8a7d29bc2bfdf8f09f7930186cc6ba2",
+        "size_bytes": 24709,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "7704a956ddb70e05947075ed0ed8327c45b8f37bc43e1d371c4b528e71fe4a9f",
+        "size_bytes": 1303,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "de764090717601cc6c95d5d30a8bb8e4aaa84faad5ad5d17424dda81f89b1985",
+        "size_bytes": 5679,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "5c24947670acc6d132d8f9c21c36a009da35fa7039d2e535d847d4e12add92c4",
+        "size_bytes": 148441,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "e62fde61093d1efaf9f18f993b0094177757fe70d6a89790cf88175313f6a124",
+        "size_bytes": 7047,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "36e57ed3bcfa22d2547f35a1521ea6c0fe33974c4f3c0d9e8750dd0e4a079e6f",
+        "size_bytes": 9737,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "09d92915900d1861f7c53edf702e99da7f6c63a109bc3d18e430847551ce0090",
+        "size_bytes": 1504900,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "e8ad4180254affe427da8703c7962a37769f287725e19559bb25c033602148a1",
+        "size_bytes": 79180,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "llama-3.2-1b-instruct",
+        "sha256": "a51d157673edffdba490cfac47a2acf2c26541fea0448dc927610945574b9ff3",
+        "size_bytes": 43925,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "110da8ce233ce3c999ac4f71a16ced41831d48cb689f99a32969905533cc9ff1",
+        "size_bytes": 6503771,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "55b5c288d55c96b589b15ffdf3bb879eb37190725e80e87bfc710d3f420d633f",
+        "size_bytes": 345271,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "66632b4b09b6a6a476b2a55079441ee60e810ad1f7ad41c3c4682ee3b37e3585",
+        "size_bytes": 44116,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "68cb5b64f89c00f9f534bf7bd3bd6556055860aa4aa384b00ad4bf52a8c9bb07",
+        "size_bytes": 30020,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "e9bcbd4a7ce240f1fb165743fab7f6f08af225c617c2ac349c6fc7961fef54c4",
+        "size_bytes": 2397,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "b3fe80daab0b94ff586820f37d4e4e24eda21287dbf6fed9b8084a5a2c6c4ef8",
+        "size_bytes": 5686,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "fba6d83b194f3fa0cda9f00e353619b3c1c9d8f7280857ddda9135acb5d25216",
+        "size_bytes": 175266,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "8d18eda6a1b135bb5d3600fabcb6355e26d7355fb6a6ffc83cb67f362a19cb03",
+        "size_bytes": 8470,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "de5f799df3db68368d887f03ad9b65f616190a7abd935b251ef5805d79a5755a",
+        "size_bytes": 9742,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "f3fc99ff035277d85046ec21142da57a3574169ed2d52ced64bebbc65b2b1e80",
+        "size_bytes": 1617414,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "80d3d359b359629a1b9fea978e321a4a506773f88ff60bafe89a376c1b133650",
+        "size_bytes": 79438,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "mistral-7b-instruct",
+        "sha256": "41ee6f64e33175c95d76bc382e4137059ae2584e7ba3278a61e023c7e517ec43",
+        "size_bytes": 44036,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4",
+        "sha256": "b0792b67a5950937385e2979e4cc132acecacf78b2f30919b1fe5b6b37cba1eb",
+        "size_bytes": 4879863,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4",
+        "sha256": "c10c9f326d2d8030c68e05c6c1b36efcccfa451bd8c766061ccf70106ccf3189",
+        "size_bytes": 297833,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4",
+        "sha256": "f7f083206c1d2b9748f8ad75d73908fe753e02be09d2dc937a72cdebc7ebb8ba",
+        "size_bytes": 42964,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4",
+        "sha256": "b85a0b31ea6921deb4710e77e162c8ed5b595d3405077a7677cfda2853f2623d",
+        "size_bytes": 21403,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4",
+        "sha256": "95abc1a479d7abb8440b50512cf3b0ac7251b12797f6914cdcf1e07afadc5413",
+        "size_bytes": 978,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4",
+        "sha256": "df54700037fdada5b6d15510095a4c59f76c9c98b1af85cee405fc33c2633e20",
+        "size_bytes": 5609,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4",
+        "sha256": "40831d87e807035d5d6630e82225a37801140753dd5738c02c8389b336005769",
+        "size_bytes": 128887,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4",
+        "sha256": "5bd55b3a6a614e441de770e09721f3df9292264041a493d428bf9c74398bc90e",
+        "size_bytes": 6959,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4",
+        "sha256": "ab2f857f10bf8ce6902a998146e64c31f22eaa7dcc95ad33a97d5d3ea4dbdd2c",
+        "size_bytes": 9520,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4",
+        "sha256": "b8e55f3c782fff8d4510035f6c06751a02ecaadfe8239ed75f1e443303aae6c1",
+        "size_bytes": 1199177,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4",
+        "sha256": "04641152b23e1bf7a4e7bfa502d56066a278654a70890c88a0e20d2a9a4bf3f1",
+        "size_bytes": 68834,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4",
+        "sha256": "9ac74fd7c560a1d88c228f5adbfaf04cee1549065a0129ff8e8c28854d35e35b",
+        "size_bytes": 42868,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "ded667358a6556e90ff7d184f11b50a629a76868f8422c96e9e81d69517a0bc5",
+        "size_bytes": 6157592,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "22b888c4ade3e0a2a43f2de91a0990b6d97b0474aa6795f00e727143c94d96a9",
+        "size_bytes": 324771,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "291872941998649166777e8da7294281996edf42d9e75b7d371eb1f09d1397f6",
+        "size_bytes": 43843,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "a8a57ffd0480c7aaa0e6bf2b6df74ee1fe7d24732827a331ae5f4a7231e113d2",
+        "size_bytes": 25088,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "0b3dfab3a1caf3646f4de1d2764daa2a22b2604740ed3681db7090999bb376d6",
+        "size_bytes": 1435,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "36c52b95faa8697e92a705e301f44d484d129d4834f069d969364fed150083dc",
+        "size_bytes": 5668,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "382a7cc57384b43236bcac66071073f07eef052890a291bc26026f51d79ad322",
+        "size_bytes": 164179,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "8a9363c9599ce941df57e01efd2a9ad82ffa9372edd0602cde243b53f1bd1cbc",
+        "size_bytes": 7306,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "982531e2f33db0f1d049189aed8009863a913e7bffa3a6963db522db231a6d64",
+        "size_bytes": 9706,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "2751dfdccc23507419442383aa7afcb0ca569e10f95e371e86c2623cf2bd14e8",
+        "size_bytes": 1529813,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "5812e89e492aa18667f3beba0a15d67ac4b9ef3ef34a8232d2a0304e2c7462eb",
+        "size_bytes": 77492,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "phi-4-mini-instruct",
+        "sha256": "7faabbebf7dfe49f686f15f6c9799c8ceb329061ce163b572a9a0b94a2302bd8",
+        "size_bytes": 43748,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "2a97f155048f2dabd3fb38c464fc1c93f5f9aa6fc312a77314882effae0eee1c",
+        "size_bytes": 4536574,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "0de032794ee7ca6ac44fd3aa33a8b54514bcfbe1a41c192d7d0713fc0c20fe28",
+        "size_bytes": 307475,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "ce0946449686040c7f368817ecf86f13b6fbe519ec12d6aa43f87c5f5ca65056",
+        "size_bytes": 43520,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "24c80b69137fde2e19a30319cde39802be0eb5686bcb32e953f0372d86f575e6",
+        "size_bytes": 20585,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "0aab91dfcb8ecaffa224df4af793a27bc587d837d57d0c6f7a233572f7fd2b4a",
+        "size_bytes": 1695,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "3f73dc14d6ade54c1887c846d62f134bb857a9abcfd8143e14744cd4f598fcf0",
+        "size_bytes": 5645,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "43275f22d54d2f88c8f2c96ba19e48bb1eb802cc15126b1906b8e73c67c70f35",
+        "size_bytes": 118506,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "a5648ceef433a62588fb6286ce1588f0e53a7ec9bcfad8eb3509244ce7f726bc",
+        "size_bytes": 7144,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "417efcc88afb8b014755ed1ccd815e072d4ef41bc01612148ea4d4c4db7664bf",
+        "size_bytes": 9660,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "02affce6ee3b90fd1d09eb7c0e469a106c41adb7b00a61fafae0a19740d0db69",
+        "size_bytes": 1121482,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "eb28cae16380758f2af897cc00e4838044afab21617456196ed300a36cdeddc4",
+        "size_bytes": 68519,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen2.5-7b-instruct",
+        "sha256": "02d131d4f5759bd68de7fa5a24dd44ce2d2677e805826b443025346575e5c10b",
+        "size_bytes": 43423,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-0.6b",
+        "sha256": "9197e0c58a486ce71748dc58fb9d7fdfc70a9bc981d560d3bfbdad72ad99f4ac",
+        "size_bytes": 3945109,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-0.6b",
+        "sha256": "34ad6246b9dfbcc1c1025d7e8ea8f5bfd1af67d2aef749bca2906ece0f3a8c4c",
+        "size_bytes": 268192,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-0.6b",
+        "sha256": "8ad5f3b5001f28d160083ce197e78d45ee754ab05d6a7aca2ca0e8ead4f19f02",
+        "size_bytes": 42943,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-0.6b",
+        "sha256": "de72e1b7760c882ded4b593ba4461eec589ae6fbd336e6ceafd345ac45e18815",
+        "size_bytes": 16626,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-0.6b",
+        "sha256": "4c6be2209b248a243d1451ab7075a0b09e92fcd5841b06ede2a39405f257805c",
+        "size_bytes": 978,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-0.6b",
+        "sha256": "0344234c3c565458fa626eaeb2795ba3eb1fbe567d6424ac252245a80e327617",
+        "size_bytes": 5610,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-0.6b",
+        "sha256": "f0f9e3f20841d2bac2224029cc22d0657a9d7c71897cb5d8ae3d933bf66432fe",
+        "size_bytes": 97340,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-0.6b",
+        "sha256": "7244437d55d9bfe8c64d88c5c56c60060ad89d8b9061849947dc2cbebdfa7ab2",
+        "size_bytes": 6079,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-0.6b",
+        "sha256": "d37c0e884abf4d0afb69f333b598aabfb8f4d8c9ae29e3899c1ed63e58504151",
+        "size_bytes": 9534,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-0.6b",
+        "sha256": "3e1e485fbdb445e8d2b3c0aef0f4df6b48ae73b47f36ddba31ce8aba173ca3ef",
+        "size_bytes": 987460,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-0.6b",
+        "sha256": "1753a5a2774f77d3982608179a3aa9afba002da9d86d1df7211e67e40fde3995",
+        "size_bytes": 63010,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-0.6b",
+        "sha256": "3c0f339d31599f4de37c642899696e3dbb259f41b1a6b04146f331303bfe996b",
+        "size_bytes": 42854,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "8930a3fc56147d4002099c03b8c7c8c33a6e89d7cb1110b433925d782c350c0f",
+        "size_bytes": 4335049,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "9e1b69150a7396eab733236916c388d9a8662f91965deaa929c336d2c7b2e2a4",
+        "size_bytes": 293026,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "95dcbabcddc407d7a1a3b13f7d98f74c9a82890c9203d7e24314422aacff2608",
+        "size_bytes": 43697,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "cb7a06c750de9e61594d255757eeb5f8ea26fb6a3564eb436e4fd7e056a2a9dc",
+        "size_bytes": 16772,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "88928c9ac665bcec49f7bb864b4d69ae57f435ee325a1a2a8636cefc5ce2dfa4",
+        "size_bytes": 1002,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "af4b0ca958c42ee16ed7f3d7eedc30b4c830a5c56e7b0d47fe381d2efd9068fc",
+        "size_bytes": 5656,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "86f2762d3e6283c8466bfd5e85f99dc01b9f3abf37656a356a03a89fa3e6c36c",
+        "size_bytes": 108825,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "2622eaf74055413262b261db46b99c4ddc409de5bee352e515db619e6405b6de",
+        "size_bytes": 6914,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "3806f9fe80aa844f852530f8e274b2db57a4318784f84d136d6ac387d44ea626",
+        "size_bytes": 9687,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "1976a19ef5aad1e9433f876fadea83f0720bb73644eb3c190e5d31f36cdd9eca",
+        "size_bytes": 1053235,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "9cb6e5677503b24fe929f731c49a5efe93a45939bf707815fe381294e21e53dc",
+        "size_bytes": 66823,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3-4b-instruct",
+        "sha256": "54dfe80c7f1e676183a640a7878e928fb396638d3f96bb2441130ed778ad5fd6",
+        "size_bytes": 43620,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3.5-9b",
+        "sha256": "c385a4cb9325ac3d5933230e335b03e1bbd68bdd2d36383a66cc3a46d1372583",
+        "size_bytes": 4080796,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3.5-9b",
+        "sha256": "c76bb68efff854fb376516aa6cd51477aa720365dd8ed377d6b6dc17ab261390",
+        "size_bytes": 289860,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3.5-9b",
+        "sha256": "6f55d7047320f8b9a5464a521b1d179a62ad09aa48c1bf705b820ac631a9b416",
+        "size_bytes": 42952,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3.5-9b",
+        "sha256": "0e3e2c7a025707cb5fb8b1aa0c39a77888832f7ddd63078501274f55f08403fa",
+        "size_bytes": 18410,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3.5-9b",
+        "sha256": "22d4f81c8478bf5ca82713c97befc992a28906aa0d81b6fb5a4a43c7fcc91d56",
+        "size_bytes": 1496,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3.5-9b",
+        "sha256": "f21185d8c02d3214bc16b62a099032caf5ffa5622c14740bd069752a4d8c5df8",
+        "size_bytes": 5611,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3.5-9b",
+        "sha256": "9c238178750ca1335ae0b594fdb79d30c76ce576a5db6115d340d323ee8893c2",
+        "size_bytes": 105656,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3.5-9b",
+        "sha256": "240e26248cd869a462fdbcfcad732c59e57686da57b20529b7d2e075ff5ff561",
+        "size_bytes": 7790,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3.5-9b",
+        "sha256": "275c2a0361b689e24bdda88ece4e33f913d83c64ddf7b938f2c5b0538879f3a3",
+        "size_bytes": 9570,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "qwen3.5-9b",
+        "sha256": "aac47745026c0b685dc7a152f2cf3dc91029643eeec3ef7c4c6044ae1c4f9a3d",
+        "size_bytes": 1002824,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "qwen3.5-9b",
+        "sha256": "e5fab5ecbe53421134d250a6b9b96cabd411833aeb8f8cd5bb7b587c59dddd1a",
+        "size_bytes": 66989,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "qwen3.5-9b",
+        "sha256": "c985b1715f24c555e3d20ccdb543b2db2fd6c338b5484b14f3b99db3ebbec116",
+        "size_bytes": 42869,
+        "stage": "screening"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "smollm3-3b",
+        "sha256": "7164899c63d0550f90c5d6f3cc29fd008344ccb5d8b3f5638c30a9116ec2e0e2",
+        "size_bytes": 4983484,
+        "stage": "full"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "smollm3-3b",
+        "sha256": "d4fd409bdbf08cc3764712f12dfc16c8ef603e976e829097c6640000b4edf426",
+        "size_bytes": 317922,
+        "stage": "full"
+      },
+      {
+        "kind": "summary",
+        "model_id": "smollm3-3b",
+        "sha256": "883dc0b5505693ee8211d5e03231902117bd96e518ae410be78463eb6cddcf2f",
+        "size_bytes": 43865,
+        "stage": "full"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "smollm3-3b",
+        "sha256": "3f2d162b2cd6ea408edd91f77a00957365da5701ea64df251a2ebcbfc76e5b4f",
+        "size_bytes": 19563,
+        "stage": "preflight"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "smollm3-3b",
+        "sha256": "2f86fe00949a25dc126aa3b182fe8cbc2b333181ca9af590ecd3d2fa573476a5",
+        "size_bytes": 1235,
+        "stage": "preflight"
+      },
+      {
+        "kind": "summary",
+        "model_id": "smollm3-3b",
+        "sha256": "2c5d15641a280c6fcd1c06d158cec844cb5793bb68cba0c5ab1677e9bcbb2a8c",
+        "size_bytes": 5647,
+        "stage": "preflight"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "smollm3-3b",
+        "sha256": "57a287ade2144661d3eb1f1aee06ff1ee3587efa75364c5e29cc043a1000727f",
+        "size_bytes": 137650,
+        "stage": "qualification"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "smollm3-3b",
+        "sha256": "5ebe2ffa97d51e9039959b80c53f982ac08bac25d8b331b72db86602afd84f8d",
+        "size_bytes": 7145,
+        "stage": "qualification"
+      },
+      {
+        "kind": "summary",
+        "model_id": "smollm3-3b",
+        "sha256": "e434d6028fa1f0ff4d64c74306384f1b4d34d1137171c13b3d4f8694ce4e0c64",
+        "size_bytes": 9626,
+        "stage": "qualification"
+      },
+      {
+        "kind": "episodes",
+        "model_id": "smollm3-3b",
+        "sha256": "0d2b24a6bc03069107e369a21b4af1b3a9933914614ce7aba34987f153c3e80b",
+        "size_bytes": 1239076,
+        "stage": "screening"
+      },
+      {
+        "kind": "rlvr",
+        "model_id": "smollm3-3b",
+        "sha256": "dce06381e6bc035b897714bf009563a39cf67819141b4b52faead3eef37d3159",
+        "size_bytes": 71699,
+        "stage": "screening"
+      },
+      {
+        "kind": "summary",
+        "model_id": "smollm3-3b",
+        "sha256": "72b6b63510845b9a8c4e6da727d669a8115c1d128346ec98ff09e5d0441500e8",
+        "size_bytes": 43430,
+        "stage": "screening"
+      }
+    ],
+    "artifacts_verified": 180,
+    "manifest_sha256": "69e77711ebb3be738db2473a147f4c244b34214077996413183196bdae41ffee",
+    "state_sha256": "4f8e088a807e7b25a3745bf65fd5248224d9d176c243a9f2fcaed677b7d596d9",
+    "status": "verified"
+  },
+  "renderer_version": "0.12.0rc7",
+  "sanitization": "Public report examples omit prompts, arguments, results, effect attributes and secret-bearing values.",
+  "schema_version": 1
+}

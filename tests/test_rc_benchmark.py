@@ -34,6 +34,32 @@ def test_loader_accepts_exact_manifest_embedded_in_report_evidence(tmp_path):
     assert loaded == manifest
 
 
+def test_frozen_rc7_public_report_retains_verified_gate_evidence():
+    report_dir = ROOT / "benchmarks" / "rc" / "report" / "rc7-full-evidence"
+    evidence = json.loads(
+        (report_dir / "report-evidence-manifest.json").read_text(encoding="utf-8")
+    )
+    aggregate = json.loads(
+        (report_dir / "rc-aggregate.json").read_text(encoding="utf-8")
+    )
+
+    assert evidence["evidence_version"] == "0.12.0rc7"
+    assert evidence["input_integrity"]["status"] == "verified"
+    assert evidence["input_integrity"]["artifacts_verified"] == 180
+    assert aggregate["models_completed"] == 14
+    assert aggregate["models_gate_failed"] == 1
+    assert aggregate["evaluable_episodes"] == 4603
+    assert aggregate["protected_violations"] == 0
+    smollm = next(row for row in aggregate["models"] if row["id"] == "smollm3-3b")
+    assert smollm["status"] == "gate_failed"
+    assert smollm["metrics"]["target_failure_episodes"] == 2
+
+    html = (report_dir / "benchmark-report.html").read_text(encoding="utf-8")
+    assert "Complete with gate failures: 14/15 full completions" in html
+    assert "SYNTHETIC-SECRET" not in html
+    assert "<script" not in html
+
+
 def test_campaign_plan_keeps_stages_and_models_separate():
     plan = build_campaign_plan(load_rc_manifest(MANIFEST), "screening")
     assert plan.count("vais adaptive-reference-lmstudio") == 15
@@ -108,7 +134,7 @@ def test_public_trace_example_is_structurally_sanitized():
 
 def test_aggregate_rejects_duplicate_target(tmp_path):
     model = load_rc_manifest(MANIFEST)["models"][0]
-    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc7", "by_target": {model["lmstudio_model"]: {
+    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc8", "by_target": {model["lmstudio_model"]: {
         "episodes": 3, "evaluable_episodes": 2, "terminal_reward_one_count": 0,
         "target_failure_episodes": 1, "attack_added_security_event_rate": 0.5,
         "protected_workflow_utility_rate": 1.0}}}
@@ -121,7 +147,7 @@ def _summary_for(model, *, reasoning_tokens=0, episodes=240, campaigns=20):
     target = f"lmstudio:{model['lmstudio_model']}"
     return {
         "mode": "adaptive_verification",
-        "framework_version": "0.12.0rc7",
+        "framework_version": "0.12.0rc8",
         "campaigns": {
             "one": {
                 "target_id": target,

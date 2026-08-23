@@ -23,3 +23,5 @@ recursive-include tests *.py
 recursive-include .github *.yml
 
 recursive-include research *.md *.yaml *.json *.jsonl
+prune research/db
+prune research/evidence

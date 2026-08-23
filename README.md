@@ -8,9 +8,9 @@ VAIS places a deterministic security boundary between an AI agent and consequent
 
 VAIS is not an AI judge and does not use another model as the root of trust.
 
-![VAIS cross-model RC5 benchmark evidence](benchmarks/rc/report/rc5-evidence-explained/benchmark-table.svg)
+![VAIS cross-model RC7 benchmark evidence](benchmarks/rc/report/rc7-full-evidence/benchmark-table.svg)
 
-*Published evidence shown above is the completed RC5 campaign rendered by RC6. RC7 corrects the DeepSeek reasoning profile; a new fifteen-model RC7 campaign is required before publishing a 15/15 RC7 result.*
+*Published evidence shown above is the completed RC7 campaign, verified from 180 checkpointed artifacts. Fourteen models completed the full gate; SmolLM3-3B remains visibly gate-failed after two unevaluable generations.*
 
 ## What VAIS does
 
@@ -134,37 +134,38 @@ The automated runner validates the frozen model inventory, loads one model at a 
 vais list-lmstudio-models
 
 vais benchmark --all --dry-run `
-  --output-dir .\results\rc7 `
-  --report-dir .\results\rc7\report
+  --output-dir .\results\rc8 `
+  --report-dir .\results\rc8\report
 
 vais benchmark --all `
-  --output-dir .\results\rc7 `
-  --report-dir .\results\rc7\report
+  --output-dir .\results\rc8 `
+  --report-dir .\results\rc8\report
 ```
 
-RC7 has two explicitly labeled reasoning cohorts: fourteen reasoning-off models and DeepSeek-R1-Distill-Llama-8B in a native-reasoning cohort. Reasoning conformance is checked from observed output, not trusted from the requested setting. Cross-cohort utility, latency, token, and attack-added-event values are not presented as directly comparable.
+The panel has two explicitly labeled reasoning cohorts: fourteen reasoning-off models and DeepSeek-R1-Distill-Llama-8B in a native-reasoning cohort. Reasoning conformance is checked from observed output, not trusted from the requested setting. Cross-cohort utility, latency, token, and attack-added-event values are not presented as directly comparable.
 
-See the [benchmark protocol](docs/v0.12-rc-benchmark.md), [DeepSeek investigation](benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json), and [completed RC5 report](benchmarks/rc/report/rc5-evidence-explained/benchmark-report.html).
+See the [benchmark protocol](docs/v0.12-rc-benchmark.md), [completed RC7 report](benchmarks/rc/report/rc7-full-evidence/benchmark-report.html), [freeze audit](benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json), and [DeepSeek investigation](benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json).
 
 ## Published bounded evidence
 
-The completed RC5 campaign, rendered and integrity-checked by RC6, recorded:
+The completed RC7 campaign, frozen by RC8 without relabeling its evidence, recorded:
 
-- 14 of 15 models completing the balanced full stage;
-- 3,360/3,360 full-stage episodes evaluable;
+- 14 of 15 models completing the common full stage;
+- 3,360/3,360 episodes evaluable across those completed full-stage rows;
 - 0 observed protected invariant violations;
-- 2,203/3,360 protected workflows retaining utility (65.6%);
-- 1,226/3,360 episodes with attack-added diagnostic events (36.5%);
-- DeepSeek stopped at a valid but unsupported reasoning-off configuration gate and received no inferred full score.
+- 2,207/3,360 protected workflows retaining utility (65.7%);
+- 1,306/3,360 episodes with attack-added diagnostic events (38.9%);
+- 4,603/4,605 distinct staged executions evaluable, with two SmolLM target failures left unevaluated;
+- DeepSeek completing 240/240 episodes in its separately labeled native-reasoning cohort.
 
 These results are specific to the recorded models, quantizations, runtime, hardware, scenarios, and episode budgets. Zero observed violations in a finite campaign is not proof of universal security.
 
 Reports:
 
-- [one-page browser summary](benchmarks/rc/report/rc5-evidence-explained/executive-summary.html)
-- [full HTML report](benchmarks/rc/report/rc5-evidence-explained/benchmark-report.html)
-- [technical PDF](output/pdf/VAIS-RC5-evidence-RC6-technical-report.pdf)
-- [immutable evidence manifest](benchmarks/rc/report/rc5-evidence-explained/report-evidence-manifest.json)
+- [one-page browser summary](benchmarks/rc/report/rc7-full-evidence/executive-summary.html)
+- [full HTML report](benchmarks/rc/report/rc7-full-evidence/benchmark-report.html)
+- [technical Markdown report](benchmarks/rc/report/rc7-full-evidence/technical-report.md)
+- [verified evidence manifest](benchmarks/rc/report/rc7-full-evidence/report-evidence-manifest.json)
 
 ## What VAIS does not claim
 

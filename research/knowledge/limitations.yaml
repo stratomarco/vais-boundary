@@ -59,3 +59,6 @@ limitations:
     limitation: RC6 verifies the RC5 manifest, checkpoint and recorded artifact hashes but does not establish portable cryptographic identity for the multi-gigabyte GGUF model files or the external LM Studio runtime binary.
   - id: LIM-030
     limitation: RC7 can complete DeepSeek only as a separately labeled native-reasoning profile in the tested local runtime. Its utility, latency, token use and attack-added rates are not directly comparable to the fourteen-model reasoning-off cohort, and the observed lack of an off control does not establish behavior for every DeepSeek checkpoint or inference runtime.
+
+  - id: LIM-031
+    limitation: Temperature zero did not make the recorded local SmolLM3-3B generations operationally repeatable at the failure positions; one 24-episode follow-up cannot estimate failure frequency, and increasing a token ceiling cannot guarantee a valid structured plan.

@@ -1,0 +1,73 @@
+{
+  "schema": "vais-release-summary-v1",
+  "version": "0.12.0rc8",
+  "release_date": "2026-08-24",
+  "release_class": "verified_rc7_evidence_freeze",
+  "bounded_status": "VAIS v0.12.0rc8 freezes the verified RC7 cross-model evidence and its explanatory reports. It does not relabel the RC7 execution evidence, claim universal security, or convert the incomplete SmolLM3 row into a completed result.",
+  "benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "carrier_version": "0.12.0rc8",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "attempted_staged_episodes": 4605,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "completed_full_panel_evaluable_episodes": 3360,
+    "completed_full_panel_protected_workflow_utility": {
+      "successful": 2207,
+      "total": 3360,
+      "rate": 0.6568452380952381
+    },
+    "completed_full_panel_attack_added_security_events": {
+      "episodes": 1306,
+      "total": 3360,
+      "rate": 0.3886904761904762
+    },
+    "immutable_artifacts_verified": 180,
+    "immutable_artifact_hash_mismatches": 0
+  },
+  "smollm_follow_up": {
+    "model": "huggingfacetb/smollm3-3b",
+    "scenarios": [
+      "attack-18",
+      "attack-19"
+    ],
+    "episodes_per_scenario": 12,
+    "attempted_episodes": 24,
+    "evaluable_episodes": 23,
+    "target_failure_episodes": 1,
+    "protected_invariant_violations": 0,
+    "initial_output_tokens": 2048,
+    "single_retry_output_tokens": 7168,
+    "decision": "Retain the RC7 SmolLM3 gate failure and the uniform 4096-token panel retry. The larger diagnostic retry did not reliably remove truncation/non-JSON failure and is not substituted into the benchmark evidence."
+  },
+  "validation": {
+    "source_tests": "222 passed",
+    "fresh_source_zip_tests": "222 passed",
+    "fresh_source_zip_version": "0.12.0rc8",
+    "wheel_install_and_smoke": "passed with PyYAML 6.0.3; pip check clean; deny-default policy and CLI version verified",
+    "immutable_evidence": "180 of 180 checkpoint artifacts matched recorded SHA-256 and size",
+    "report_visual_qa": "passed at 1280px for the executive summary and full report; no horizontal overflow observed",
+    "source_zip_reproducibility": "byte-identical across two builds with SOURCE_DATE_EPOCH=1787529600",
+    "wheel_reproducibility": "byte-identical across two builds with SOURCE_DATE_EPOCH=1787529600",
+    "sdist_build": "passed without build isolation; byte-for-byte reproducibility not claimed",
+    "sdist_generated_local_indexes": "excluded; canonical research YAML and Markdown remain included",
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_historical_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "The doctor correctly remains non-green because the existing 23 historical portable-tree references and dependent knowledge-integrity checks are unresolved. No new RC7/RC8 evidence hash mismatch was observed."
+  },
+  "artifact_sha256": {
+    "RC7-benchmark-report.html": "5e09662c952d49f274a89ae0971d1585e4571f83698ad0084f43b8a28c14ddb7",
+    "RC7-benchmark-table.svg": "deda0d9cb3351650d28f5352065e67dee3859cba09e2f6aff146fe51e379b49c",
+    "RC7-executive-summary.html": "c5fe75048dce5028f4f63ec4634293fd6911fa3ee8954f4d3c0c758eb62bf1a1",
+    "RC7-report-evidence-manifest.json": "c2fc24dec086db264f42e87b13e5c225590e78bee024316ccf0a0b3a55c0ea63",
+    "v0.12-model-panel.json": "f7274d1c4e8e7b4ae25b09e8558751ec5dc52c56122062bd5c769345538e910b",
+    "v0.12.0rc8-rc7-freeze-audit.json": "509eb86a03e33d0f56cf2123feb677efc00ea54a5af7fc7ee3df3b2b42593caf",
+    "VAIS-v0.12.0rc8-source.zip": "17475ac3d4dad2d4a45f82e0738a458df0bc11663ae509c039b3fc59eba5ec8e",
+    "verifiable_ai_security-0.12.0rc8-py3-none-any.whl": "7b3b0c2ef4502c50a8dbfbe0f92586c9a65d63437564aae7f730a1c8ebe438bc",
+    "verifiable_ai_security-0.12.0rc8.tar.gz": "bf24989e978d11cf67b13d6000c0d266220761735ddc22bcc104f045af3b3c16"
+  }
+}

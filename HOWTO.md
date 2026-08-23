@@ -60,7 +60,7 @@ Create and activate a virtual environment, then install the exact wheel file:
 
 ```powershell
 python -m pip install --force-reinstall `
-  ".\dist\rc7-final\verifiable_ai_security-0.12.0rc7-py3-none-any.whl"
+  ".\dist\rc8-final\verifiable_ai_security-0.12.0rc8-py3-none-any.whl"
 ```
 
 Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.
@@ -301,7 +301,7 @@ This reclassifies stored plans using current measurement semantics; it does not 
 
 ## 8. Run the complete LM Studio panel
 
-Use a new output directory for a new framework version or manifest. Do not mix RC5 evidence with an RC7 campaign.
+Use a new output directory for a new framework version or manifest. Do not mix the frozen RC7 evidence with a new RC8 campaign.
 
 ### Preflight the exact inventory
 
@@ -309,8 +309,8 @@ Use a new output directory for a new framework version or manifest. Do not mix R
 lms server start
 
 vais benchmark --all --dry-run `
-  --output-dir .\results\rc7 `
-  --report-dir .\results\rc7\report
+  --output-dir .\results\rc8 `
+  --report-dir .\results\rc8\report
 ```
 
 The dry run checks the server, every expected model key, quantization, manifest, and frozen configuration without running episodes.
@@ -319,8 +319,8 @@ The dry run checks the server, every expected model key, quantization, manifest,
 
 ```powershell
 vais benchmark --all `
-  --output-dir .\results\rc7 `
-  --report-dir .\results\rc7\report
+  --output-dir .\results\rc8 `
+  --report-dir .\results\rc8\report
 ```
 
 The runner:
@@ -341,11 +341,11 @@ Do not delete or edit `benchmark-state.json` or recorded artifacts during a camp
 vais benchmark `
   --model qwen3-0.6b `
   --model deepseek-r1-distill-llama-8b `
-  --output-dir .\results\rc7-selected `
-  --report-dir .\results\rc7-selected\report
+  --output-dir .\results\rc8-selected `
+  --report-dir .\results\rc8-selected\report
 ```
 
-### RC7 reasoning profiles
+### Reasoning profiles
 
 - Fourteen models are configured as `reasoning_mode=off`, `reasoning_control=adapter_request`, cohort `reasoning_off`.
 - DeepSeek-R1-Distill-Llama-8B is configured as `reasoning_mode=on`, `reasoning_control=model_native`, cohort `native_reasoning`.

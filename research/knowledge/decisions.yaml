@@ -161,3 +161,9 @@ decisions:
     decision: Keep the RC5 DeepSeek reasoning-off failure intact, then evaluate the model in RC7 as a separately labeled native-reasoning profile with observed reasoning required; bind every stage summary to its manifest reasoning label and control request and compare utility only within a reasoning profile.
     rationale: The tested DeepSeek model/runtime exposes no off configuration, and every non-prompt compatibility control still emitted reasoning. Relabeling that output as off or weakening the gate would invalidate the experiment, while excluding the family would reduce panel diversity. A separate cohort preserves both evidence and interpretability.
     evidence: [benchmarks/rc/v0.12.0rc7-deepseek-reasoning-audit.json, benchmarks/rc/v0.12-model-panel.json, tests/test_reasoning.py, tests/test_benchmark_automation.py]
+
+  - id: DEC-029
+    date: 2026-08-24
+    decision: Freeze the completed RC7 panel with SmolLM3-3B visibly gate-failed, retain the uniform 4096-token retry protocol, and publish the 7168-token follow-up only as separate diagnostic evidence.
+    rationale: The larger model-specific retry did not eliminate unrecovered truncation, changing one row's budget would break the common protocol, and target failures are unevaluated rather than successful defense or completed benchmark rows.
+    evidence: [benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json, benchmarks/rc/report/rc7-full-evidence/technical-report.md, research/narrative/v0.12-rc8-rc7-benchmark-freeze-summary.md]
