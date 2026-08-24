@@ -1,0 +1,68 @@
+name: Benchmark reproduction
+description: Report an attempted reproduction, including differences from the frozen environment.
+title: "[Reproduction]: "
+labels:
+  - benchmark-reproduction
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A reproduction is useful whether it agrees with the published result or not. Report deviations explicitly; different models, quantizations, runtimes, hardware, manifests, or budgets are different experiments rather than invalid results.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Data handling
+      options:
+        - label: I removed credentials, personal data, private prompts, raw secret-bearing traces, and proprietary model output.
+          required: true
+        - label: Target failures are reported as unevaluated rather than successful defense.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: VAIS version and commit
+      placeholder: 0.12.0rc9 / commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: model
+    attributes:
+      label: Model identity
+      description: Model ID, source repository, exact file or model key, parameter class, quantization, and declared reasoning profile.
+    validations:
+      required: true
+  - type: textarea
+    id: runtime
+    attributes:
+      label: Runtime and hardware
+      description: LM Studio/runtime version, operating system, GPU/VRAM, system RAM, context length, GPU offload, and parallelism.
+    validations:
+      required: true
+  - type: textarea
+    id: protocol
+    attributes:
+      label: Protocol and command
+      description: Manifest hash, stage/scenario/episode budget, command, and any deviations from the published protocol.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Bounded result
+      description: Report attempted/evaluable episodes, target failures, protected violations, utility, attack-added events, reasoning conformance, and completion gate.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Attach or link summary/checkpoint files and hashes when safe. Do not upload raw confidential trajectories.
+  - type: textarea
+    id: interpretation
+    attributes:
+      label: Interpretation and differences
+      description: Explain what matched, what differed, and which conclusions the evidence does or does not support.
+    validations:
+      required: true

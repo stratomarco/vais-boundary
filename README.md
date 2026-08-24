@@ -179,6 +179,12 @@ Reports:
 - [technical Markdown report](benchmarks/rc/report/rc7-full-evidence/technical-report.md)
 - [verified evidence manifest](benchmarks/rc/report/rc7-full-evidence/report-evidence-manifest.json)
 
+## Review and feedback
+
+Critical review is welcome. Start with the [reviewer guide](docs/reviewer-feedback.md), which asks three questions: whether the protected boundary is understandable, whether VAIS can be installed and run, and whether the benchmark derivation is trustworthy. GitHub provides separate forms for bugs, installation problems, benchmark reproductions and reviewer feedback.
+
+Report suspected security vulnerabilities privately through [GitHub Security Advisories](https://github.com/stratomarco/vais-boundary/security/advisories/new) or the channel in [SECURITY.md](SECURITY.md), never as a public issue.
+
 ## What VAIS does not claim
 
 VAIS is not:
@@ -203,6 +209,7 @@ The protected executor must be the only route to consequential tools. Integratio
 | [`docs/mcp-security.md`](docs/mcp-security.md) | MCP mediation and indeterminate-effect semantics |
 | [`docs/v0.12-rc-benchmark.md`](docs/v0.12-rc-benchmark.md) | Cross-model benchmark protocol |
 | [`docs/related-work.md`](docs/related-work.md) | Positioning and adjacent work |
+| [`docs/reviewer-feedback.md`](docs/reviewer-feedback.md) | Short review path and structured feedback questions |
 | [`research/`](research/) | Findings, decisions, limitations, sources, and generated evidence indexes |
 | [`CHANGELOG.md`](CHANGELOG.md) | Version history |
 
