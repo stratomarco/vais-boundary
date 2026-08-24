@@ -1,0 +1,73 @@
+name: Reviewer feedback
+description: Review the trust boundary, installation experience, and benchmark explanation.
+title: "[Review]: "
+labels:
+  - reviewer-feedback
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reviewing VAIS Boundary. Critical feedback is more useful than endorsement. Please avoid including personal contact details, confidential application information, private prompts, credentials, or raw secret-bearing traces.
+  - type: dropdown
+    id: perspective
+    attributes:
+      label: Primary perspective
+      options:
+        - AI or agent security
+        - LLM evaluation or red teaming
+        - Security engineering or architecture
+        - Agent or application development
+        - Governance, assurance, or technical buying
+        - General technical review
+    validations:
+      required: true
+  - type: checkboxes
+    id: reviewed
+    attributes:
+      label: What did you review?
+      options:
+        - label: README and project claims
+        - label: One-page benchmark summary
+        - label: Full benchmark report or methodology
+        - label: Installation or no-model quick tour
+        - label: Source code or tests
+  - type: textarea
+    id: boundary
+    attributes:
+      label: 1. Could you understand what VAIS protects?
+      description: What is clear or unclear about the trusted boundary, protected effects, and what remains outside scope?
+    validations:
+      required: true
+  - type: textarea
+    id: installation
+    attributes:
+      label: 2. Could you install and run it?
+      description: Say what you tried, what worked, and where you stopped. “Not attempted” is a valid answer.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 3. Do you trust how the benchmark results were derived?
+      description: Identify unclear denominators, missing evidence, overstrong claims, or checks that increased confidence.
+    validations:
+      required: true
+  - type: textarea
+    id: concern
+    attributes:
+      label: Most important concern or next test
+      description: What single defect, limitation, experiment, or integration should be addressed next?
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: How much does this affect your confidence?
+      options:
+        - Blocks use or evaluation
+        - Material concern
+        - Minor concern
+        - Clarification or suggestion
+    validations:
+      required: true

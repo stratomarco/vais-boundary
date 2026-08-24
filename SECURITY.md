@@ -4,9 +4,9 @@ VAIS is security research software and is **not production hardened**.
 
 ## Private reporting
 
-Report suspected vulnerabilities privately to `stratomarco@proton.me` with `VAIS SECURITY` in the subject. Include the affected version, a minimal reproduction, the expected security invariant and the observed externally visible effect when safe to do so. Do not include real credentials, personal data or third-party confidential material.
+Use [GitHub Private Vulnerability Reporting](https://github.com/stratomarco/vais-boundary/security/advisories/new), or email `stratomarco@proton.me` with `VAIS SECURITY` in the subject. Include the affected version, a minimal reproduction, the expected security invariant and the observed externally visible effect when safe to do so. Do not include real credentials, personal data or third-party confidential material.
 
-GitHub Private Vulnerability Reporting should also be enabled when the repository becomes public. Until then, email is the published private reporting channel.
+GitHub Private Vulnerability Reporting is enabled for the public repository. Do not open a public issue before using one of these private channels for a suspected vulnerability.
 
 ## What should be reported privately
 

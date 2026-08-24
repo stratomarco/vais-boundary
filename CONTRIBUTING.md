@@ -31,6 +31,12 @@ python -m vais validate-invariants invariants/default.yaml
 
 Tests must pass on supported Python versions. CI also runs on Windows because the project is expected to remain usable from PowerShell-based development environments.
 
+## Issues and reviewer feedback
+
+Use the structured GitHub forms for [bugs](https://github.com/stratomarco/vais-boundary/issues/new?template=bug_report.yml), [installation problems](https://github.com/stratomarco/vais-boundary/issues/new?template=installation_problem.yml), [benchmark reproductions](https://github.com/stratomarco/vais-boundary/issues/new?template=benchmark_reproduction.yml), and [reviewer feedback](https://github.com/stratomarco/vais-boundary/issues/new?template=reviewer_feedback.yml). The [reviewer guide](docs/reviewer-feedback.md) gives a short evidence-reading and installation path.
+
+Suspected security vulnerabilities belong in [private vulnerability reporting](https://github.com/stratomarco/vais-boundary/security/advisories/new), not a public issue. Public reports must omit credentials, personal data, private prompts, confidential application details, and raw secret-bearing trajectories.
+
 ## Contribution licensing
 
 Unless you explicitly state otherwise, an intentional contribution submitted for inclusion in VAIS is provided under the Apache License, Version 2.0, consistent with Section 5 of [`LICENSE`](LICENSE). Submit only work that you have the right to contribute. Do not include employer, client or third-party confidential material, real credentials, or model/runtime artifacts whose terms do not permit redistribution.
