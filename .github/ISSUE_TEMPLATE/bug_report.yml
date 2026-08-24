@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a reproducible defect that is not a security vulnerability.
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing VAIS Boundary. If this could expose secrets, bypass a protected decision, or incorrectly report a security invariant, stop and use [private vulnerability reporting](https://github.com/stratomarco/vais-boundary/security/advisories/new).
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for the same behavior.
+          required: true
+        - label: I removed credentials, personal data, private prompts, and confidential model or tool output.
+          required: true
+        - label: This report does not require private security handling.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: VAIS version or commit
+      description: Paste `vais version` and, for a source checkout, `git rev-parse HEAD`.
+      placeholder: 0.12.0rc9 / commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python version, and installation method.
+      placeholder: Windows 11, Python 3.12, RC9 wheel
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: List the smallest commands or code needed to reproduce the defect.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include a short, redacted error or traceback when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mention the affected mode, command, policy, invariant, adapter, or documentation section.

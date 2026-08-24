@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/stratomarco/vais-boundary/security/advisories/new
+    about: Do not open a public issue for suspected boundary bypasses, secret exposure, or other security vulnerabilities.
+  - name: Read the reviewer guide
+    url: https://github.com/stratomarco/vais-boundary/blob/main/docs/reviewer-feedback.md
+    about: Start here for the suggested review path, evidence boundaries, and feedback questions.

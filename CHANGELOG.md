@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add structured GitHub forms for bug reports, installation problems, benchmark reproductions and reviewer feedback, with security findings routed to private vulnerability reporting.
+- Add a concise RC9 reviewer guide and invitation centered on boundary comprehension, installability and trust in benchmark derivation.
+
 ## 0.12.0-rc9 - 2026-08-24
 
 - Adopt **VAIS Boundary — Verifiable Authority & Invariant Security** as the public-facing name while preserving the `vais` CLI, Python package identifiers and historical benchmark titles.

@@ -1,0 +1,54 @@
+name: Installation problem
+description: Report a problem installing the source archive, wheel, or development checkout.
+title: "[Install]: "
+labels:
+  - installation
+  - needs-triage
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I followed the current HOWTO and used a fresh virtual environment.
+          required: true
+        - label: I removed usernames, credentials, tokens, and unrelated private paths from the output.
+          required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installation source
+      options:
+        - Release wheel
+        - Release source ZIP
+        - Git repository
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Python
+      placeholder: Ubuntu 24.04, Python 3.12.6
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands run
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Redacted error output
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Verification output
+      description: When available, include `python --version`, `python -m pip check`, `python -m vais version`, and the active interpreter path.
+      render: text
