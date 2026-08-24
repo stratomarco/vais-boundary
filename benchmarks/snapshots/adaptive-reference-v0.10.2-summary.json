@@ -841,9 +841,9 @@
       "workflow_title": "Delegated external egress"
     }
   },
-  "configuration_hash": "52d302075b21973588767d11b05d6faf5acaedc2af89d16f9ae6425e31791575",
+  "configuration_hash": "f5a250b67f9af80ac4cc9438e95fe048f6de62eb9184713861a6f69ffe2e44eb",
   "episode_count": 240,
-  "framework_version": "0.12.0rc8",
+  "framework_version": "0.12.0rc9",
   "mode": "adaptive_verification",
   "reference_baseline_version": "0.9.3",
   "reference_policy_hash": "496fe29b375e2e962fdbef37ed53bae70ab1a834aa60ccc1f68f2ff528d2971b",

@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Protocol
+import unicodedata
 
 import yaml
 
@@ -17,6 +18,7 @@ from .models import (
     TaskContract,
     TrustLevel,
     Value,
+    FrozenDict,
     action_fingerprint,
 )
 from .monitor import ReferenceMonitor
@@ -58,6 +60,22 @@ class MCPEffectMapping:
     kind: str = "mcp_tool_called"
     argument_fields: dict[str, str] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, str) or not self.kind.strip():
+            raise ValueError("effect kind must be a non-empty string")
+        fields: dict[str, str] = {}
+        for effect_field, argument_name in self.argument_fields.items():
+            if not isinstance(effect_field, str) or not effect_field.strip():
+                raise ValueError("effect field names must be non-empty strings")
+            if not isinstance(argument_name, str) or not argument_name.strip():
+                raise ValueError("effect argument names must be non-empty strings")
+            normalized_field = unicodedata.normalize("NFC", effect_field)
+            if normalized_field in fields:
+                raise ValueError("Unicode normalization produced a duplicate effect field")
+            fields[normalized_field] = unicodedata.normalize("NFC", argument_name)
+        object.__setattr__(self, "kind", unicodedata.normalize("NFC", self.kind))
+        object.__setattr__(self, "argument_fields", FrozenDict(fields))
+
 
 @dataclass(frozen=True)
 class MCPToolBinding:
@@ -76,6 +94,11 @@ class MCPToolBinding:
         }.items():
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{label} must be a non-empty string")
+        object.__setattr__(self, "server_id", unicodedata.normalize("NFC", self.server_id))
+        object.__setattr__(self, "tool_name", unicodedata.normalize("NFC", self.tool_name))
+        object.__setattr__(
+            self, "canonical_tool", unicodedata.normalize("NFC", self.canonical_tool)
+        )
 
 
 @dataclass(frozen=True)
@@ -84,6 +107,9 @@ class MCPProfile:
     version: int = 1
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "bindings", tuple(self.bindings))
+        if isinstance(self.version, bool) or not isinstance(self.version, int) or self.version != 1:
+            raise ValueError("MCP profile version must be 1")
         canonical = [item.canonical_tool for item in self.bindings]
         endpoints = [(item.server_id, item.tool_name) for item in self.bindings]
         if len(canonical) != len(set(canonical)):
@@ -147,6 +173,8 @@ def canonical_mcp_tool(server_id: str, tool_name: str) -> str:
             raise ValueError(f"{label} must be a non-empty string")
         if ":" in value:
             raise ValueError(f"{label} cannot contain ':'")
+    server_id = unicodedata.normalize("NFC", server_id)
+    tool_name = unicodedata.normalize("NFC", tool_name)
     return f"mcp:{server_id}:{tool_name}"
 
 
@@ -168,6 +196,9 @@ def label_mcp_input(
     for label, value in {"server_id": server_id, "primitive": primitive, "name": name}.items():
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"{label} must be a non-empty string")
+    server_id = unicodedata.normalize("NFC", server_id)
+    primitive = unicodedata.normalize("NFC", primitive)
+    name = unicodedata.normalize("NFC", name)
     return Value(
         data,
         Provenance(
@@ -200,7 +231,7 @@ class MCPProtectedClient:
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
-        self.server_id = server_id
+        self.server_id = unicodedata.normalize("NFC", server_id)
         self.session = session
         self.profile = profile
         self.monitor = monitor
@@ -286,11 +317,15 @@ class MCPUnprotectedClient:
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
-        self.server_id = server_id
+        self.server_id = unicodedata.normalize("NFC", server_id)
         self.session = session
         self.profile = profile
 
     async def execute(self, action: PlannedAction) -> MCPExecutionRecord:
+        try:
+            request_id = action_fingerprint(action)
+        except ValueError:
+            request_id = None
         binding = self.profile.by_canonical_tool(action.tool)
         if binding is None:
             return MCPExecutionRecord(
@@ -325,7 +360,9 @@ class MCPUnprotectedClient:
                 effect=None,
                 result=None,
                 call_state=MCPCallState.INDETERMINATE,
-                error=f"{type(exc).__name__}: {exc}",
+                error=type(exc).__name__,
+                request_id=request_id,
+                retry_safe=False,
             )
 
         effect = _effect_from_binding(action, binding)
@@ -420,7 +457,7 @@ def _known_keys(raw: dict[str, Any], allowed: set[str], path: str) -> None:
 def _string(value: Any, path: str) -> str:
     if not isinstance(value, str) or not value.strip():
         _fail(path, "must be a non-empty string")
-    return value
+    return unicodedata.normalize("NFC", value)
 
 
 def _confidentiality(value: Any, path: str) -> ConfidentialityLevel:
@@ -445,7 +482,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
     raw = _mapping(raw, "mcp_profile")
     _known_keys(raw, {"version", "servers"}, "mcp_profile")
     version = raw.get("version", 1)
-    if version != 1:
+    if isinstance(version, bool) or not isinstance(version, int) or version != 1:
         _fail("mcp_profile.version", "only version 1 is supported")
 
     servers = _mapping(raw.get("servers", {}), "mcp_profile.servers")

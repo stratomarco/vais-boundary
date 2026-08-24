@@ -181,6 +181,8 @@ protected MCP path   -> VAIS decision -> observable effect / invariant result
 
 The class is intentionally named `Unprotected` and must not be used as a production client.
 
+Both protected and deliberately unprotected assessment records omit exception messages because transport/runtime text can contain credentials or payload data. They retain only the exception class, deterministic request identity, `indeterminate` call state and `retry_safe=false` classification.
+
 
 ## v0.8 MCP-path benchmark
 

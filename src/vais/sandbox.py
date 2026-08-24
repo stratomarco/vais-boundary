@@ -1,18 +1,48 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from collections.abc import Mapping
 from typing import Any
+import unicodedata
 
-from .models import PlannedAction, Provenance, action_fingerprint
+from .models import FrozenDict, PlannedAction, Provenance, action_fingerprint, deep_freeze
 
 
 @dataclass(frozen=True)
 class Effect:
     kind: str
-    attributes: dict[str, Any]
-    provenance: dict[str, Provenance] = field(default_factory=dict)
+    attributes: Mapping[str, Any]
+    provenance: Mapping[str, Provenance] = field(default_factory=dict)
     tool: str | None = None
     action_fingerprint: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, str) or not self.kind.strip():
+            raise ValueError("effect kind must be a non-empty string")
+        attributes = deep_freeze(self.attributes)
+        if not isinstance(attributes, FrozenDict):
+            raise ValueError("effect attributes must be a mapping")
+        provenance: dict[str, Provenance] = {}
+        for key, value in self.provenance.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("effect provenance keys must be non-empty strings")
+            normalized = unicodedata.normalize("NFC", key)
+            if normalized in provenance:
+                raise ValueError("Unicode normalization produced duplicate effect provenance")
+            if not isinstance(value, Provenance):
+                raise ValueError("effect provenance values must be Provenance")
+            provenance[normalized] = value
+        if self.tool is not None and (not isinstance(self.tool, str) or not self.tool.strip()):
+            raise ValueError("effect tool must be a non-empty string or None")
+        if self.action_fingerprint is not None and (
+            not isinstance(self.action_fingerprint, str) or not self.action_fingerprint.strip()
+        ):
+            raise ValueError("effect action_fingerprint must be a non-empty string or None")
+        object.__setattr__(self, "kind", unicodedata.normalize("NFC", self.kind))
+        object.__setattr__(self, "attributes", attributes)
+        object.__setattr__(self, "provenance", FrozenDict(provenance))
+        if self.tool is not None:
+            object.__setattr__(self, "tool", unicodedata.normalize("NFC", self.tool))
 
 
 class SandboxExecutor:

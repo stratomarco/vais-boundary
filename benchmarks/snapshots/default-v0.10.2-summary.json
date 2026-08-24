@@ -1514,7 +1514,7 @@
   "execution_backends": [
     "sandbox"
   ],
-  "framework_version": "0.12.0rc8",
+  "framework_version": "0.12.0rc9",
   "methodology": {
     "behavioral_drift_can_be_escalation_or_contraction": true,
     "confidence_interval": "Wilson score 95% for primary rates",

@@ -167,3 +167,21 @@ decisions:
     decision: Freeze the completed RC7 panel with SmolLM3-3B visibly gate-failed, retain the uniform 4096-token retry protocol, and publish the 7168-token follow-up only as separate diagnostic evidence.
     rationale: The larger model-specific retry did not eliminate unrecovered truncation, changing one row's budget would break the common protocol, and target failures are unevaluated rather than successful defense or completed benchmark rows.
     evidence: [benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json, benchmarks/rc/report/rc7-full-evidence/technical-report.md, research/narrative/v0.12-rc8-rc7-benchmark-freeze-summary.md]
+
+  - id: DEC-030
+    date: 2026-08-24
+    decision: Adopt VAIS Boundary as the public identity, expand VAIS as Verifiable Authority and Invariant Security, rename the canonical repository to vais-boundary, and retain the vais CLI/import plus verifiable-ai-security distribution for compatibility.
+    rationale: The revised name describes the implemented authority and effect-verification boundary without implying universal AI-security proof or forcing an unnecessary package migration.
+    evidence: [docs/naming.md, README.md, pyproject.toml]
+
+  - id: DEC-031
+    date: 2026-08-24
+    decision: Treat observable effects as canonical immutable security evidence and apply the authorization boundary's type-sensitive and finite-number rules to declarative invariant evaluation.
+    rationale: An independent verifier cannot remain independent or deterministic if its effect evidence can change after observation or if Python equality and non-finite comparisons create type-confused fail-open outcomes.
+    evidence: [docs/v0.12.0rc9-release-review.md, src/vais/sandbox.py, src/vais/invariants.py, tests/test_invariants.py]
+
+  - id: DEC-032
+    date: 2026-08-24
+    decision: Elide exception messages from protected and unprotected MCP records while preserving exception class, deterministic request identity, indeterminate state and unsafe-retry status.
+    rationale: Assessment baselines still produce retained artifacts, so intentionally bypassing authorization does not justify persisting secret-bearing transport text.
+    evidence: [src/vais/mcp.py, tests/test_mcp.py, docs/mcp-security.md]

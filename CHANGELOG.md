@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.0-rc9 - 2026-08-24
+
+- Adopt **VAIS Boundary — Verifiable Authority & Invariant Security** as the public-facing name while preserving the `vais` CLI, Python package identifiers and historical benchmark titles.
+- Add a claim-bounded naming rationale that ties each term to implemented authority, enforcement and independent effect-verification semantics.
+- Canonicalize and recursively freeze observable `Effect` evidence before independent invariant evaluation, including Unicode-normalized effect identifiers and provenance keys.
+- Make contract-binding invariants type-sensitive, reject Boolean/non-finite numeric effect fields, reject non-finite invariant thresholds and type-confused schema versions, and require a non-empty invariant set.
+- Prevent policy v4 files from opting into an allow-by-default policy or disabling undeclared-argument rejection; historical v1-v3 parsing semantics remain available for replay.
+- Remove exception messages from the deliberately unprotected MCP assessment path and retain only exception class, request identity, indeterminate state and unsafe-retry status.
+- License the project under Apache-2.0 and add the canonical `LICENSE` plus project `NOTICE`.
+- Add Marco Constantino as author and maintainer, publish the private security contact, add machine-readable citation metadata, and populate package project URLs and classifiers.
+- Clarify that commercial use is permitted under Apache-2.0 while support, hosting, integration and other services remain separate offerings.
+- Replace the overly broad original expansion after identifying an unrelated public repository using the exact `Verifiable-AI-Security` name; formal trademark clearance remains a separate pre-publication task.
+- Move the canonical repository identity to `stratomarco/vais-boundary` and replace the prior corporate commit address with the maintainer's private contact across reachable Git history before sharing.
+
 ## 0.12.0-rc8 - 2026-08-24
 
 - Freeze the completed RC7 campaign as immutable evidence after verifying the checkpoint, manifest, sizes and SHA-256 values of all 180 recorded artifacts.

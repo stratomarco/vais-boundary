@@ -4,11 +4,39 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "verifiable-ai-security"
-version = "0.12.0rc8"
-description = "Deterministic security enforcement and adaptive verification for LLM applications and agents."
+version = "0.12.0rc9"
+description = "VAIS Boundary: verifiable authority and invariant security for AI applications and agents."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+  { name = "Marco Constantino", email = "stratomarco@proton.me" },
+]
+maintainers = [
+  { name = "Marco Constantino", email = "stratomarco@proton.me" },
+]
+keywords = ["ai-security", "agent-security", "mcp", "prompt-injection", "verification"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+]
 dependencies = ["PyYAML>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/stratomarco/vais-boundary"
+Repository = "https://github.com/stratomarco/vais-boundary"
+Documentation = "https://github.com/stratomarco/vais-boundary/blob/main/HOWTO.md"
+Issues = "https://github.com/stratomarco/vais-boundary/issues"
+Changelog = "https://github.com/stratomarco/vais-boundary/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]

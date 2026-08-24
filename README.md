@@ -1,12 +1,24 @@
-# Verifiable AI Security (VAIS)
+# VAIS Boundary
 
-> Deterministic security enforcement and adaptive verification for AI-enabled applications and agents.
+> Verifiable Authority & Invariant Security for AI-enabled applications and agents.
 
 **Assume model compromise. Constrain consequence. Verify effects.**
 
 VAIS places a deterministic security boundary between an AI agent and consequential tools. The model may be prompt-injected, confused, poisoned, or simply wrong; it still cannot grant itself authority, silently declassify data, or redefine what counts as a secure outcome.
 
 VAIS is not an AI judge and does not use another model as the root of trust.
+
+## Why the name
+
+**VAIS Boundary** names the mechanism rather than making a broad claim that an AI system is secure:
+
+- **Verifiable**: decisions and observed effects produce reproducible evidence for explicitly declared checks; this is bounded verification, not a proof of universal safety.
+- **Authority**: task scope, capabilities and approvals originate outside the model. A model can propose an action but cannot grant itself permission.
+- **Invariant**: security outcomes are evaluated against declared conditions over observable effects, independently of the component being tested.
+- **Security**: the protected property is intentionally narrow—adversarial model influence must not create an unauthorized external effect.
+- **Boundary**: the trusted mechanism sits between model-generated proposals and consequential tools, then verifies what happened after execution.
+
+The `vais` command and Python package remain stable. Earlier releases and frozen evidence may use the original *Verifiable AI Security* expansion; those historical artifacts are not rewritten. See the [complete naming rationale](docs/naming.md).
 
 ![VAIS cross-model RC7 benchmark evidence](benchmarks/rc/report/rc7-full-evidence/benchmark-table.svg)
 
@@ -81,8 +93,8 @@ VAIS requires Python 3.11 or newer. These commands install the development check
 ### Windows PowerShell
 
 ```powershell
-git clone https://github.com/stratomarco/verifiable-ai-security.git
-Set-Location .\verifiable-ai-security
+git clone https://github.com/stratomarco/vais-boundary.git
+Set-Location .\vais-boundary
 
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -98,8 +110,8 @@ vais mcp-demo
 ### Linux or macOS
 
 ```bash
-git clone https://github.com/stratomarco/verifiable-ai-security.git
-cd verifiable-ai-security
+git clone https://github.com/stratomarco/vais-boundary.git
+cd vais-boundary
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -134,12 +146,12 @@ The automated runner validates the frozen model inventory, loads one model at a 
 vais list-lmstudio-models
 
 vais benchmark --all --dry-run `
-  --output-dir .\results\rc8 `
-  --report-dir .\results\rc8\report
+  --output-dir .\results\rc9 `
+  --report-dir .\results\rc9\report
 
 vais benchmark --all `
-  --output-dir .\results\rc8 `
-  --report-dir .\results\rc8\report
+  --output-dir .\results\rc9 `
+  --report-dir .\results\rc9\report
 ```
 
 The panel has two explicitly labeled reasoning cohorts: fourteen reasoning-off models and DeepSeek-R1-Distill-Llama-8B in a native-reasoning cohort. Reasoning conformance is checked from observed output, not trusted from the requested setting. Cross-cohort utility, latency, token, and attack-added-event values are not presented as directly comparable.
@@ -204,6 +216,6 @@ python -m vais validate-invariants .\invariants\default.yaml
 
 CI tests Python 3.11–3.14 on Windows and Linux and installs the built wheel independently. Security-control changes should include the invariant or threat addressed, a regression test, the affected boundary, and clean-utility implications. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License status
+## License
 
-No open-source license has been selected yet. The repository is shared for review and evaluation, but absence of a license does not grant permission to copy, modify, or redistribute the code. See [LICENSING.md](LICENSING.md).
+VAIS is open-source software licensed under the [Apache License, Version 2.0](LICENSE). Commercial use is permitted under the same license terms; no separate commercial permission is required. See [LICENSING.md](LICENSING.md) for dependency, model-weight, trademark and service boundaries.

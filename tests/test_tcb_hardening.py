@@ -48,6 +48,19 @@ def test_canonical_equality_is_type_sensitive_and_unicode_normalized():
     assert action_fingerprint(action("e\u0301")) == action_fingerprint(action("é"))
 
 
+def test_action_and_contract_identifiers_normalize_without_alias_collisions():
+    normalized = PlannedAction("paye\u0301", {"cafe\u0301": TrustedValue(1)})
+    assert normalized.tool == "payé"
+    assert tuple(normalized.arguments) == ("café",)
+    with pytest.raises(ValueError, match="duplicate argument"):
+        PlannedAction(
+            "pay",
+            {"e\u0301": TrustedValue(1), "é": TrustedValue(1)},
+        )
+    with pytest.raises(ValueError, match="duplicate allowed tools"):
+        TaskContract({"paye\u0301", "payé"})
+
+
 @pytest.mark.parametrize("bad", [math.nan, math.inf, -math.inf])
 def test_nonfinite_values_are_rejected_before_authorization(bad):
     with pytest.raises(ValueError):
@@ -94,6 +107,22 @@ def test_policy_threshold_rejects_nonfinite(tmp_path):
     path.write_text("version: 4\ntools:\n  pay:\n    allow: true\n    arguments:\n      amount: {}\n    approval:\n      field: amount\n      greater_than: .inf\n", encoding="utf-8")
     with pytest.raises(Exception, match="must be finite"):
         load_policy(path)
+
+
+def test_policy_v4_cannot_opt_out_of_fail_closed_defaults(tmp_path):
+    allow_default = tmp_path / "allow-default.yaml"
+    allow_default.write_text("version: 4\ndefault_action: allow\ntools: {}\n", encoding="utf-8")
+    with pytest.raises(Exception, match="requires fail-closed 'deny'"):
+        load_policy(allow_default)
+
+    allow_extra = tmp_path / "allow-extra.yaml"
+    allow_extra.write_text(
+        "version: 4\ndefault_action: deny\ntools:\n  pay:\n    allow: true\n"
+        "    reject_undeclared_arguments: false\n    arguments:\n      amount: {}\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(Exception, match="requires fail-closed undeclared-argument"):
+        load_policy(allow_extra)
 
 
 def test_audit_chain_detects_tampering_and_freezes_details():

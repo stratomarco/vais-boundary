@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+title: "VAIS Boundary: Verifiable Authority and Invariant Security"
+type: software
+version: "0.12.0rc9"
+date-released: "2026-08-24"
+authors:
+  - family-names: Constantino
+    given-names: Marco
+    email: stratomarco@proton.me
+repository-code: "https://github.com/stratomarco/vais-boundary"
+license: Apache-2.0
+abstract: "A deterministic boundary that keeps action authority outside AI models and independently verifies declared security invariants over observable effects."
+keywords:
+  - AI security
+  - agent security
+  - prompt injection
+  - deterministic verification
+  - MCP

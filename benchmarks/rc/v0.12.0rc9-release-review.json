@@ -1,0 +1,76 @@
+{
+  "schema": "vais-release-review-v1",
+  "release_version": "0.12.0rc9",
+  "date": "2026-08-24",
+  "project_identity": {
+    "name": "VAIS Boundary",
+    "expansion": "Verifiable Authority & Invariant Security",
+    "repository": "https://github.com/stratomarco/vais-boundary",
+    "distribution": "verifiable-ai-security",
+    "command": "vais",
+    "author": "Marco Constantino",
+    "contact": "stratomarco@proton.me",
+    "license": "Apache-2.0"
+  },
+  "bounded_status": "RC9 hardens and reviews the trusted authorization and independent effect-verification implementation, adopts the VAIS Boundary identity and packages the frozen RC7 benchmark evidence without relabeling it as an RC9 model run.",
+  "material_findings": [
+    {
+      "id": "FIND-039",
+      "status": "fixed_and_regression_tested",
+      "summary": "Effect evidence remained shallowly mutable and declarative invariant comparison/version/numeric paths did not fully apply the canonical type-sensitive finite-number contract."
+    },
+    {
+      "id": "FIND-040",
+      "status": "fixed_and_regression_tested",
+      "summary": "The deliberately unprotected MCP assessment client retained full exception messages that could contain secret-bearing transport text."
+    }
+  ],
+  "review": {
+    "protected_consequential_paths": "passed_with_explicit_unprotected_assessment_exceptions",
+    "application_owned_untrusted_labels": "passed",
+    "policy_fail_closed_review": "passed_after_rc9_fixes",
+    "invariant_fail_closed_review": "passed_after_rc9_fixes",
+    "mcp_authority_boundary": "passed",
+    "mcp_alias_review": "passed",
+    "mcp_stable_major_dependency_review": "mcp>=2,<3 reviewed against official stable v2 line",
+    "research_claim_separation": "passed",
+    "related_work_attribution": "passed",
+    "license_and_package_metadata": "passed",
+    "trademark_claim": "unregistered_identifier_only"
+  },
+  "validation": {
+    "source_tests": "235 passed",
+    "fresh_source_zip_tests": "235 passed",
+    "targeted_new_tcb_tests": "43 passed",
+    "policy_validation": "schema 4, 4 tools",
+    "invariant_validation": "6 invariants",
+    "protected_smoke": "10/10 valid security episodes, 0 protected invariant violations, 10/10 clean utility",
+    "fresh_wheel_install": "passed with PyYAML 6.0.3 and pip check clean",
+    "wheel_reproducibility": "byte-identical across two SOURCE_DATE_EPOCH builds",
+    "source_zip_reproducibility": "byte-identical across two fixed-timestamp builds",
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_portable_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "The portable source tree intentionally excludes historical raw Qwen/Gemma traces referenced by older claims. The 23 pre-existing unresolved references remain visible and no evidence hash mismatch was observed."
+  },
+  "frozen_benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "carrier_before_rc9": "0.12.0rc8",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "report_evidence_manifest_sha256": "0e2b82e74428d7f472b79996c700292322c4f89f431b4862a1a183e2bedf7e1d",
+    "aggregate_sha256": "148e61c86e79f398001e47549ec2f894b9f6505c358e7917daa287a9368a997c",
+    "rc8_freeze_audit_sha256": "509eb86a03e33d0f56cf2123feb677efc00ea54a5af7fc7ee3df3b2b42593caf",
+    "interpretation": "Zero observed violations is bounded evidence for the recorded campaign, not proof of universal security. SmolLM3 remains visibly gate-failed and its two target failures remain unevaluated."
+  },
+  "privacy_gate": {
+    "required_reachable_author_and_committer_email": "stratomarco@proton.me",
+    "forbidden_text": "the prior corporate email and domain",
+    "verification": "scan tracked content, release archives and every reachable branch/tag commit before push",
+    "limitation": "History rewriting cannot erase copies already fetched elsewhere or guarantee immediate removal from hosting-provider caches."
+  }
+}

@@ -2,6 +2,14 @@
 
 VAIS should not be presented as the first deterministic prompt-injection defense. Its intended contribution is the combination of **explicit task authority, deterministic enforcement, observable security invariants and adaptive verification**.
 
+## CaMeL and capability-based control/data separation
+
+CaMeL places a protective system layer around a potentially vulnerable LLM, separates trusted control flow from untrusted data flow and uses capabilities to constrain unauthorized data flow. It is important prior work for VAIS's assumed-compromise model, capability boundaries and insistence that untrusted retrieved content cannot create authority.
+
+VAIS does not claim novelty for capability-based mediation, control/data separation or deterministic containment. Its narrower research emphasis is binding explicit task authority to independently observed effect invariants and using those invariants as the terminal reward for adaptive adversarial evaluation.
+
+Primary paper: https://arxiv.org/abs/2503.18813
+
 ## FIDES and deterministic information-flow enforcement
 
 Microsoft Agent Framework's experimental FIDES implementation labels content along integrity and confidentiality axes, propagates those labels and enforces policy before sensitive tools run. This is strong evidence that deterministic application-layer information-flow control is becoming a practical agent-security architecture, not merely a research abstraction.

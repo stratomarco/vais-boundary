@@ -62,3 +62,6 @@ limitations:
 
   - id: LIM-031
     limitation: Temperature zero did not make the recorded local SmolLM3-3B generations operationally repeatable at the failure positions; one 24-episode follow-up cannot estimate failure frequency, and increasing a token ceiling cannot guarantee a valid structured plan.
+
+  - id: LIM-032
+    limitation: Rewriting reachable Git refs removes the prior corporate address from the shared repository history but cannot erase copies already fetched by another party or guarantee immediate removal from hosting-provider caches.

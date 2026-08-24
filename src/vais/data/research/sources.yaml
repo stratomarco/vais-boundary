@@ -29,3 +29,31 @@ sources:
     role: Broader human/trust framing related to the VAIS research program.
     ingestion_status: metadata_only
     limitation: Full source text was not part of the repository evidence at v0.10.1; do not quote or attribute detailed claims until the original article is ingested.
+
+  - id: SRC-CAMEL-2025
+    title: "Defeating Prompt Injections by Design"
+    source_type: primary_research_paper
+    url: https://arxiv.org/abs/2503.18813
+    role: Prior work for capability-based mediation and trusted-control versus untrusted-data separation around vulnerable LLM agents.
+    ingestion_status: metadata_only
+
+  - id: SRC-FIDES-AGENT-FRAMEWORK
+    title: "Agent security with FIDES"
+    source_type: official_documentation
+    url: https://learn.microsoft.com/en-us/agent-framework/agents/security
+    role: Official implementation documentation for deterministic information-flow labels and pre-tool enforcement in Microsoft Agent Framework.
+    ingestion_status: metadata_only
+
+  - id: SRC-OWASP-AISVS
+    title: "OWASP Artificial Intelligence Security Verification Standard"
+    source_type: official_standard_project
+    url: https://owasp.org/www-project-artificial-intelligence-security-verification-standard-aisvs-docs/
+    role: Verification-oriented control catalogue for future VAIS mapping and review.
+    ingestion_status: metadata_only
+
+  - id: SRC-MCP-PYTHON-SDK
+    title: "Model Context Protocol Python SDK"
+    source_type: official_software_repository
+    url: https://github.com/modelcontextprotocol/python-sdk
+    role: Protocol SDK and stable-major-line reference for the optional live MCP integration dependency.
+    ingestion_status: metadata_only

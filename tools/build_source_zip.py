@@ -8,7 +8,7 @@ import tomllib
 import zipfile
 
 
-ARCHIVE_ROOT = PurePosixPath("verifiable-ai-security")
+ARCHIVE_ROOT = PurePosixPath("vais-boundary")
 FIXED_TIMESTAMP = (2026, 8, 19, 0, 0, 0)
 EXCLUDED_DIRECTORY_NAMES = {
     ".git",

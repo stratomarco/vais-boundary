@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 import math
+import unicodedata
 from .models import FrozenDict
 
 import yaml
@@ -69,6 +70,12 @@ def _strict_bool(value: Any, path: str) -> bool:
     return value
 
 
+def _non_empty_string(value: Any, path: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        _fail(path, "must be a non-empty string")
+    return unicodedata.normalize("NFC", value)
+
+
 def _confidentiality(value: Any, path: str) -> ConfidentialityLevel | None:
     if value is None:
         return None
@@ -107,9 +114,7 @@ def _parse_approval(raw: Any, path: str) -> ApprovalPolicy:
     raw = _mapping(raw, path)
     _known_keys(raw, {"field", "greater_than"}, path)
 
-    field_name = raw.get("field")
-    if not isinstance(field_name, str) or not field_name.strip():
-        _fail(f"{path}.field", "must be a non-empty string")
+    field_name = _non_empty_string(raw.get("field"), f"{path}.field")
 
     threshold = raw.get("greater_than")
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
@@ -135,21 +140,24 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
 
     required_scope = None
     if version >= 2 and "required_scope" in raw:
-        required_scope = raw["required_scope"]
-        if not isinstance(required_scope, str) or not required_scope.strip():
-            _fail(f"{path}.required_scope", "must be a non-empty string")
+        required_scope = _non_empty_string(
+            raw["required_scope"], f"{path}.required_scope"
+        )
 
     arguments_raw = _mapping(raw.get("arguments", {}), f"{path}.arguments")
     arguments: dict[str, ArgumentPolicy] = {}
     for name, cfg in arguments_raw.items():
-        if not isinstance(name, str) or not name.strip():
-            _fail(f"{path}.arguments", "argument names must be non-empty strings")
-        arguments[name] = _parse_argument(cfg, f"{path}.arguments.{name}", version)
+        normalized_name = _non_empty_string(name, f"{path}.arguments.<argument>")
+        if normalized_name in arguments:
+            _fail(f"{path}.arguments", "Unicode normalization produced a duplicate argument")
+        arguments[normalized_name] = _parse_argument(
+            cfg, f"{path}.arguments.{normalized_name}", version
+        )
 
     approval = None
     if "approval" in raw:
         approval = _parse_approval(raw["approval"], f"{path}.approval")
-        if approval.field not in arguments and arguments:
+        if approval.field not in arguments and (arguments or version >= 4):
             _fail(
                 f"{path}.approval.field",
                 f"'{approval.field}' is not declared under {path}.arguments",
@@ -165,6 +173,11 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
     if version >= 4 and "reject_undeclared_arguments" in raw:
         reject_undeclared_arguments = _strict_bool(
             raw["reject_undeclared_arguments"], f"{path}.reject_undeclared_arguments")
+        if not reject_undeclared_arguments:
+            _fail(
+                f"{path}.reject_undeclared_arguments",
+                "policy v4 requires fail-closed undeclared-argument rejection",
+            )
 
     return ToolPolicy(
         allow=allow,
@@ -190,12 +203,17 @@ def load_policy(path: str | Path) -> Policy:
     default_action = raw.get("default_action", "deny")
     if default_action not in {"allow", "deny"}:
         _fail("policy.default_action", "must be 'allow' or 'deny'")
+    if version >= 4 and default_action != "deny":
+        _fail("policy.default_action", "policy v4 requires fail-closed 'deny'")
 
     tools_raw = _mapping(raw.get("tools", {}), "policy.tools")
     tools: dict[str, ToolPolicy] = {}
     for name, cfg in tools_raw.items():
-        if not isinstance(name, str) or not name.strip():
-            _fail("policy.tools", "tool names must be non-empty strings")
-        tools[name] = _parse_tool(cfg, f"policy.tools.{name}", version)
+        normalized_name = _non_empty_string(name, "policy.tools.<tool>")
+        if normalized_name in tools:
+            _fail("policy.tools", "Unicode normalization produced a duplicate tool")
+        tools[normalized_name] = _parse_tool(
+            cfg, f"policy.tools.{normalized_name}", version
+        )
 
     return Policy(default_action=default_action, tools=tools, version=version)

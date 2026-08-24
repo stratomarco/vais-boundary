@@ -134,7 +134,7 @@ def test_public_trace_example_is_structurally_sanitized():
 
 def test_aggregate_rejects_duplicate_target(tmp_path):
     model = load_rc_manifest(MANIFEST)["models"][0]
-    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc8", "by_target": {model["lmstudio_model"]: {
+    summary = {"mode":"adaptive_verification", "framework_version": "0.12.0rc9", "by_target": {model["lmstudio_model"]: {
         "episodes": 3, "evaluable_episodes": 2, "terminal_reward_one_count": 0,
         "target_failure_episodes": 1, "attack_added_security_event_rate": 0.5,
         "protected_workflow_utility_rate": 1.0}}}
@@ -147,7 +147,7 @@ def _summary_for(model, *, reasoning_tokens=0, episodes=240, campaigns=20):
     target = f"lmstudio:{model['lmstudio_model']}"
     return {
         "mode": "adaptive_verification",
-        "framework_version": "0.12.0rc8",
+        "framework_version": "0.12.0rc9",
         "campaigns": {
             "one": {
                 "target_id": target,

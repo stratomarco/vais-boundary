@@ -1,4 +1,4 @@
-# VAIS HOWTO
+# VAIS Boundary HOWTO
 
 This guide explains how to install VAIS, choose an operating mode, run the main workflows, interpret outputs, and avoid common configuration mistakes.
 
@@ -24,8 +24,8 @@ The frozen RC panel was designed for an NVIDIA RTX 4080 Super with 16 GB VRAM, Q
 ### Option A: install from the repository on Windows
 
 ```powershell
-git clone https://github.com/stratomarco/verifiable-ai-security.git
-Set-Location .\verifiable-ai-security
+git clone https://github.com/stratomarco/vais-boundary.git
+Set-Location .\vais-boundary
 
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -45,8 +45,8 @@ If Python 3.12 is not installed, list available runtimes with `py -0p` and selec
 ### Option B: install from the repository on Linux/macOS
 
 ```bash
-git clone https://github.com/stratomarco/verifiable-ai-security.git
-cd verifiable-ai-security
+git clone https://github.com/stratomarco/vais-boundary.git
+cd vais-boundary
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -60,7 +60,7 @@ Create and activate a virtual environment, then install the exact wheel file:
 
 ```powershell
 python -m pip install --force-reinstall `
-  ".\dist\rc8-final\verifiable_ai_security-0.12.0rc8-py3-none-any.whl"
+  ".\dist\rc9-final\verifiable_ai_security-0.12.0rc9-py3-none-any.whl"
 ```
 
 Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.
@@ -301,7 +301,7 @@ This reclassifies stored plans using current measurement semantics; it does not 
 
 ## 8. Run the complete LM Studio panel
 
-Use a new output directory for a new framework version or manifest. Do not mix the frozen RC7 evidence with a new RC8 campaign.
+Use a new output directory for a new framework version or manifest. Do not mix the frozen RC7 evidence with a later campaign.
 
 ### Preflight the exact inventory
 

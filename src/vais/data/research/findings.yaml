@@ -234,3 +234,15 @@ findings:
     version: "0.12.0rc8"
     type: benchmark_generation_reliability_finding
     evidence: [benchmarks/rc/v0.12.0rc8-rc7-freeze-audit.json, research/narrative/v0.12-rc8-rc7-benchmark-freeze-summary.md]
+
+  - id: FIND-039
+    finding: RC9 publication review found that observable Effect attributes remained shallowly mutable and contract-binding invariants used Python equality while invariant schema versions and approval thresholds admitted Boolean or non-finite ambiguity; RC9 canonicalizes and freezes effect evidence, uses type-sensitive security equality and rejects those schema paths.
+    version: "0.12.0rc9"
+    type: tcb_verifier_defect
+    evidence: [docs/v0.12.0rc9-release-review.md, tests/test_invariants.py, tests/test_tcb_hardening.py]
+
+  - id: FIND-040
+    finding: The deliberately unprotected MCP assessment client retained full exception messages even though the protected client stored only exception class, allowing synthetic secrets or provider payload data to enter benchmark records; RC9 applies the same message-elision and indeterminate unsafe-retry semantics to both paths.
+    version: "0.12.0rc9"
+    type: secret_handling_defect
+    evidence: [docs/v0.12.0rc9-release-review.md, tests/test_mcp.py, docs/mcp-security.md]

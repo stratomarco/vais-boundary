@@ -2,9 +2,11 @@
 
 VAIS is security research software and is **not production hardened**.
 
-## Before public release
+## Private reporting
 
-The repository owner should enable GitHub Private Vulnerability Reporting (or publish an equivalent private security contact) before accepting external users.
+Report suspected vulnerabilities privately to `stratomarco@proton.me` with `VAIS SECURITY` in the subject. Include the affected version, a minimal reproduction, the expected security invariant and the observed externally visible effect when safe to do so. Do not include real credentials, personal data or third-party confidential material.
+
+GitHub Private Vulnerability Reporting should also be enabled when the repository becomes public. Until then, email is the published private reporting channel.
 
 ## What should be reported privately
 
@@ -20,3 +22,5 @@ Please avoid opening a public issue first when a report demonstrates or plausibl
 ## Current scope
 
 The project does not claim protection when a real application exposes an alternate tool path around `ProtectedExecutor`, labels attacker-controlled input as trusted, or misrepresents real external effects in an adapter.
+
+VAIS is research software and does not currently promise a fixed response or remediation service level.

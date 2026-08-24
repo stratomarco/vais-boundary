@@ -49,6 +49,27 @@ class Provenance:
     confidentiality: ConfidentialityLevel = ConfidentialityLevel.PUBLIC
     parents: tuple[str, ...] = ()
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.source, str) or not self.source.strip():
+            raise ValueError("provenance source must be a non-empty string")
+        if not isinstance(self.trust, TrustLevel):
+            raise ValueError("provenance trust must be a TrustLevel")
+        if not isinstance(self.confidentiality, ConfidentialityLevel):
+            raise ValueError("provenance confidentiality must be a ConfidentialityLevel")
+        if self.detail is not None and not isinstance(self.detail, str):
+            raise ValueError("provenance detail must be a string or None")
+        parents = tuple(self.parents)
+        if any(not isinstance(parent, str) or not parent.strip() for parent in parents):
+            raise ValueError("provenance parents must contain non-empty strings")
+        object.__setattr__(self, "source", unicodedata.normalize("NFC", self.source))
+        if self.detail is not None:
+            object.__setattr__(self, "detail", unicodedata.normalize("NFC", self.detail))
+        object.__setattr__(
+            self,
+            "parents",
+            tuple(unicodedata.normalize("NFC", parent) for parent in parents),
+        )
+
 
 @dataclass(frozen=True)
 class Value:
@@ -56,6 +77,8 @@ class Value:
     provenance: Provenance
 
     def __post_init__(self) -> None:
+        if not isinstance(self.provenance, Provenance):
+            raise ValueError("security value provenance must be Provenance")
         object.__setattr__(self, "data", deep_freeze(self.data))
 
     @property
@@ -92,11 +115,16 @@ class PlannedAction:
     def __post_init__(self) -> None:
         if not isinstance(self.tool, str) or not self.tool.strip():
             raise ValueError("tool must be a non-empty string")
-        values = dict(self.arguments)
-        if any(not isinstance(k, str) or not k.strip() for k in values):
-            raise ValueError("argument names must be non-empty strings")
-        if any(not isinstance(v, Value) for v in values.values()):
-            raise ValueError("action arguments must be Values")
+        values: dict[str, Value] = {}
+        for key, value in self.arguments.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("argument names must be non-empty strings")
+            normalized = unicodedata.normalize("NFC", key)
+            if normalized in values:
+                raise ValueError("Unicode normalization produced a duplicate argument name")
+            if not isinstance(value, Value):
+                raise ValueError("action arguments must be Values")
+            values[normalized] = value
         object.__setattr__(self, "tool", unicodedata.normalize("NFC", self.tool))
         object.__setattr__(self, "arguments", FrozenDict(values))
 
@@ -187,20 +215,30 @@ class TaskContract:
     capability_id: str = "legacy"
 
     def __post_init__(self) -> None:
-        allowed_tools = frozenset(self.allowed_tools)
-        scopes = frozenset(self.granted_scopes)
-        approvals = frozenset(self.approved_action_fingerprints)
-        bindings = dict(self.bound_arguments)
+        raw_tools = tuple(self.allowed_tools)
+        raw_scopes = tuple(self.granted_scopes)
+        raw_approvals = tuple(self.approved_action_fingerprints)
+        if any(not isinstance(tool, str) or not tool.strip() for tool in raw_tools):
+            raise ValueError("allowed_tools must contain non-empty strings")
+        if any(not isinstance(scope, str) or not scope.strip() for scope in raw_scopes):
+            raise ValueError("granted_scopes must contain non-empty strings")
+        if any(not isinstance(item, str) or not item.strip() for item in raw_approvals):
+            raise ValueError("approved action fingerprints must contain non-empty strings")
+        allowed_tools = frozenset(unicodedata.normalize("NFC", tool) for tool in raw_tools)
+        scopes = frozenset(unicodedata.normalize("NFC", scope) for scope in raw_scopes)
+        approvals = frozenset(unicodedata.normalize("NFC", item) for item in raw_approvals)
+        if len(allowed_tools) != len(raw_tools):
+            raise ValueError("Unicode normalization produced duplicate allowed tools")
+        if len(scopes) != len(raw_scopes):
+            raise ValueError("Unicode normalization produced duplicate granted scopes")
+        bindings: dict[tuple[str, str], TrustedValue] = {}
         for label in ("principal_id", "session_id", "tenant_id", "capability_id"):
             value = getattr(self, label)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{label} must be a non-empty string")
+            object.__setattr__(self, label, unicodedata.normalize("NFC", value))
 
-        if any(not isinstance(tool, str) or not tool.strip() for tool in allowed_tools):
-            raise ValueError("allowed_tools must contain non-empty strings")
-        if any(not isinstance(scope, str) or not scope.strip() for scope in scopes):
-            raise ValueError("granted_scopes must contain non-empty strings")
-        for key, value in bindings.items():
+        for key, value in self.bound_arguments.items():
             if (
                 not isinstance(key, tuple)
                 or len(key) != 2
@@ -209,6 +247,10 @@ class TaskContract:
                 raise ValueError("bound argument keys must be (tool, argument) string tuples")
             if not isinstance(value, Value) or not value.is_trusted:
                 raise ValueError("task-contract bindings must contain trusted Values")
+            normalized_key = tuple(unicodedata.normalize("NFC", part) for part in key)
+            if normalized_key in bindings:
+                raise ValueError("Unicode normalization produced a duplicate contract binding")
+            bindings[normalized_key] = value
 
         object.__setattr__(self, "allowed_tools", allowed_tools)
         object.__setattr__(self, "granted_scopes", scopes)

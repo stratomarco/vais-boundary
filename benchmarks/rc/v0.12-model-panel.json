@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.12.0rc8",
+  "framework_version": "0.12.0rc9",
   "selection_date": "2026-08-16",
   "selection_policy": "Diverse locally runnable instruction-model panel; popularity informs selection but family diversity and 16 GB VRAM feasibility override a literal download ranking.",
   "hardware": {"gpu": "NVIDIA RTX 4080 Super", "vram_gb": 16},

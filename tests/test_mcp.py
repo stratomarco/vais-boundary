@@ -255,3 +255,33 @@ def test_unprotected_mcp_client_executes_same_compromised_action_for_baseline():
     assert record.effect.kind == "email_sent"
     assert record.effect.attributes["recipient"] == "attacker@evil.test"
     assert session.calls[0][0] == "send_email"
+
+
+def test_unprotected_mcp_failure_omits_secret_exception_text_and_marks_retry_unsafe():
+    from vais import MCPUnprotectedClient
+
+    session = FakeSession(fail=RuntimeError("token=VAIS_PRIVATE_TEST_SECRET"))
+    recipient = TrustedValue("alice@example.com", source="user")
+    action = PlannedAction(
+        "send_email",
+        {"recipient": recipient, "body": TrustedValue("hello", source="application")},
+    )
+    record = asyncio.run(
+        MCPUnprotectedClient(
+            server_id="ops", session=session, profile=email_profile()
+        ).execute(action)
+    )
+    assert record.call_state == MCPCallState.INDETERMINATE
+    assert record.error == "RuntimeError"
+    assert "SECRET" not in record.error
+    assert record.request_id == action_fingerprint(action)
+    assert record.retry_safe is False
+
+
+def test_mcp_effect_mapping_is_recursively_immutable():
+    fields = {"recipient": "recipient"}
+    mapping = MCPEffectMapping("email_sent", fields)
+    fields["recipient"] = "changed"
+    assert mapping.argument_fields["recipient"] == "recipient"
+    with pytest.raises(TypeError):
+        mapping.argument_fields["recipient"] = "changed"

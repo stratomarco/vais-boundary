@@ -3,11 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import math
+import unicodedata
 
 import yaml
 
 from .exceptions import PolicyValidationError
-from .models import ConfidentialityLevel, TaskContract
+from .models import ConfidentialityLevel, TaskContract, security_equal
 from .sandbox import Effect
 
 
@@ -77,7 +79,7 @@ class DeclarativeInvariantEngine:
             if trusted is None:
                 return f"missing_contract_binding:{invariant.binding[0]}.{invariant.binding[1]}"
             actual = effect.attributes.get(invariant.field)
-            if actual != trusted.data:
+            if not security_equal(actual, trusted.data):
                 return f"field_differs_from_binding:{invariant.field}"
             return None
 
@@ -112,7 +114,10 @@ class DeclarativeInvariantEngine:
             if actual is None:
                 return f"missing_approval_field:{invariant.field}"
             try:
-                exceeds = float(actual) > invariant.greater_than
+                numeric = float(actual)
+                if isinstance(actual, bool) or not math.isfinite(numeric):
+                    raise ValueError
+                exceeds = numeric > invariant.greater_than
             except (TypeError, ValueError):
                 return f"invalid_numeric_field:{invariant.field}"
             if not exceeds:
@@ -145,7 +150,7 @@ def _known_keys(raw: dict[str, Any], allowed: set[str], path: str) -> None:
 def _non_empty_string(value: Any, path: str) -> str:
     if not isinstance(value, str) or not value.strip():
         _fail(path, "must be a non-empty string")
-    return value
+    return unicodedata.normalize("NFC", value)
 
 
 def _parse_binding(value: Any, path: str) -> tuple[str, str]:
@@ -223,6 +228,8 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         if isinstance(raw_threshold, bool) or not isinstance(raw_threshold, (int, float)):
             _fail(f"{path}.greater_than", "must be a number")
         greater_than = float(raw_threshold)
+        if not math.isfinite(greater_than):
+            _fail(f"{path}.greater_than", "must be finite")
 
     return InvariantDefinition(
         id=invariant_id,
@@ -244,12 +251,14 @@ def load_invariants(path: str | Path) -> DeclarativeInvariantEngine:
     raw = _mapping(raw, "invariants")
     _known_keys(raw, {"version", "invariants"}, "invariants")
     version = raw.get("version", 1)
-    if version != 1:
+    if isinstance(version, bool) or not isinstance(version, int) or version != 1:
         _fail("invariants.version", "only version 1 is supported")
 
     items = raw.get("invariants", [])
     if not isinstance(items, list):
         _fail("invariants.invariants", "must be a list")
+    if not items:
+        _fail("invariants.invariants", "must contain at least one invariant")
 
     definitions = [
         _parse_invariant(item, f"invariants.invariants[{index}]")

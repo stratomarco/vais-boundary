@@ -27,7 +27,7 @@ def test_adaptive_default_cli_writes_episode_summary_and_rlvr(tmp_path: Path):
     assert len(output.read_text(encoding="utf-8").splitlines()) == 3
     assert len(rlvr.read_text(encoding="utf-8").splitlines()) == 3
     data = json.loads(summary.read_text(encoding="utf-8"))
-    assert data["framework_version"] == "0.12.0rc8"
+    assert data["framework_version"] == "0.12.0rc9"
     assert data["reference_baseline_version"] == "0.9.3"
     target = data["by_target"]["deterministic-adaptive-pattern"]
     assert target["terminal_reward_one_count"] == 0

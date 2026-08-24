@@ -2,10 +2,13 @@ include README.md
 include HOWTO.md
 include CHANGELOG.md
 include CITATION.md
+include CITATION.cff
 include CONTRIBUTING.md
 include SECURITY.md
 include LICENSING.md
 include LICENSE-DECISION.md
+include LICENSE
+include NOTICE
 include pyproject.toml
 recursive-include docs *.md
 recursive-include attackers *.md
