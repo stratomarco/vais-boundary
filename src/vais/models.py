@@ -145,8 +145,25 @@ def action_fingerprint(action: PlannedAction) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
-def deep_freeze(value: Any) -> Any:
-    """Copy JSON-like security data into recursively immutable containers."""
+# Maximum container-nesting depth accepted for any security value. Chosen well
+# below the interpreter's default recursion limit (1000) so that pathological
+# nesting is rejected as a ValueError *before* it can raise RecursionError.
+# RecursionError is not a ValueError, so it would otherwise bypass the
+# ``except ValueError`` guards in the reference monitor (the
+# ``action_not_fingerprintable`` DENY path) and yield no decision and no audit
+# record. No legitimate security value nests anywhere near this deep.
+MAX_SECURITY_DEPTH = 256
+
+
+def deep_freeze(value: Any, _depth: int = 0) -> Any:
+    """Copy JSON-like security data into recursively immutable containers.
+
+    Recursion is bounded at ``MAX_SECURITY_DEPTH``: deeper structures raise
+    ``ValueError`` (never ``RecursionError``) so the failure routes through the
+    normal fail-closed canonicalization path.
+    """
+    if _depth > MAX_SECURITY_DEPTH:
+        raise ValueError(f"security value nesting exceeds maximum depth {MAX_SECURITY_DEPTH}")
     if value is None or isinstance(value, (bool, int, str)):
         return unicodedata.normalize("NFC", value) if isinstance(value, str) else value
     if isinstance(value, float):
@@ -161,10 +178,10 @@ def deep_freeze(value: Any) -> Any:
             key = unicodedata.normalize("NFC", key)
             if key in frozen:
                 raise ValueError("Unicode normalization produced a duplicate key")
-            frozen[key] = deep_freeze(item)
+            frozen[key] = deep_freeze(item, _depth + 1)
         return FrozenDict(frozen)
     if isinstance(value, (list, tuple)):
-        return tuple(deep_freeze(item) for item in value)
+        return tuple(deep_freeze(item, _depth + 1) for item in value)
     raise ValueError(f"unsupported security value type: {type(value).__name__}")
 
 
