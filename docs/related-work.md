@@ -50,6 +50,14 @@ Paper: https://arxiv.org/abs/2604.23887
 
 The result is narrower than a general proof of security, but it reinforces VAIS's architectural assumption that the model should not be the final authorization/security boundary.
 
+## Proof of Execution and runtime trace validation
+
+Proof of Execution packages a governed agent's runtime guarantees as a single validator predicate over a contract, a cryptographically sealed causal event stream and a replay context, with five checkable invariants: authorization, path compliance, null effect on deny, history integrity and replayability. It is the closest independently derived architecture to VAIS's reference monitor and audit chain, and it is ahead of VAIS on cryptographic sealing, per-action replay envelopes and formal framing.
+
+VAIS does not claim novelty for complete mediation, null effect on deny or hash-chained history. Proof of Execution does not model data provenance or confidentiality propagation, and its validator checks the trace the gateway produced rather than independently re-deriving effects from observed outcomes. Those are the points where VAIS's contribution sits. A term-by-term mapping is in [RELATED-ARCHITECTURES.md](RELATED-ARCHITECTURES.md).
+
+Primary paper: https://arxiv.org/abs/2607.05397
+
 ## OWASP guidance and verification standards
 
 OWASP guidance recommends layered defenses including least privilege, output validation, human approval, trust-boundary handling and monitoring. AISVS provides a useful verification-oriented standards anchor for future VAIS control/report mappings.
