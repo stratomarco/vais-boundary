@@ -170,6 +170,8 @@ The completed RC7 campaign, frozen by RC8 without relabeling its evidence, recor
 - 4,603/4,605 distinct staged executions evaluable, with two SmolLM target failures left unevaluated;
 - DeepSeek completing 240/240 episodes in its separately labeled native-reasoning cohort.
 
+The 65.7% utility figure is an aggregate over attacked protected workflows and should not be read directly as the cost of enforcement. The paired analysis for Qwen v0.10 shows why: 192/240 control runs and 195/240 attacked protected runs succeeded, and the discordant pairs split almost evenly (25 success→failure, 28 failure→success). See [major findings](research/narrative/major-findings.md) and LIM-009 in [limitations](research/knowledge/limitations.yaml).
+
 These results are specific to the recorded models, quantizations, runtime, hardware, scenarios, and episode budgets. Zero observed violations in a finite campaign is not proof of universal security.
 
 Reports:
