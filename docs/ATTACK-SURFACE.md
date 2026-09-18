@@ -1,0 +1,386 @@
+# Attack surface of the VAIS enforcement layer
+
+**Task:** P1-1 (enforcement-layer attack-surface map). **Deps:** P0-5 (done).
+**Status:** draft v2 — re-verified against `bf38ab0` (rc9), 2026-09-09.
+**Verified against:** `bf38ab0` (rc9 TCB-hardening base).
+
+This document enumerates every input that crosses a trust boundary into the VAIS reference
+monitor / invariant engine, names its entry function as `module:function`, states the security
+property it is supposed to uphold, and records **existing test coverage** so the later P1 tasks
+(P1-2…P1-5) do not re-test what is already tested. It is a map, not a fuzzing campaign — no new
+adversarial harness is written here.
+
+**Method.** Every row was read in source. Where the planned expected-surface list (written from the README as `[ASSUMPTION]`) disagrees with the code, the code wins and the
+correction is called out. Claims about *undemonstrated* weaknesses are labelled **[hypothesis –
+P1-x]** and are not asserted as findings; a finding requires a failing test, which these tasks
+have not yet produced.
+
+**Base note (v2).** This document was first written against the RC7 tree (`6e0aad0`)
+and has been re-verified against `bf38ab0`. Of the
+enforcement-path modules, only **`models.py`, `invariants.py`, `policy.py`, `mcp.py`,
+`sandbox.py`** changed under rc8/rc9; `monitor.py`, `audit.py`, `taint.py`, `approvals.py`,
+`executor.py`, `behavioral_gate.py` are **byte-identical** to `77eb7e7`, so their line refs are
+unchanged. rc8/rc9 is a **TCB-hardening pass** and its net effect on this map is: **it closes the
+Unicode/name-collision families under S3 and adds type-sensitive comparison under S9** — the
+"no coverage" optimism of v1 is corrected below, and the surviving P1-2 target is narrowed to
+*structural* and *reference-vs-referent* collisions, which the NFC work does not touch.
+
+---
+
+## 0. Two corrections to the planned surface list
+
+1. **"Task contract parser (YAML)" does not exist as written.** The `TaskContract` (`models.py:198`)
+   is constructed **programmatically** by trusted application code, not parsed from YAML. It
+   validates its own fields in `__post_init__` (non-empty identity strings, `(tool, argument)`
+   binding keys, trusted-only bound values). The YAML-parsing surfaces are three *other* files:
+   `policy.py:load_policy`, `invariants.py:load_invariants`, `mcp.py:load_mcp_profile`. Surface
+   S1 below is retargeted accordingly.
+2. **"Wildcard semantics" in capability scope resolution does not exist.** Scope matching is
+   exact string membership (`required_scope not in contract.granted_scopes`, `monitor.py:64`).
+   There is no globbing, hierarchy, or prefix match to widen. That is conservative; S2 records
+   it as such rather than as a hunting ground.
+
+---
+
+## 1. Surface summary
+
+| ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |
+|---|---|---|---|---|---|---|
+| S1 | Config file parsing (policy / invariants / MCP profile) | `policy.py:load_policy`, `invariants.py:load_invariants`, `mcp.py:load_mcp_profile` | integrity-protected config → in-memory policy | Strict schema; unknown field / wrong type / bad version rejected; default is `deny` | strong (`test_policy_validation`, `test_invariants::test_invariant_loader_is_strict`, `test_mcp`) | P1-5 (fail-open under malformed input) |
+| S2 | Capability scope resolution | `monitor.py:ReferenceMonitor.evaluate` (scope block, l.64) | model-proposed action → contract scopes | Required scope must be present exactly; model cannot add scopes | `test_reference_monitor::test_denies_missing_capability_scope` | P1-1 (no gap; exact-match) |
+| S3 | **Canonical action fingerprinting** | `models.py:action_fingerprint` → `plain_arguments`, `deep_freeze`, `canonical_json` | proposed action → approval identity | Two security-distinct actions must not share a fingerprint | rc9 closed Unicode/name classes; **P1-2 fixed unbounded-recursion** (`test_fingerprint_recursion`) + recorded reference-vs-referent risk and inverse-utility negative evidence (`test_fingerprint_collisions`) | **P1-2 (recursion done; TOCTOU→S6)** |
+| S4 | Provenance lattice transitions | `taint.py:derive_value`, `taint.py:derive_model_output` | untrusted data → derived label | `derived_untrusted` never launders back to `trusted` without explicit declassification | 4 unit props (`test_taint`); **no adversarial DAG / storage round-trip** | **P1-3** |
+| S5 | Data-classification propagation | `taint.py:_max_confidentiality` (join in `derive_value`); enforced at `monitor.py` (l.77-86) and `invariants.py` `confidentiality_ceiling` | secret data → egress effect | Confidentiality is monotone (`join = max`); `secret` cannot silently drop to `public` | `test_taint::test_confidentiality_propagates_monotonically`, monitor + invariant tests | **P1-3** |
+| S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening` consume-once / identity / concurrency) | **P1-2** (reference-vs-referent TOCTOU) |
+| S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; fork / truncate / splice / reorder detected | partial (`test_tcb_hardening::test_audit_chain_detects_tampering`) — single-event edit only | **P1-4** |
+| S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) | P1-1 (see S8 notes) |
+| S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) | **P1-5** (fail-open audit) |
+| S10 | Static-policy gap under `default_action: allow` | `monitor.py:ReferenceMonitor.evaluate` (l.48-54) | tool in contract but absent from static policy | Dynamic contract authorizes; bound-arg checks still apply | `test_reference_monitor::test_bound_argument_is_enforced_even_when_static_default_is_allow` | P1-1 (see S10 notes) |
+| S11 | Executor fail-closed seam | `executor.py:ProtectedExecutor.run` (l.51) | authorized decision → real effect | Only `DecisionType.ALLOW` executes; DENY / REQUIRE_APPROVAL emit no effect | `test_protected_executor` (2) | P1-5 |
+| S12 | Numeric threshold coercion | `monitor.py` (l.109-115), `invariants.py` (l.116-122) | model-supplied numeric field → threshold test | `bool` and non-finite rejected; non-numeric → DENY / `invalid_numeric_field` | `test_tcb_hardening::test_policy_threshold_rejects_nonfinite` | P1-1 (no gap) |
+| S13 | Decision-reason disclosure (output channel) | `monitor.py:ReferenceMonitor.evaluate` return value; `mcp.py:MCPProtectedClient.execute` | reference monitor → caller / agent loop | Enforcement outcomes must not hand an adaptive attacker a probing oracle | none | IMP-003 |
+
+---
+
+## 2. Per-surface detail
+
+### S1 — Config file parsing (policy / invariants / MCP profile)
+- **Entry:** `policy.py:load_policy`, `invariants.py:load_invariants`, `mcp.py:load_mcp_profile`.
+  All three use `yaml.safe_load` and then a hand-written strict validator (`_known_keys`,
+  `_mapping`, `_strict_bool`, per-type coercers).
+- **Property:** unknown fields rejected; `default_action` defaults to `deny`; versions are an
+  explicit allow-list (policy `{1,2,3,4}`, invariants `{1}`, mcp `{1}`); quoted booleans rejected
+  so a stringly-typed `allow: "false"` cannot silently weaken policy.
+- **Verified good:** strict `_known_keys` on every mapping; `_strict_bool` (`policy.py:67`)
+  blocks the classic YAML truthiness footgun; `test_policy_validation` covers 7 cases including
+  quoted-boolean and misspelled trust requirement. **rc9 added `_non_empty_string` (`policy.py:73`,
+  NFC-normalizing)** used for approval/scope field names, so a quoted empty or whitespace-only
+  field name is now rejected at load and names are NFC-canonical.
+- **[hypothesis – P1-5]** `yaml.safe_load` is safe against arbitrary object construction but is
+  **not** immune to alias-expansion / "billion laughs" resource exhaustion. Config is
+  integrity-protected per the threat model, so this is DoS-on-trusted-input, low priority — but
+  P1-5's fault-injection matrix should include "policy file is a YAML bomb" and confirm it fails
+  closed (raises, denies) rather than hanging the monitor.
+- **[hypothesis – P1-5]** behavior when the config file is **missing** or **truncated mid-document**
+  is untested. `load_policy` will raise (file open / parse error); confirm the caller treats a
+  raised loader as fail-closed rather than falling back to a permissive default.
+
+### S2 — Capability scope resolution
+- **Entry:** `monitor.py:ReferenceMonitor.evaluate`, scope block `if tool_policy.required_scope
+  and tool_policy.required_scope not in contract.granted_scopes` (l.64).
+- **Property:** the model cannot introduce a scope; scopes come only from the trusted
+  `TaskContract.granted_scopes`. Matching is exact-string membership — **no wildcards, no
+  hierarchy** — so there is no widening primitive. Recorded as conservative, not a target.
+
+### S3 — Canonical action fingerprinting  ·  **highest-value, P1-2**
+- **Entry:** `models.py:action_fingerprint` (`:135`) = `sha256(canonical_json({"tool": …,
+  "arguments": action.plain_arguments()}))`.
+- **Verified facts (carry into P1-2):**
+  - `plain_arguments()` (`models.py:131`) **excludes nothing** — it maps every argument key to
+    its `Value.data`. The P1-2 brief said "audit `plain_arguments()` exclusions"; there
+    are **no exclusions**, so that sub-task is answered: the fingerprint covers the full argument
+    set. Residual risk is *canonicalization collisions*, not excluded fields.
+  - `deep_freeze` (`models.py:148`) applies `unicodedata.normalize("NFC", …)` to every string and
+    every mapping key, **rejects non-finite floats**, and **rejects a mapping whose keys collapse
+    to a duplicate under NFC**. NFC (not NFKC) is deliberate — do not "fix" it.
+  - **rc9 hardening (new since v1):** NFC normalization + NFC-duplicate rejection is now also
+    applied *earlier and wider* — to **argument names** in `PlannedAction.__post_init__`
+    (`models.py:122-124`), and to **tool names, scopes, approval fingerprints, contract identity,
+    and binding keys** in `TaskContract.__post_init__` (`models.py:227-253`), plus provenance
+    `source`/`detail`/`parents` in `Provenance.__post_init__` (`models.py:52-71`). So a
+    canonicalization collision on a *name/key* is now rejected at object construction, before a
+    fingerprint is ever computed.
+  - `canonical_json` (`models.py:179`) sorts keys and uses type-sensitive encoding via
+    `deep_freeze`. `security_equal` (`models.py:189`) is built on it.
+
+- **S3 collision-class re-check (the rc9 question):**
+
+  | Collision class | Status under `bf38ab0` | Why |
+  |---|---|---|
+  | Unicode NFC-equivalent **argument names** | **CLOSED** | rejected in `PlannedAction` (`:122-124`) and `deep_freeze` (`:161-163`) |
+  | Unicode NFC-equivalent **tool names / scopes / approvals / identity / binding keys** | **CLOSED (new in rc9)** | rejected in `TaskContract.__post_init__` (`:227-253`) |
+  | Homoglyph / zero-width in names (distinct codepoints, *not* NFC-equal) | **not a collision** | survive NFC as **distinct** strings → distinct fingerprints; by design, not a bypass |
+  | `True` vs `1`, `1` vs `1.0` vs `"1"`, `null` vs absent key, `{}` vs `[]` | **CLOSED** | type-sensitive `canonical_json`: `json.dumps` emits `true`/`1`/`1.0`/`"1"`/`null` distinctly; absent key ≠ `null` key |
+  | **Reference-vs-referent** (arg is a handle/path/id whose backing content changes between approval and execution) | **SURVIVES — accepted risk (documented)** | fingerprint binds the reference *value*, never the referent's contents; no argument hashing can see this. Demonstrated in `tests/test_fingerprint_collisions.py::test_fingerprint_is_blind_to_referent_contents`. **Mitigation is application-level:** bind a content hash into the arguments, or treat reference-typed arguments as non-approvable. Not fixable in the fingerprint. |
+  | **Cross-field / structural smuggling** (same effective payload arranged into different argument structures) | **NOT EXPRESSIBLE here** | different structures yield *different* fingerprints (all keys covered). The only collapse vector — an MCP effect mapping folding two args into one field — is impossible: `MCPEffectMapping` is one-field-←-one-arg and rc9 rejects duplicate effect fields (see S8). Downgraded from v1. |
+  | Deeply-nested mixed-type structures / recursion limits | **CONFIRMED (v1 hypothesis) → FIXED in `ace1012`** | see the confirmed-finding note below |
+
+- **CONFIRMED FINDING — unbounded `deep_freeze` recursion (fixed in `ace1012`).**
+  At the default recursion limit (`sys.getrecursionlimit() == 1000`, verified), an action whose
+  arguments nest deeper than the remaining C-stack raised **`RecursionError`** inside
+  `action_fingerprint → canonical_json → deep_freeze`. `RecursionError` is **not** a `ValueError`
+  (verified: `issubclass(RecursionError, ValueError) is False`), so it **bypassed the
+  `except ValueError` guards at `monitor.py:92` and `:117`** whose purpose is to return
+  `Decision(DENY, "action_not_fingerprintable")`. The outcome was fail-closed *by crash*: the
+  broad `except Exception` at `mcp.py:275` sits *after* the ALLOW decision, so the monitor
+  produced **no DENY decision and no audit record**.
+  - **Repro / regression:** `tests/test_fingerprint_recursion.py` — a 5000-deep structure raised
+    `RecursionError` pre-fix (RED), and the monitor path yielded no `DENY`/audit.
+  - **Fix:** `deep_freeze` now takes a bounded `_depth` and raises **`ValueError`** past
+    `MAX_SECURITY_DEPTH = 256` (`models.py`), chosen well below the 1000 recursion limit so the
+    `ValueError` always precedes any `RecursionError`. This routes into the existing
+    `action_not_fingerprintable` DENY path, which the executor audits. **No broad `except` was
+    added.** Full suite: 248 passed (235 pre-existing + 13 new).
+  - **Depth numbers:** limit 1000; bound 256; a value at depth 256 constructs, but
+    `action_fingerprint` wraps it two levels deeper (`{"tool":…, "arguments":{…}}`) → 258 > 256 →
+    `ValueError` → `DENY(action_not_fingerprintable)` + audit event (asserted in
+    `test_monitor_denies_unfingerprintable_deep_action_and_audits`).
+  - **Two failure regimes (review finding, 2026-09-13).** The DENY-plus-audit path holds only in a
+    two-level band. Measured with the fix applied:
+
+    | Argument nesting depth | Where it fails | Outcome |
+    |---|---|---|
+    | ≤ 254 | nowhere | normal |
+    | 255–256 | `action_fingerprint`'s two-level wrap, inside the monitor | `DENY(action_not_fingerprintable)` + audit event |
+    | ≥ 257 | `Value.__post_init__` → `deep_freeze`, before any `PlannedAction` exists | `ValueError` at construction: no monitor, no DENY, no audit |
+
+    The regression test nests to exactly `MAX_SECURITY_DEPTH` on purpose, to pin the monitor band.
+    At depth ≥ 257 the outcome is still fail-closed (no effect), but the failure happens in the
+    adapter, where VAIS records nothing. The guard is `_depth > MAX_SECURITY_DEPTH` with the root
+    at depth 0, so the deepest accepted value sits at depth 256 (257 levels counting the root).
+  - **Adapter contract (required).** An adapter that constructs `Value`s from model-controlled data
+    **MUST catch `ValueError` from `Value` construction and record a denial.** Otherwise
+    pathological nesting avoids the audit trail by failing one layer before the monitor. This is
+    one instance of the cross-cutting adapter item in §4.
+
+- **P1-2 outcome (`ace1012`):** the Unicode/name and scalar-type families are **closed by
+  rc8/rc9** (regression-locked in `tests/test_fingerprint_collisions.py`); pathological nesting is
+  **fixed in `ace1012`**; **reference-vs-referent** is recorded as an **accepted, documented risk** with an
+  application-level mitigation; the **inverse utility bug** was searched and **not found** —
+  key-order, list/tuple, and NFC-equivalent forms all produce identical fingerprints, and the only
+  intentional difference (`1` vs `1.0`, `True` vs `1`) is by-design type-sensitivity, kept.
+  Recorded honestly as negative evidence.
+
+### S4 — Provenance lattice transitions  ·  **P1-3**
+- **Entry:** `taint.py:derive_value` (l.15), `taint.py:derive_model_output` (l.41).
+- **Verified facts:** `derive_value` sets `TRUSTED` only if `inputs and all(is_trusted)`;
+  any untrusted input → `DERIVED_UNTRUSTED`. `derive_model_output` injects an
+  always-`DERIVED_UNTRUSTED` `model_output` origin, so a model can never emit `trusted`. There
+  is **no code path that raises trust** — the only constructor of `TRUSTED` values is
+  `TrustedValue`/`Provenance` in trusted application code. This matches the docstring: the design is correct, and P1-3's job is to prove the
+  *implementation* matches under composition.
+- **[hypothesis – P1-3]** the classic laundering path is **round-trip through storage / MCP**:
+  the label lives on the in-memory `Value`, the data does not. `mcp.py` re-labels returned data
+  via `label_mcp_input` as `UNTRUSTED` (good), but any *application* adapter that reads a value
+  back from a file/DB and forgets to re-wrap it would launder it. P1-3 must generate mixed-
+  provenance DAGs (depth ≥10) and assert the join holds on every node, including a
+  write→read round trip.
+
+### S5 — Data-classification propagation  ·  **P1-3**
+- **Entry:** `taint.py:_max_confidentiality` (l.8), applied in `derive_value`; enforced at
+  `monitor.py` (confidentiality ceiling, l.77-86) and `invariants.py` `confidentiality_ceiling`
+  (l.84).
+- **Verified:** join is `max(rank)` over inputs (monotone up the lattice
+  `public<internal<confidential<secret`). `derive_model_output` inherits `max` of visible
+  inputs, so a model cannot summarize a secret down to public.
+- **[hypothesis – P1-3]** same round-trip concern as S4: confirm `secret` survives derivation +
+  transformation + storage. Note the monitor's confidentiality check is **skipped for tools
+  absent from the static policy** (see S10) — a confidentiality ceiling only fires for a tool
+  with a policy entry declaring `max_confidentiality`.
+
+### S6 — Approval binding & replay window  ·  **P1-2 (TOCTOU)**
+- **Entry:** `approvals.py:ApprovalStore.grant` / `consume`; keyed by `_key` = `(fingerprint,
+  principal_id, session_id, tenant_id, capability_id)`.
+- **Verified:** consume-once (`grant.consumed` flips atomically under `RLock`), identity-scoped,
+  persisted atomically (`.tmp` + `replace`), rejects malformed fingerprints (must be lowercase
+  64-hex) and duplicate identities on load. Concurrency is tested
+  (`test_concurrent_approval_consumption_allows_exactly_once`).
+- **Gap (P0-5 cross-ref G-B4):** there is **no validity window and no revocation** on an
+  approval or contract. An approval, once granted and not consumed, is valid indefinitely. PoE
+  binds `[t_nb, t_na]` into the contract; VAIS does not. P1-2's replay analysis should treat the
+  absence of a window as the replay surface (there is no *time* to expire out of).
+- **[hypothesis – P1-2]** reference-vs-referent TOCTOU: the fingerprint (S3) binds argument
+  *values*; if an argument is a handle/path/id whose backing content changes between `grant` and
+  `consume`, the approval is replayed against different effective content. This is the S3
+  reference-vs-value item viewed from the approval side.
+
+### S7 — Audit hash chain  ·  **P1-4**
+- **Entry:** `audit.py:AuditTrail.record` (chains `previous_hash`), `AuditTrail.verify`.
+- **Verified:** each event hashes `{sequence, event_type, tool, decision, reasons, details,
+  previous_hash}` with SHA-256; `verify()` re-walks and checks `sequence == expected` (1..N),
+  `previous_hash == previous event_hash`, and hash recomputation. The chain is **unsigned**
+  (P0-5 gap G-B1) — the threat model lists cryptographic tamper-evidence as an explicit non-goal.
+- **[hypothesis – P1-4]** because `verify()` has **no notion of expected length and no signed
+  head**, a **truncation** to any prefix `1..k` should still pass `verify()` — the shortened
+  chain is internally consistent. Splice/reorder should break the `previous_hash` linkage and be
+  caught; a **fork** (two divergent chains sharing a prefix) is undetectable from a single chain.
+  P1-4 must demonstrate each of fork / truncate / splice / reorder with a test and record which
+  are caught vs. which need an external anchor (signed head or length commitment). Truncation is
+  the predicted weak spot; **do not assert it until the test fails.**
+- **Related:** `_reject_secret_fields` (`audit.py:85`) fails closed on secret-bearing detail keys
+  — already tested (`test_audit_rejects_secret_bearing_fields`).
+
+### S8 — MCP call mediation  ·  **rc8/rc9 delta triaged here**
+- **Entry:** `mcp.py:MCPProtectedClient.execute` (`:239`), `label_mcp_input` (`:181`),
+  `extract_mcp_result_data` (`:381`), `canonical_mcp_tool` (`:168`), `_effect_from_binding`
+  (`:407`); effect construction in `sandbox.py:Effect.__post_init__` (`:19`).
+- **Verified (mediation logic — unchanged from `77eb7e7`):** binding must exist
+  (`by_canonical_tool`) and `server_id` must match, else DENY before any network call; the
+  reference monitor evaluates the action and **only `ALLOW`** calls `session.call_tool` (`:274`)
+  with `plain_arguments()`; the return is re-labelled `UNTRUSTED` via `label_mcp_input`.
+  `canonical_mcp_tool` rejects `:` in server/tool to keep the `mcp:server:tool` namespace
+  unambiguous. The profile loader forbids upgrading remote results to `trusted`.
+- **Triage of the rc8/rc9 delta (mcp.py +42, sandbox.py +33) — all hardening, no logic change:**
+  1. `MCPEffectMapping.__post_init__` (`mcp.py:63`, new): NFC-normalizes effect field names and
+     argument names and **rejects NFC-duplicate effect fields**, freezing to `FrozenDict`.
+  2. `MCPToolBinding.__post_init__` (`mcp.py:88`) and `canonical_mcp_tool` (`:168`) and
+     `label_mcp_input` (`:181`) and the loader `_string` helper (`:457`) all now **NFC-normalize**
+     server/tool/canonical/primitive/name — so a compatibility-variant string can no longer mint a
+     second binding or a second effect-field alias. `MCPProfile.__post_init__` (`:109`) hardened
+     its version guard.
+  3. `sandbox.py:Effect.__post_init__` (`:19`, new): requires `attributes` to be a mapping
+     (`deep_freeze`→`FrozenDict`), NFC-normalizes `kind` and provenance keys, **rejects
+     NFC-duplicate provenance keys**, and type-checks `tool`/`action_fingerprint`. Every MCP and
+     sandbox effect now passes this.
+  4. `extract_mcp_result_data` (`:381`) is **unchanged** — still walks `structuredContent` /
+     `content[].text` and falls back to `str(raw_result)`.
+- **Consequence for S3 cross-field collapse:** the MCP effect mapping is **one effect field ← one
+  argument** and rc9 rejects duplicate effect fields, so two arguments **cannot** be collapsed
+  into a single effect field here. The S3 "structural smuggling" concern is therefore *not*
+  expressible through `argument_fields`; downgrade it accordingly.
+- **Boundary note:** parameter smuggling / path traversal *inside* a tool argument value is the
+  **downstream tool's** responsibility — VAIS binds those values to the contract (S3/S6) and
+  labels provenance. It is a VAIS concern only where such an argument is a *bound* or *authority*
+  field; otherwise out of scope for the enforcement layer.
+- **[hypothesis – P1-1/P1-5]** `extract_mcp_result_data` (unchanged) returns data that is
+  *labelled untrusted* immediately, so it cannot create authority, but a hostile SDK object could
+  make it return something large/surprising — still worth a fuzz case that it never raises
+  unhandled and never yields an authority-bearing value. rc9 did not touch this path.
+
+### S9 — Invariant evaluation (fail-open audit)  ·  **P1-5**
+- **Entry:** `invariants.py:DeclarativeInvariantEngine.evaluate` (`:45`), `_violation_reason` (`:67`).
+- **Verified fail-closed behavior:** missing effect provenance → violation
+  (`missing_effect_provenance`); missing bound value → `missing_contract_binding`; non-numeric
+  threshold field → `invalid_numeric_field`; missing fingerprint on a high-value effect →
+  `missing_effect_action_fingerprint`. An **unsupported invariant type** reaching
+  `_violation_reason` hits `raise AssertionError(...)` (`:131`) — it raises rather than passes,
+  which is fail-closed *if the caller does not swallow it*.
+- **rc9 hardening (new since v1):** `contract_binding` now compares with
+  `security_equal(actual, trusted.data)` (`:82`) instead of `!=`, closing a **type-confusion
+  evasion** at the invariant layer (e.g. an effect field of `1`/`1.0`/`True` no longer matches a
+  bound `1` by Python coercion); `exact_action_approval` gained `bool` / `math.isfinite` guards
+  (`:118`), matching the monitor. These are the `test_invariants` (+71) additions.
+- **[hypothesis – P1-5]** two things P1-5 must confirm:
+  1. the only way to reach the `AssertionError` is by **constructing `InvariantDefinition`
+     directly** (the loader's `supported` set blocks unknown types), so verify no benchmark/CLI
+     path builds definitions bypassing `load_invariants`;
+  2. confirm no caller wraps `evaluate()` in a bare `except` that would turn a raised evaluator
+     into a silent "no violation" (a fail-open). This is exactly the "evaluator raises" cell of
+     P1-5's fault matrix.
+
+### S10 — Static-policy gap under `default_action: allow`
+- **Entry:** `monitor.py:ReferenceMonitor.evaluate`, l.48-54: when a tool has **no** `ToolPolicy`
+  entry, if there are bound-argument reasons it DENYs, else it follows `default_action`
+  (`allow` → ALLOW; `deny` → DENY with `tool_not_in_policy`).
+- **Consequence (by design, but a real surface):** a tool that is in `contract.allowed_tools` but
+  absent from the static policy, under `default_action: allow`, is **allowed without** capability-
+  scope, confidentiality-ceiling, undeclared-argument, or approval checks — because all of those
+  live on the (absent) `ToolPolicy`. Bound-argument integrity is *still* enforced (tested). This
+  is the documented "dynamic contract authorizes; static policy only constrains further" model,
+  but it means **`default_action: deny` is the safe posture** and any deployment using
+  `allow` must enumerate every consequential tool in the policy. P1-5 should assert this in the
+  fault matrix (a consequential tool missing from a `default_action: allow` policy must not
+  silently skip its confidentiality ceiling).
+
+### S11 — Executor fail-closed seam
+- **Entry:** `executor.py:ProtectedExecutor.run`, l.51:
+  `effect = self.executor.execute(action) if decision.type == DecisionType.ALLOW else None`.
+- **Property:** DENY and REQUIRE_APPROVAL produce no effect; structurally, not just by policy.
+  P1-5 fault matrix owns the adverse-condition variants (audit write fails, executor raises).
+
+### S12 — Numeric threshold coercion
+- **Entry:** `monitor.py` l.109-115 and `invariants.py:116-122`. `bool` rejected before
+  `float()`, non-finite rejected, non-numeric → DENY / `invalid_numeric_field`. Tested; no gap.
+  (rc9 made the invariant-side guard identical to the monitor-side one — see S9.)
+
+---
+
+### S13 — Decision-reason disclosure (output channel)  ·  **IMP-003**
+- **Why it is listed separately:** S1–S12 are all *inputs* crossing into the monitor. S13 is an
+  *output*: the verdict and its reason strings are returned to the caller
+  (`ExecutionRecord.decision`, `MCPExecutionRecord.decision`), and whether they reach the model
+  depends on the integration. The agent loop is attacker-influenced by assumption.
+- **The attack:** ARM (arXiv 2604.04035) names the denial-feedback channel. A denied action is an
+  observable event, so an attacker can probe a protected action, learn from the denial, and act on
+  the inference through a later benign call.
+- **Why reasons matter more than verdicts:** a verdict leaks about one bit per probe. A reason
+  such as `bound_argument_changed:{field}` names the argument the contract binds, which tells the
+  attacker which field to leave alone and where to push instead.
+- **[hypothesis – IMP-003]** a configurable redaction policy for reasons returned to the model,
+  with the audit trail keeping full detail, is likely the cheapest real mitigation. Not
+  implemented. `docs/threat-model.md` currently covers this only under a generic side-channel
+  non-goal.
+
+## 3. Coverage gaps mapped to owning tasks (the P1 to-do, for the owner)
+
+- **P1-2 (S3) — DONE in `p1-2-fingerprint-hardening`:** unbounded `deep_freeze` recursion
+  **confirmed and fixed** (bounded to `ValueError` at `MAX_SECURITY_DEPTH=256` → routes to
+  `action_not_fingerprintable` + audit; see S3 confirmed-finding note and
+  `tests/test_fingerprint_recursion.py`). rc8/rc9's Unicode/name and scalar-type closures are
+  **regression-locked** (`tests/test_fingerprint_collisions.py`). **Reference-vs-referent** is an
+  **accepted, documented risk** (mitigation is application-level). The **inverse utility bug** was
+  searched and **not found** (negative evidence). `plain_arguments()` has no exclusions — closed.
+- **P1-2 residual → owned by P1-6 (S6):** reference-vs-referent is fundamentally an
+  approval-binding/TOCTOU concern, not a fingerprint bug; carry it into the S6 approval-window
+  analysis rather than re-opening S3.
+- **P1-3 (S4, S5):** provenance stateful DAG tests (depth ≥10) incl. storage round-trip;
+  confidentiality-join survival through transformation.
+- **P1-4 (S7):** fork / truncate / splice / reorder harness; truncation is the predicted weak
+  spot given the unsigned, length-agnostic `verify()`.
+- **P1-5 (S1, S9, S10, S11):** fault-injection matrix — missing/corrupt/YAML-bomb policy file,
+  evaluator raises, audit write fails, `default_action: allow` with a consequential tool absent
+  from policy. Every cell must DENY / raise, never allow.
+
+P1-2's fingerprint work (recursion fix + collision characterization) is complete on branch
+`p1-2-fingerprint-hardening`. The P1-3/P1-4/P1-5 harnesses above are **not** written yet — they
+remain the map's to-do.
+
+---
+
+## 4. Cross-cutting: adapters are where provenance is dropped
+
+Several separately found gaps are one defect class: **the adapter that turns application data into
+`Value`s is where provenance and audit coverage are lost.**
+
+- **S3, depth ≥ 257:** `Value` construction fails in the adapter, before the monitor, with no audit.
+- **S4/S5, storage round trip:** labels live on in-memory `Value`s, not on the data. An adapter
+  that reads a value back from a file, database, memory store or retrieval index and forgets to
+  re-wrap it launders untrusted data into trusted.
+- **Cross-session flows (IMP-006):** a task-A write read back in task B crosses exactly this
+  boundary, so whether provenance survives deserialization is the question to test.
+
+The core enforces correctly on the labels it is given. Adapters decide whether those labels are
+true. Track this as one item, and give every adapter the same two obligations: catch `ValueError`
+from `Value` construction and record a denial; re-derive provenance on every read from persistent
+storage rather than trusting the stored data.
+
+## Sources
+- VAIS source at `bf38ab0`: `models.py`, `monitor.py`, `policy.py`, `executor.py`,
+  `approvals.py`, `taint.py`, `audit.py`, `invariants.py`, `behavioral_gate.py`, `mcp.py`,
+  `sandbox.py`. Files re-read for the rc9 delta: `models.py`, `invariants.py`, `policy.py`,
+  `mcp.py`, `sandbox.py`; the rest verified byte-identical to `77eb7e7`.
+- Existing tests read: `tests/test_reference_monitor.py`, `tests/test_attack_corpus.py`,
+  and function inventories of `test_policy_validation`, `test_policy_v3`, `test_taint`,
+  `test_audit`, `test_protected_executor`, `test_mcp`, `test_invariants`, `test_task_contract`,
+  `test_tcb_hardening`.
+- P0-5 cross-references: `docs/RELATED-ARCHITECTURES.md` (gaps G-B1, G-B4).
