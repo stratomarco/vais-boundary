@@ -18,6 +18,22 @@ VAIS should learn from FIDES rather than claim novelty for taint labels or pre-t
 
 Primary documentation: https://learn.microsoft.com/en-us/agent-framework/agents/security
 
+## SPA and cross-query persistence
+
+SPA secures persistent agents across queries with plan-first execution: the planner runs once per query to produce a complete plan in a declarative language, and dual-lattice information-flow control tracks confidentiality and integrity across data flows and control dependencies. Execution results persist as labeled artifacts, and later planning sees only their semantic metadata, so untrusted payloads are not re-exposed to the planner. The paper reports a security-utility tradeoff introduced by strict integrity enforcement.
+
+VAIS does not claim novelty for dual-lattice labels or label-preserving persistence. VAIS's current scenarios are single-task, so SPA's cross-query setting marks a gap in VAIS's evidence rather than a point of comparison.
+
+Primary paper: https://arxiv.org/abs/2608.27234
+
+## APPA and recoverable information-flow control
+
+APPA turns agent information-flow control from blocking into recovery. It validates proposed tool calls before dispatch and realized return values before they are admitted to the context, applies gradual security typing to unannotated tools, and confines tainted data to disposable child branches, with a theorem that an abandoned child leaves the parent label unchanged. It targets the failure where monotone taint tracking over-blocks benign operations or strands downstream execution after an agent reads unvetted data.
+
+That failure is the one VAIS records as LIM-023, where conservative model-output lineage overtaints semantically safe text. VAIS does not claim novelty for validation before and after a tool call. APPA's post-call gate checks return values entering the context; VAIS checks observed external effects against declared invariants. APPA is the natural reference for any VAIS declassification work.
+
+Primary paper: https://arxiv.org/abs/2607.24625
+
 ## AgentDojo
 
 AgentDojo provides a dynamic environment for evaluating attacks and defenses against tool-using LLM agents and exposes benchmark scripts that vary model, attack and defense configurations.
@@ -57,6 +73,20 @@ Proof of Execution packages a governed agent's runtime guarantees as a single va
 VAIS does not claim novelty for complete mediation, null effect on deny or hash-chained history. Proof of Execution does not model data provenance or confidentiality propagation, and its validator checks the trace the gateway produced rather than independently re-deriving effects from observed outcomes. Those are the points where VAIS's contribution sits. A term-by-term mapping is in [RELATED-ARCHITECTURES.md](RELATED-ARCHITECTURES.md).
 
 Primary paper: https://arxiv.org/abs/2607.05397
+
+## ARM and denial-feedback leakage
+
+ARM (Agentic Reference Monitor) is an MCP proxy that mediates every tool call before execution. It issues capability tokens that neither the agent nor a tool can modify, keeps a SHA-256 hash-chained audit log, and tracks tool calls, returned data and denied actions in a provenance graph with an integrity lattice. Its paper names causality laundering: an adversary probes a protected action, learns from the denial, and exfiltrates the inference through a later benign call. ARM adds counterfactual edges from denied-action nodes to catch it.
+
+VAIS does not claim novelty for proxy-based complete mediation, immutable capabilities, hash-chained audit or integrity-lattice provenance; ARM has all four. ARM evaluates policy at invocation time and records the outcome, and does not independently verify observed effects against declared invariants after execution. That is where VAIS's contribution sits. VAIS returns enforcement outcomes to the caller and does not yet model the denial-feedback channel; see [ATTACK-SURFACE.md](ATTACK-SURFACE.md), S13.
+
+Primary paper: https://arxiv.org/abs/2604.04035
+
+## AgentProof and static workflow verification
+
+AgentProof statically verifies agent workflow graphs before deployment. It compiles temporal safety policies to finite automata and checks graphs extracted from LangGraph, CrewAI, AutoGen and Google ADK, including a policy that paths to sensitive operations pass through a human gate. This is pre-deployment topology verification, complementary to a runtime boundary rather than competing with it, and the natural reference if VAIS adds a conformance checker for its own integration assumptions.
+
+Primary paper: https://arxiv.org/abs/2603.20356
 
 ## OWASP guidance and verification standards
 
