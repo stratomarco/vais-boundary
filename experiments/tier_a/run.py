@@ -45,13 +45,16 @@ def main() -> None:
     ap.add_argument("--arms", default="OFF,APP_AUTHZ,FILTER,VAIS")
     ap.add_argument("--detector", default="keyword", choices=["keyword", "llm_judge"])
     ap.add_argument("--model", default="qwen2.5-7b-instruct")
+    ap.add_argument("--judge-model", default="phi-4-mini-instruct")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--no-benign", action="store_true")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
     agent = LLMAgent(model=args.model, seed=args.seed)
-    detector = KeywordDetector() if args.detector == "keyword" else LLMJudgeDetector()
+    detector = KeywordDetector() if args.detector == "keyword" else LLMJudgeDetector(model=args.judge_model)
+    if hasattr(detector, "preflight"):
+        detector.preflight()
     gate = VaisGate()
     workflows = [attack_workflow(v["id"], v["payload"]) for v in load_variants(args.variants)]
     if not args.no_benign:
@@ -69,6 +72,8 @@ def main() -> None:
                 print(f"{wf.id:28s} {arm:10s} decision={rec['decision']:13s} changes={rec['changes']}", flush=True)
     print()
     print(summarize(records))
+    if getattr(detector, "unparseable", 0):
+        print(f"judge unparseable answers (counted as flagged): {detector.unparseable}")
 
 
 if __name__ == "__main__":
