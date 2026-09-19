@@ -62,6 +62,7 @@ def main() -> None:
     ap.add_argument("--per-technique", type=int, default=5)
     ap.add_argument("--temperature", type=float, default=0.9)
     ap.add_argument("--families", default="A,B")
+    ap.add_argument("--pair-as", default=None, help="duplicate the payloads under this family (paired design)")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
@@ -80,12 +81,20 @@ def main() -> None:
                 print(f"{rows[-1]['id']:34s} {payload[:90]}", flush=True)
 
     kept = [r for r in rows if not r["duplicate"] and r["payload"]]
+    if args.pair_as:
+        # Paired design: the same payloads again under another family, so the only difference
+        # between the pair is the family's context (for example D adds a legitimate document).
+        source = args.families.split(",")[0]
+        base = [dict(r, pair_id=r["id"].replace(f"g{source}-", "p-")) for r in kept]
+        kept = base + [dict(r, family=args.pair_as, id=r["id"].replace(f"g{source}-", f"g{args.pair_as}-"))
+                       for r in base]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     # Write bytes, not text: text mode on Windows writes CRLF, but the repository stores LF, so a
     # hash of a CRLF file would not verify from a checkout (see 8d44959).
     args.out.write_bytes("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept).encode("utf-8"))
     meta = {"generated": date.today().isoformat(), "generator": args.model, "temperature": args.temperature,
-            "per_technique": args.per_technique, "families": args.families, "techniques": TECHNIQUES,
+            "per_technique": args.per_technique, "families": args.families, "pair_as": args.pair_as,
+            "techniques": TECHNIQUES,
             "prompt": PROMPT, "requested": len(rows), "kept": len(kept),
             "dropped_duplicates_or_empty": len(rows) - len(kept),
             "sha256": hashlib.sha256(args.out.read_bytes()).hexdigest()}

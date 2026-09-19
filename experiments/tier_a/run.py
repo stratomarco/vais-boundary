@@ -15,7 +15,7 @@ from .agents import LLMAgent
 from .detectors import ClassifierDetector, KeywordDetector, LLMJudgeDetector
 from .episode import run_episode
 from .gate import VaisGate
-from .workflows import attack_workflow, benign_workflows
+from .workflows import attack_workflow, benign_workflows, benign_workflows_v2
 
 
 def load_variants(path: Path) -> list[dict]:
@@ -49,6 +49,7 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--no-benign", action="store_true")
+    ap.add_argument("--benign-suite", default="v1", choices=["v1", "v2"])
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
@@ -60,7 +61,7 @@ def main() -> None:
     gate = VaisGate()
     workflows = [attack_workflow(v["id"], v["payload"], v.get("family", "A")) for v in load_variants(args.variants)]
     if not args.no_benign:
-        workflows += benign_workflows()
+        workflows += benign_workflows_v2() if args.benign_suite == "v2" else benign_workflows()
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     records = []

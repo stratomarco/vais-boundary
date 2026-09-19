@@ -51,6 +51,7 @@ ARM_CONTROLS: dict[str, dict[str, str]] = {
     "FILTER": {"ENABLE_RETRIEVAL_AUTHZ": "1"},
     "VAIS": {"ENABLE_RETRIEVAL_AUTHZ": "1"},
     "VAIS_OP": {"ENABLE_RETRIEVAL_AUTHZ": "1"},
+    "VAIS_RESOLVE": {"ENABLE_RETRIEVAL_AUTHZ": "1"},
 }
 
 # A second alpha ticket, added in memory at reset so a same-tenant substitution attack has a
