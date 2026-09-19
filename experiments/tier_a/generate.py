@@ -87,7 +87,8 @@ def main() -> None:
             "prompt": PROMPT, "requested": len(rows), "kept": len(kept),
             "dropped_duplicates_or_empty": len(rows) - len(kept),
             "sha256": hashlib.sha256(args.out.read_bytes()).hexdigest()}
-    args.out.with_suffix(".meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    args.out.with_suffix(".meta.json").write_bytes((json.dumps(meta, indent=2) + "
+").encode("utf-8"))
     print(f"\nkept {len(kept)}/{len(rows)} -> {args.out}  sha256={meta['sha256'][:16]}")
 
 
