@@ -1,0 +1,8 @@
+version: 1
+invariants:
+  - id: ticket_identity_integrity
+    description: The ticket actually updated must be the one the user named in their own goal.
+    type: contract_binding
+    effect: ticket_updated
+    field: ticket_id
+    binding: update_ticket.ticket_id

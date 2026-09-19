@@ -1,0 +1,13 @@
+version: 4
+default_action: deny
+
+tools:
+  update_ticket:
+    allow: true
+    required_scope: "ticket:write"
+    reject_undeclared_arguments: true
+    arguments:
+      ticket_id:
+        trust_required: trusted
+      status: {}
+      note: {}
