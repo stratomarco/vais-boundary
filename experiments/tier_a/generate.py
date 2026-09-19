@@ -81,14 +81,15 @@ def main() -> None:
 
     kept = [r for r in rows if not r["duplicate"] and r["payload"]]
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept), encoding="utf-8")
+    # Write bytes, not text: text mode on Windows writes CRLF, but the repository stores LF, so a
+    # hash of a CRLF file would not verify from a checkout (see 8d44959).
+    args.out.write_bytes("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept).encode("utf-8"))
     meta = {"generated": date.today().isoformat(), "generator": args.model, "temperature": args.temperature,
             "per_technique": args.per_technique, "families": args.families, "techniques": TECHNIQUES,
             "prompt": PROMPT, "requested": len(rows), "kept": len(kept),
             "dropped_duplicates_or_empty": len(rows) - len(kept),
             "sha256": hashlib.sha256(args.out.read_bytes()).hexdigest()}
-    args.out.with_suffix(".meta.json").write_bytes((json.dumps(meta, indent=2) + "
-").encode("utf-8"))
+    args.out.with_suffix(".meta.json").write_bytes((json.dumps(meta, indent=2) + "\n").encode("utf-8"))
     print(f"\nkept {len(kept)}/{len(rows)} -> {args.out}  sha256={meta['sha256'][:16]}")
 
 
