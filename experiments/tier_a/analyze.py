@@ -85,6 +85,9 @@ def analyse(rows: list[dict]) -> str:
 
 
 def main() -> None:
+    import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # tables use arrows and en dashes
     ap = argparse.ArgumentParser()
     ap.add_argument("results_dir", type=Path)
     ap.add_argument("--out", type=Path)
@@ -92,7 +95,7 @@ def main() -> None:
     text = analyse(load(args.results_dir))
     print(text)
     if args.out:
-        args.out.write_text(text, encoding="utf-8")
+        args.out.write_bytes(text.encode("utf-8"))  # LF, as stored in git
 
 
 if __name__ == "__main__":
