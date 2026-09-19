@@ -12,7 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .agents import LLMAgent
-from .detectors import KeywordDetector, LLMJudgeDetector
+from .detectors import ClassifierDetector, KeywordDetector, LLMJudgeDetector
 from .episode import run_episode
 from .gate import VaisGate
 from .workflows import attack_workflow, benign_workflows
@@ -43,20 +43,22 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--variants", type=Path, required=True)
     ap.add_argument("--arms", default="OFF,APP_AUTHZ,FILTER,VAIS")
-    ap.add_argument("--detector", default="keyword", choices=["keyword", "llm_judge"])
+    ap.add_argument("--detector", default="keyword", choices=["keyword", "llm_judge", "classifier"])
     ap.add_argument("--model", default="qwen2.5-7b-instruct")
     ap.add_argument("--judge-model", default="phi-4-mini-instruct")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--no-benign", action="store_true")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
-    agent = LLMAgent(model=args.model, seed=args.seed)
-    detector = KeywordDetector() if args.detector == "keyword" else LLMJudgeDetector(model=args.judge_model)
+    agent = LLMAgent(model=args.model, seed=args.seed, temperature=args.temperature)
+    detector = {"keyword": KeywordDetector, "classifier": ClassifierDetector,
+                "llm_judge": lambda: LLMJudgeDetector(model=args.judge_model)}[args.detector]()
     if hasattr(detector, "preflight"):
         detector.preflight()
     gate = VaisGate()
-    workflows = [attack_workflow(v["id"], v["payload"]) for v in load_variants(args.variants)]
+    workflows = [attack_workflow(v["id"], v["payload"], v.get("family", "A")) for v in load_variants(args.variants)]
     if not args.no_benign:
         workflows += benign_workflows()
 
