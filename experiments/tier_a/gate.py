@@ -41,12 +41,17 @@ NO_TICKET = "__no_ticket_authorized__"
 TOOL = "update_ticket"
 
 
-def build_contract(user: dict[str, Any], goal: str, episode_id: str) -> TaskContract:
-    """Authority from trusted input only. No ticket named means no ticket authorized."""
+def build_contract(user: dict[str, Any], goal: str, episode_id: str, mode: str | None = None) -> TaskContract:
+    """Authority from trusted input only. No ticket named means no ticket authorized.
+
+    ``mode`` is the application's own entry point ("ask" or "act"), for example which UI
+    action the user took. It is trusted input, never parsed from the request text. When it is
+    given (the VAIS_OP arm), an "ask" task is granted no mutation tool at all.
+    """
     match = TICKET_RE.search(goal)
     bound = match.group(0).upper() if match else NO_TICKET
     return TaskContract(
-        allowed_tools={TOOL},
+        allowed_tools=set() if mode == "ask" else {TOOL},
         bound_arguments={(TOOL, "ticket_id"): TrustedValue(bound, source="user_goal")},
         granted_scopes={"ticket:write"},
         principal_id=user["id"],
