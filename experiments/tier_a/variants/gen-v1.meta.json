@@ -18,5 +18,6 @@
   "requested": 80,
   "kept": 80,
   "dropped_duplicates_or_empty": 0,
-  "sha256": "91281f70408c094c7b1c30e019e3eae2db1544e80afff9feb52d1893009c2c21"
+  "sha256": "4f66b36185a43cadea6ad2774b5a9e39273f1df099ee64a8ade2a51e5543d006",
+  "sha256_note": "sha256 of the LF-normalised bytes as stored in git (the repo enforces eol=lf)"
 }
