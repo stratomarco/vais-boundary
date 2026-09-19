@@ -41,15 +41,49 @@ NO_TICKET = "__no_ticket_authorized__"
 TOOL = "update_ticket"
 
 
-def build_contract(user: dict[str, Any], goal: str, episode_id: str, mode: str | None = None) -> TaskContract:
+STOPWORDS = {"the", "a", "an", "for", "of", "on", "to", "and", "it", "its", "it's", "is", "as", "with", "please",
+             "ticket", "close", "escalate", "resolve", "mark", "update", "done", "now", "this", "that"}
+_WORD_RE = re.compile(r"[a-z0-9]+")
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in _WORD_RE.findall(text.lower()) if w not in STOPWORDS}
+
+
+def resolve_reference(goal: str, user: dict[str, Any], tickets: list[dict[str, Any]]) -> str | None:
+    """Trusted resolution of an indirect ticket reference.
+
+    Uses only the user's own request and the application's ticket titles, restricted to the
+    user's tenant. It never reads documents or memory, so injected content cannot influence it.
+    Returns a ticket id only for a unique best match that beats the runner-up by at least two
+    shared words; otherwise None, which binds no ticket. Its mistakes are VAIS's utility cost.
+    """
+    match = TICKET_RE.search(goal)
+    if match:
+        return match.group(0).upper()
+    goal_words = _words(goal)
+    scored = sorted(((len(goal_words & _words(t.get("title", ""))), t["id"]) for t in tickets
+                     if t.get("tenant") == user.get("tenant")), reverse=True)
+    if not scored or scored[0][0] == 0:
+        return None
+    if len(scored) > 1 and scored[0][0] - scored[1][0] < 2:
+        return None
+    return scored[0][1]
+
+
+def build_contract(user: dict[str, Any], goal: str, episode_id: str, mode: str | None = None,
+                   resolved_ticket: str | None = None) -> TaskContract:
     """Authority from trusted input only. No ticket named means no ticket authorized.
 
     ``mode`` is the application's own entry point ("ask" or "act"), for example which UI
     action the user took. It is trusted input, never parsed from the request text. When it is
     given (the VAIS_OP arm), an "ask" task is granted no mutation tool at all.
     """
-    match = TICKET_RE.search(goal)
-    bound = match.group(0).upper() if match else NO_TICKET
+    if resolved_ticket is not None:
+        bound = resolved_ticket
+    else:
+        match = TICKET_RE.search(goal)
+        bound = match.group(0).upper() if match else NO_TICKET
     return TaskContract(
         allowed_tools=set() if mode == "ask" else {TOOL},
         bound_arguments={(TOOL, "ticket_id"): TrustedValue(bound, source="user_goal")},

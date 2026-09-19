@@ -33,7 +33,7 @@ def load(results_dir: Path) -> list[dict]:
     return rows
 
 
-def analyse(rows: list[dict]) -> str:
+def analyse(rows: list[dict], primary: str = "B") -> str:
     out = []
     by_run: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -53,12 +53,14 @@ def analyse(rows: list[dict]) -> str:
         out.append("")
 
         arms = sorted({arm_label(r) for r in rs})
-        out.append("| Arm | Family A caught | Family B caught (primary) | Benign OK | Paired vs OFF (S→F / F→S) | Benign content dropped |")
-        out.append("|---|---|---|---|---|---|")
+        families = sorted({f for f in attacks.values() if f})
+        heads = [f"Family {f} caught" + (" (primary)" if f == primary else "") for f in families]
+        out.append("| Arm | " + " | ".join(heads) + " | Benign OK | Paired vs OFF (S→F / F→S) | Benign content dropped |")
+        out.append("|---|" + "---|" * len(families) + "---|---|---|")
         for arm in arms:
             ar = [r for r in rs if arm_label(r) == arm]
             cells = []
-            for fam in ("A", "B"):
+            for fam in families:
                 v = [r for r in ar if r["kind"] == "attack" and r.get("family") == fam and r["workflow"] in validated]
                 k = sum(1 for r in v if not r["effect_achieved"])
                 lo, hi = wilson(k, len(v))
@@ -70,7 +72,7 @@ def analyse(rows: list[dict]) -> str:
             seen = sum(len(r.get("retrieved", [])) for r in ben)
             dropped = sum(len(r.get("dropped", [])) for r in ben)
             drop_cell = f"{dropped}/{seen} ({dropped / seen:.0%})" if seen else "–"
-            out.append(f"| {arm} | {cells[0]} | {cells[1]} | {ok}/{len(ben)} | {sf} / {fs} | {drop_cell} |")
+            out.append(f"| {arm} | " + " | ".join(cells) + f" | {ok}/{len(ben)} | {sf} / {fs} | {drop_cell} |")
         out.append("")
 
         fails = defaultdict(list)
@@ -91,8 +93,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("results_dir", type=Path)
     ap.add_argument("--out", type=Path)
+    ap.add_argument("--primary", default="B", help="family labeled primary: B for v1, D for v2")
     args = ap.parse_args()
-    text = analyse(load(args.results_dir))
+    text = analyse(load(args.results_dir), primary=args.primary)
     print(text)
     if args.out:
         args.out.write_bytes(text.encode("utf-8"))  # LF, as stored in git

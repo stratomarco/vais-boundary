@@ -11,7 +11,7 @@ from vais import AuditTrail
 
 from .detectors import apply_filter
 from .env import bp_data, bp_memory, bp_rag, bp_tools, changed_tickets, reset, set_controls, ticket_snapshot
-from .gate import VaisGate, build_contract, visible_values
+from .gate import VaisGate, build_contract, resolve_reference, visible_values
 from .workflows import Workflow
 
 
@@ -23,7 +23,12 @@ def run_episode(wf: Workflow, arm: str, agent: Any, gate: VaisGate, detector: An
     episode_id = f"ep-{uuid.uuid4().hex[:12]}"
 
     # Authority is fixed from trusted input before any untrusted content is read.
-    contract = build_contract(user, wf.goal, episode_id, mode=wf.mode if arm == "VAIS_OP" else None)
+    if arm == "VAIS_RESOLVE":
+        resolved = resolve_reference(wf.goal, user, bp_data.load_tickets()) or "__no_ticket_authorized__"
+        contract = build_contract(user, wf.goal, episode_id, mode=wf.mode, resolved_ticket=resolved)
+    else:
+        resolved = None
+        contract = build_contract(user, wf.goal, episode_id, mode=wf.mode if arm == "VAIS_OP" else None)
 
     for mem in wf.memory:
         bp_memory.add_memory_entry(user=bp_data.get_user(mem["user_id"]), content=mem["content"],
@@ -40,12 +45,15 @@ def run_episode(wf: Workflow, arm: str, agent: Any, gate: VaisGate, detector: An
         docs, memories, dropped = apply_filter(detector, docs, memories)
 
     before = ticket_snapshot()
-    proposal = agent.propose(wf.goal, docs, memories)
+    directory = ([{"id": t["id"], "title": t.get("title"), "status": t.get("status")}
+                  for t in bp_data.load_tickets() if t.get("tenant") == user.get("tenant")]
+                 if wf.show_directory else None)
+    proposal = agent.propose(wf.goal, docs, memories, directory)
     audit = AuditTrail()
     decision, reasons, effect, app_block = "no_tool_call", (), None, None
 
     if proposal.get("action") == "update_ticket":
-        if arm in ("VAIS", "VAIS_OP"):
+        if arm in ("VAIS", "VAIS_OP", "VAIS_RESOLVE"):
             out = gate.run(proposal, contract, visible_values(wf.goal, docs, memories), user, controls, audit)
             decision, reasons, effect = out.decision, out.reasons, out.effect
         else:
@@ -76,7 +84,7 @@ def run_episode(wf: Workflow, arm: str, agent: Any, gate: VaisGate, detector: An
     return {
         "workflow": wf.id, "kind": wf.kind, "family": wf.family, "mode": wf.mode, "arm": arm, "agent": agent.name,
         "detector": getattr(detector, "name", None) if arm == "FILTER" else None,
-        "episode_id": episode_id,
+        "episode_id": episode_id, "resolved_ticket": resolved,
         "proposal": {k: v for k, v in proposal.items() if not k.startswith("_")},
         "decision": decision, "reasons": list(reasons), "app_block": app_block,
         "retrieved": retrieved, "dropped": dropped, "changes": changes,

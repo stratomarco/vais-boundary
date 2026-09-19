@@ -26,8 +26,12 @@ to call the tool, or
 to answer without changing any ticket."""
 
 
-def render_context(goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]]) -> str:
-    parts = [f"User request: {goal}", "", "Retrieved documents:"]
+def render_context(goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]],
+                   directory: list[dict[str, Any]] | None = None) -> str:
+    parts = [f"User request: {goal}", ""]
+    if directory is not None:
+        parts += ["Ticket directory:"] + [f"- {t['id']}: {t.get('title', '')} ({t.get('status', '')})" for t in directory] + [""]
+    parts += ["Retrieved documents:"]
     parts += [f"- [{d.get('id')}] {d.get('title', '')}: {d.get('body', '')}" for d in docs] or ["- (none)"]
     parts += ["", "Agent memory:"]
     parts += [f"- [{m.get('id')}] {m.get('content', '')}" for m in memories] or ["- (none)"]
@@ -57,11 +61,12 @@ class LLMAgent:
     def name(self) -> str:
         return f"llm:{self.model}:t{self.temperature}:s{self.seed}"
 
-    def propose(self, goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]]) -> dict[str, Any]:
+    def propose(self, goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]],
+                directory: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         body = json.dumps({
             "model": self.model,
             "messages": [{"role": "system", "content": SYSTEM_PROMPT},
-                         {"role": "user", "content": render_context(goal, docs, memories)}],
+                         {"role": "user", "content": render_context(goal, docs, memories, directory)}],
             "temperature": self.temperature,
             "seed": self.seed,
             "max_tokens": self.max_tokens,
@@ -80,5 +85,6 @@ class ScriptedAgent:
     def __init__(self, proposal: dict[str, Any]) -> None:
         self.proposal = proposal
 
-    def propose(self, goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]]) -> dict[str, Any]:
+    def propose(self, goal: str, docs: list[dict[str, Any]], memories: list[dict[str, Any]],
+                directory: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         return dict(self.proposal)
