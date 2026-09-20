@@ -40,6 +40,6 @@ Save and merge into `dev`. Astro generates the article page and adds it to the a
 
 ## Branding and scope
 
-The first draft uses a typographic VAIS Boundary wordmark because no standalone logo was found in the supplied repository. The favicon is a simple V and boundary line. No stock images, analytics, or advertising are added. Downloads link to the releases list because published releases are currently prereleases and `/releases/latest` is unavailable.
+The site uses the owner's supplied horizontal SVG lockup for light backgrounds, with its outlined lettering, original geometry, and clear space preserved. The palette follows `BRAND.md`; green remains in the authorised-effect segment of the logo. The supplied icon masters and social preview replace the temporary branding. No stock images, analytics, or advertising are added. Downloads link to the releases list because published releases are currently prereleases and `/releases/latest` is unavailable.
 
 References: [GitHub custom domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site), [GitHub HTTPS](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https), [Web3Forms hCaptcha](https://docs.web3forms.com/getting-started/customizations/spam-protection/hcaptcha).

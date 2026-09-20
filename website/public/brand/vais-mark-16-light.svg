@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="none" role="img" aria-label="VAIS Boundary">
+  <rect x="4" y="0" width="2" height="5" fill="#94A3B8"/>
+  <rect x="4" y="5" width="2" height="3" fill="#0B192C"/>
+  <rect x="4" y="7" width="8" height="2" fill="#0B192C"/>
+  <rect x="10" y="9" width="2" height="6" fill="#15803D"/>
+  <rect x="0" y="4" width="16" height="1" fill="#0B192C"/>
+  <rect x="0" y="11" width="16" height="1" fill="#0B192C"/>
+</svg>
