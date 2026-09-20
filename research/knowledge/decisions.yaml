@@ -196,4 +196,4 @@ decisions:
     date: 2026-09-20
     decision: Keep the Tier-A lab experiment in the repository as an unpackaged evidence tree, with its pre-registrations, frozen inputs and raw episode records, and exclude it from the distributed sdist and wheel.
     rationale: The experiment depends on an external training application and on a local model server, so it is reproducible evidence for readers of the repository but not part of the installable library.
-    evidence: [experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/RESULTS-v2.md, MANIFEST.in]
+    evidence: [experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/RESULTS-v2.md, docs/v0.12.0rc10-release-review.md]

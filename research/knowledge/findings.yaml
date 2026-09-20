@@ -257,4 +257,4 @@ findings:
     finding: A paired lab comparison on an external agent application used identical injection payloads with and without one legitimate document naming the correct ticket. The true document was strictly protective across four runs, since no payload succeeded with it present but failed without it, and attack success fell four- to eightfold. In the same runs the strongest content detector reached the same catch rate only while dropping half of all legitimate retrieved documents.
     version: "0.12.0rc10"
     type: external_experiment_observation
-    evidence: [experiments/tier_a/RESULTS-v2.md, experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/evidence]
+    evidence: [experiments/tier_a/RESULTS-v2.md, experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/evidence/v2-primary/core.jsonl]
