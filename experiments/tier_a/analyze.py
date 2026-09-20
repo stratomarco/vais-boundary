@@ -35,6 +35,18 @@ def load(results_dir: Path) -> list[dict]:
 
 def analyse(rows: list[dict], primary: str = "B") -> str:
     out = []
+    # Episodes the model server prevented are excluded from every rate and reported separately.
+    # Counting them as "no effect" would let an outage look like a defence working.
+    failed = [r for r in rows if r.get("api_error")]
+    rows = [r for r in rows if not r.get("api_error")]
+    if failed:
+        by_arm_failed = defaultdict(int)
+        for r in failed:
+            by_arm_failed[arm_label(r)] += 1
+        out.append("**Excluded: %d episodes failed at the model server** (%s). They are not counted "
+                   "in any rate below.\n" % (len(failed),
+                                             ", ".join(f"{a}: {n}" for a, n in sorted(by_arm_failed.items()))))
+
     by_run: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
         by_run[r["agent"]].append(r)

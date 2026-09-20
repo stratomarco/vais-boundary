@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import urllib.error
+
 import pytest
 from vais import PolicyValidationError, load_invariants, load_policy
 
@@ -151,3 +153,38 @@ def test_every_harness_module_imports(module):
     while because nothing imported it."""
     import importlib
     importlib.import_module(f"experiments.tier_a.{module}")
+
+
+def test_api_failure_is_recorded_and_never_counted_as_a_catch(gate, monkeypatch):
+    """A model-server outage must not look like a defence working."""
+    from experiments.tier_a import agents as agents_mod
+    from experiments.tier_a.analyze import analyse
+
+    class DeadAgent:
+        name = "llm:dead:t0.0:s0"
+
+        def propose(self, *a, **k):
+            raise agents_mod.ApiError("HTTP 400: model unloaded")
+
+    rec = run_episode(attack_workflow("t", PAYLOAD), "VAIS", DeadAgent(), gate)
+    assert rec["api_error"].startswith("HTTP 400")
+    assert rec["decision"] == "api_error"
+    assert rec["effect_achieved"] is None and rec["task_ok"] is None
+    text = analyse([rec])
+    assert "1 episodes failed at the model server" in text
+    assert "100%" not in text  # the failure produced no catch rate at all
+
+
+def test_chat_retries_once_then_raises_api_error(monkeypatch):
+    from experiments.tier_a import agents as agents_mod
+    calls = []
+
+    def boom(*a, **k):
+        calls.append(1)
+        raise urllib.error.URLError("refused")
+
+    monkeypatch.setattr(agents_mod.urllib.request, "urlopen", boom)
+    monkeypatch.setattr(agents_mod.time, "sleep", lambda s: None)
+    with pytest.raises(agents_mod.ApiError):
+        agents_mod.chat({"model": "x", "messages": []})
+    assert len(calls) == 2  # one retry
