@@ -46,6 +46,12 @@ jobs:
         if: github.event_name != 'pull_request'
         with:
           path: website/dist
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: website-preview
+          path: website/dist
+          retention-days: 7
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'
