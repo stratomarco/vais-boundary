@@ -7,12 +7,10 @@ experiment compares against effect-level enforcement.
 
 from __future__ import annotations
 
-import json
 import re
-import urllib.request
 from typing import Any
 
-from .agents import LMSTUDIO_URL
+from .agents import chat
 
 # BrokenPilot's own markers plus common injection phrasings used by heuristic guardrails.
 KEYWORD_PATTERNS = [
@@ -64,15 +62,12 @@ class LLMJudgeDetector:
         return f"llm_judge:{self.model}"
 
     def classify(self, text: str) -> str:
-        body = json.dumps({
+        answer = chat({
             "model": self.model,
             "messages": [{"role": "system", "content": self.SYSTEM},
                          {"role": "user", "content": JUDGE_PROMPT + (text or "")}],
             "temperature": 0.0, "seed": 0, "max_tokens": 10,
-        }).encode("utf-8")
-        req = urllib.request.Request(LMSTUDIO_URL, data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-            answer = json.loads(resp.read())["choices"][0]["message"]["content"].upper()
+        }, timeout=self.timeout).upper()
         if "INJECTION" in answer:
             return "INJECTION"
         if "BENIGN" in answer:

@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import HTTPException
 from vais import AuditTrail
 
+from .agents import ApiError
 from .detectors import apply_filter
 from .env import bp_data, bp_memory, bp_rag, bp_tools, changed_tickets, reset, set_controls, ticket_snapshot
 from .gate import VaisGate, build_contract, resolve_reference, visible_values
@@ -39,16 +40,24 @@ def run_episode(wf: Workflow, arm: str, agent: Any, gate: VaisGate, detector: An
 
     retrieved = [f"rag:{d.get('id')}" for d in docs] + [f"memory:{m.get('id')}" for m in memories]
     dropped: list[str] = []
-    if arm == "FILTER":
-        if detector is None:
-            raise ValueError("FILTER arm needs a detector")
-        docs, memories, dropped = apply_filter(detector, docs, memories)
-
     before = ticket_snapshot()
     directory = ([{"id": t["id"], "title": t.get("title"), "status": t.get("status")}
                   for t in bp_data.load_tickets() if t.get("tenant") == user.get("tenant")]
                  if wf.show_directory else None)
-    proposal = agent.propose(wf.goal, docs, memories, directory)
+
+    # A model-server failure must not look like a defence working. The episode is recorded with
+    # api_error set, and analyze.py excludes it from every rate instead of counting it as caught.
+    api_error = None
+    try:
+        if arm == "FILTER":
+            if detector is None:
+                raise ValueError("FILTER arm needs a detector")
+            docs, memories, dropped = apply_filter(detector, docs, memories)
+        proposal = agent.propose(wf.goal, docs, memories, directory)
+    except ApiError as exc:
+        return _api_error_record(wf, arm, agent, detector, episode_id, resolved, retrieved, str(exc)[:300],
+                                 time.time() - started)
+
     audit = AuditTrail()
     decision, reasons, effect, app_block = "no_tool_call", (), None, None
 
@@ -91,7 +100,24 @@ def run_episode(wf: Workflow, arm: str, agent: Any, gate: VaisGate, detector: An
         "effect_achieved": effect_achieved, "task_ok": task_ok,
         "vais_verify_violations": list(verify_violations),
         "audit_events": len(audit.events), "audit_verifies": audit.verify(),
+        "api_error": api_error,
         "seconds": round(time.time() - started, 2),
+    }
+
+
+def _api_error_record(wf: Workflow, arm: str, agent: Any, detector: Any, episode_id: str,
+                      resolved: str | None, retrieved: list[str], message: str,
+                      seconds: float) -> dict[str, Any]:
+    """An episode the model server prevented. Excluded from every rate, never a catch."""
+    return {
+        "workflow": wf.id, "kind": wf.kind, "family": wf.family, "mode": wf.mode, "arm": arm, "agent": agent.name,
+        "detector": getattr(detector, "name", None) if arm == "FILTER" else None,
+        "episode_id": episode_id, "resolved_ticket": resolved, "proposal": {},
+        "decision": "api_error", "reasons": [], "app_block": None,
+        "retrieved": retrieved, "dropped": [], "changes": {},
+        "effect_achieved": None, "task_ok": None, "vais_verify_violations": [],
+        "audit_events": 0, "audit_verifies": True, "api_error": message,
+        "seconds": round(seconds, 2),
     }
 
 
