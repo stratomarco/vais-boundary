@@ -13,6 +13,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="color-scheme" content="light" />
     <title>{title}</title>
+    <link rel="alternate" type="application/rss+xml" title="VAIS Boundary articles" href={`${root}rss.xml`} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={`${root}favicon.ico`} sizes="16x16 32x32 48x48" />
     <link rel="icon" type="image/svg+xml" href={`${root}brand/vais-mark-16-light.svg`} sizes="16x16" />
@@ -31,6 +32,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <header class="header wrap">
       <a class="wordmark" href={root} aria-label="VAIS Boundary home"><img src={`${root}brand/vais-logo-horizontal-light.svg`} width="186" height="61" alt="VAIS Boundary" /></a>
       <nav aria-label="Main navigation">
+        <a href={`${root}#evidence`}>Evidence</a>
         <a href={`${root}articles/`}>Articles</a>
         <a href={`${root}#contact`}>Contact</a>
         <a href="https://github.com/stratomarco/vais-boundary">GitHub <span aria-hidden="true">↗</span></a>

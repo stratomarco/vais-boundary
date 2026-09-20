@@ -5,3 +5,7 @@
 *.whl binary
 *.gz binary
 *.sqlite binary
+
+# Published RC7 evidence copies. Kept byte-identical to the release assets so
+# their SHA-256 values match the SHA256SUMS shipped with the release.
+website/public/evidence/** -text

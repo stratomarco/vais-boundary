@@ -38,6 +38,22 @@ Write your article here using Markdown headings, links, and code blocks.
 
 Save and land it on `main`. Astro generates the article page and adds it to the article list, newest first. Keep unpublished drafts outside `src/pages/`: files inside that folder generate publicly accessible pages even if hidden from the list.
 
+## Published evidence copies
+
+`public/evidence/` holds three files served at `/evidence/`: the RC7 one-page summary, the full
+benchmark report and the evidence manifest. They are **copies of the release assets, kept
+byte-identical**, so a reader can hash what the site served and compare it with the `SHA256SUMS`
+published with the release. `.gitattributes` marks `website/public/evidence/**` as `-text` to stop
+line-ending normalization from changing those bytes.
+
+To refresh them after a release, download that release's assets and copy them in under the
+lowercase names, then confirm `cmp` reports no difference against the downloaded originals before
+committing. Do not edit them in place, and do not let an editor rewrite their line endings.
+
+The landing page's evidence section quotes figures from that campaign. Every number in it must be
+traceable to the report, the research ledger or the release review — if a figure cannot be sourced,
+it does not belong on the page.
+
 ## Branding and scope
 
 The site uses the owner's supplied horizontal SVG lockup for light backgrounds, with its outlined lettering, original geometry, and clear space preserved. The palette follows `BRAND.md`; green remains in the authorised-effect segment of the logo. The supplied icon masters and social preview replace the temporary branding. No stock images, analytics, or advertising are added. Downloads link to the releases list because published releases are currently prereleases and `/releases/latest` is unavailable.
