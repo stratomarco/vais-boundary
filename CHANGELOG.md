@@ -10,7 +10,7 @@
 - Add `docs/incident-mapping.md`, relating disclosed 2026 incidents to what the boundary does and does not enforce, with every figure checked against the original advisory or research write-up, and an explicit list of the conventional MCP flaws VAIS does not address.
 - Add Proof of Execution, ARM, SPA, APPA and AgentProof to `docs/related-work.md`, each checked against its primary paper and each stating what VAIS does not claim relative to it, with a term-by-term mapping in `docs/RELATED-ARCHITECTURES.md`.
 - Place the paired-control argument beside the RC7 utility figure in the README. The 65.7% aggregate is not an enforcement-cost figure, and the existing paired analysis is now adjacent to it rather than only in a research narrative file. The number is unchanged.
-- Add the unpackaged `experiments/tier_a` evidence tree: two pre-registrations, frozen generated inputs with verified hashes, 4,700 raw episode records and an analyzer that reproduces every published table from them. Excluded from the sdist and wheel (DEC-034, FIND-042, LIM-034).
+- Add the unpackaged `experiments/tier_a` evidence tree: two pre-registrations, frozen generated inputs with verified hashes, 6,351 raw episode records and an analyzer that reproduces every published table from them. Excluded from the sdist and wheel (DEC-034, FIND-042, LIM-034).
 - Add structured GitHub forms for bug reports, installation problems, benchmark reproductions and reviewer feedback, with security findings routed to private vulnerability reporting.
 - Add a concise RC9 reviewer guide and invitation centered on boundary comprehension, installability and trust in benchmark derivation.
 

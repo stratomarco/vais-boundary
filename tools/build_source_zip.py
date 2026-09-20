@@ -23,6 +23,10 @@ EXCLUDED_DIRECTORY_NAMES = {
     "dist",
     "results",
     "tmp",
+    # Website build inputs and caches. Present only after `npm ci` in website/,
+    # and large enough to make the archive non-reproducible between machines.
+    ".astro",
+    "node_modules",
 }
 
 
