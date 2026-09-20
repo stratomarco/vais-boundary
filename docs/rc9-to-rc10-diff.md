@@ -1,11 +1,13 @@
 # What changed between v0.12.0rc9 and v0.12.0rc10
 
-Base: tag `v0.12.0rc9` (2026-08-24). 23 commits, 144 files, **+15,121 / -31** lines.
+Base: tag `v0.12.0rc9` (2026-08-24). Roughly 24 commits, 144 files, **+15,121 / -31** lines.
 
-Regenerate any figure below with:
+The commit count is approximate for the obvious reason: revising this file adds another one. The
+file and line totals are measured, and every figure below is reproducible from the tag:
 
 ```
 git diff --stat v0.12.0rc9..v0.12.0rc10
+git rev-list --count v0.12.0rc9..v0.12.0rc10
 ```
 
 ## The headline
