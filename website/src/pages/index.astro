@@ -1,0 +1,39 @@
+---
+import Page from '../layouts/Page.astro';
+const formKey = import.meta.env.PUBLIC_FORM_ACCESS_KEY;
+const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
+---
+<Page>
+  <section class="hero wrap" aria-labelledby="headline">
+    <p class="eyebrow">Security for AI-enabled systems</p>
+    <h1 id="headline">Assume model compromise.<br /><span>Constrain consequence.</span><br />Verify effects.</h1>
+    <div class="hero-bottom">
+      <p class="intro">VAIS Boundary places a deterministic security boundary between AI agents and consequential tools. Authority comes from trusted policy. Observable effects are checked independently.</p>
+      <a class="button primary" href="https://github.com/stratomarco/vais-boundary/releases">Download on GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="release-note">Current downloads are release candidates. Review the release notes before use.</p>
+  </section>
+  <section class="modes wrap" aria-label="What VAIS does">
+    <div><span class="number">01 / ASSESS</span><h2>Understand the exposure.</h2><p>Measure whether hostile context changes agent behavior and produces a security-relevant effect.</p></div>
+    <div><span class="number">02 / ENFORCE</span><h2>Keep authority outside.</h2><p>Mediate tool calls using trusted task scope, least privilege, information-flow rules, and exact approvals.</p></div>
+    <div><span class="number">03 / VERIFY</span><h2>Check what happened.</h2><p>Independently test observable effects against declared security conditions.</p></div>
+  </section>
+  <section class="contact wrap" id="contact" aria-labelledby="contact-heading">
+    <div class="contact-copy"><p class="eyebrow">Get in touch</p><h2 id="contact-heading">Working with<br />AI agents?</h2><p>Questions about using VAIS Boundary or integrating it with your tools? Send a message.</p><p class="small">For vulnerability reports, follow the <a href="https://github.com/stratomarco/vais-boundary/blob/dev/SECURITY.md">security policy</a>.</p></div>
+    <form method="POST" action="https://api.web3forms.com/submit">
+      <input type="hidden" name="access_key" value={formKey || ''} />
+      <input type="hidden" name="subject" value="VAIS Boundary website enquiry" />
+      <input type="hidden" name="redirect" value={new URL(`${root}thanks/`, Astro.site).href} />
+      <input type="checkbox" name="botcheck" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      {!formKey && <p class="setup-note" role="status">Contact form preview — sending will be enabled before launch.</p>}
+      <fieldset disabled={!formKey}>
+        <legend class="sr-only">Contact details and message</legend>
+        <div class="form-row"><label>Your name<input name="name" autocomplete="name" maxlength="120" required /></label><label>Email address<input name="email" type="email" autocomplete="email" maxlength="254" required /></label></div>
+        <label>Message<textarea name="message" rows="4" minlength="10" maxlength="5000" required></textarea></label>
+        {formKey && <div class="h-captcha" data-captcha="true"></div>}
+        <div class="form-bottom"><p class="small">Your message is processed by Web3Forms.<br /><a href={`${root}privacy/`}>How your details are used</a></p><button class="button primary" type="submit">Send message</button></div>
+      </fieldset>
+    </form>
+    {formKey && <script is:inline src="https://web3forms.com/client/script.js" async defer></script>}
+  </section>
+</Page>
