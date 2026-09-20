@@ -1,34 +1,35 @@
 # What changed between v0.12.0rc9 and v0.12.0rc10
 
-Base: `4d545ab` (tag `v0.12.0rc9`, 2026-08-24). Head: `84b4924` (2026-09-20).
-17 commits, 120 files, **+10,167 / -26** lines.
+Base: tag `v0.12.0rc9` (2026-08-24). 23 commits, 144 files, **+15,121 / -31** lines.
 
 Regenerate any figure below with:
 
 ```
-git diff --stat v0.12.0rc9..84b4924
+git diff --stat v0.12.0rc9..v0.12.0rc10
 ```
 
 ## The headline
 
 RC10 changes **one function** in the library. Everything else is tests, documentation,
-research-ledger entries, the version bump and an unpackaged evidence tree.
+research-ledger entries, the version bump, an unpackaged evidence tree and a website.
 
-The -26 deletions are the whole story: nothing was removed, rewritten or re-tuned. If you are
+The 31 deletions are the whole story: nothing was removed, rewritten or re-tuned. If you are
 reviewing this release for regression risk, the entire behavioural surface is
-`src/vais/models.py`, +22 / -5.
+`src/vais/models.py`, +21 / -4. No other `.py` file under `src/` changed except the version
+constant.
 
 ## Where the lines went
 
 | Area | Files | Lines | What it is |
 |---|---|---|---|
-| `src/vais/models.py` | 1 | +22 / -5 | **The only change to library behaviour.** |
+| `src/vais/models.py` | 1 | +21 / -4 | **The only change to library behaviour.** |
 | `src/vais/_version.py` + 16 others | 17 | small | Version bump, rc9 convention (see below). |
 | `tests/` | 8 (2 new) | +219 / -8 | Recursion and collision regression locks. |
-| `docs/` | 8 (6 new) | +838 | Attack surface, incident mapping, related architectures. |
+| `docs/` | 7 (6 new) | +992 | Attack surface, incident mapping, related architectures, this file. |
 | `research/knowledge/` + packaged copy | 6 | small | FIND-041/042, LIM-033/034, DEC-033/034. |
 | `.github/ISSUE_TEMPLATE/`, `outreach/` | 6 | new | Reviewer intake forms and invitation. |
 | `experiments/tier_a/` | 77 | +8,705 | Evidence tree. **Excluded from wheel and sdist.** |
+| `website/` | 19 | +4,592 | Static site and Pages workflow. **Excluded from both, and from the gate.** |
 
 ## The one behavioural change
 
@@ -127,23 +128,25 @@ a `configuration_hash` covering the version, which moves with it:
 
 | Step | Result |
 |---|---|
-| Full regression suite | **248 pass** |
+| Full regression suite | **248 pass**, and 248 again from a fresh source-ZIP extraction |
 | Policy + invariant validation | valid (schema 4, 4 tools; 6 invariants) |
 | Deterministic protected benchmark smoke | attack success **0%**, default and MCP paths |
-| Wheel + sdist build | built; `experiments` absent from both (0 entries) |
-| Isolated wheel install | version correct; deep nesting → `ValueError`, not `RecursionError` |
-| Secret scan | clean |
-| `research-doctor` | 32 issues on rc9, 32 here — **zero new** |
-| GitHub CI on `84b4924` | **green** (run 35519469617) |
-| Source ZIP + SHA-256 manifest | not yet run |
-| Tag, release assets, `dev` → `main` | not yet done |
+| Wheel + sdist build | built; `experiments` and `website` absent from both (0 entries each) |
+| Isolated wheel install | version correct, `pip check` clean; deep nesting → `ValueError`, not `RecursionError` |
+| Wheel reproducibility | byte-identical across two `SOURCE_DATE_EPOCH` builds |
+| Source ZIP reproducibility | byte-identical across repeated builds |
+| sdist reproducibility | **not** byte-reproducible; see below |
+| Secret scan | clean in tracked content and in the archive |
+| `research-doctor` | 32 issues, 0 hash mismatches — **same 23 unresolved refs as a clean rc9 tree** |
 
-`research-doctor`'s 32 are pre-existing on released rc9 too, largely the intentional duplicate
-ledger copies. Not a regression, not clean either.
+Two entries there deserve their full statement rather than a tick.
 
-## Not covered by this diff
+**The sdist is not byte-reproducible.** Two builds under an identical `SOURCE_DATE_EPOCH`
+produce different SHA-256 values, because the gzip container records its own build time. The
+archive members are identical. This has never been claimed for the sdist; the wheel and the
+source ZIP are the artifacts to verify, and both are reproducible.
 
-`b7f3999` ("Add VAIS Boundary landing page and article publishing") landed on `dev` **after**
-`84b4924`. It adds the `website/` tree and a Pages workflow. It is outside the rc10 review above
-and outside the gate run, though CI is green on it. Decide whether the tag points at `84b4924` or
-at a head that includes the website.
+**`research-doctor` is not clean, and never was.** Its 32 are pre-existing on released rc9 too —
+references to historical raw traces deliberately omitted from the portable tree. The claim
+verified here is narrower and checkable: the *set* of unresolved references is identical to
+rc9's, so RC10 adds none. Hash mismatches are 0 in both.
