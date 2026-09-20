@@ -1,4 +1,4 @@
-"""P1-2: pathological argument nesting must not escape as RecursionError.
+"""FIND-041: pathological argument nesting must not escape as RecursionError.
 
 `deep_freeze` was unbounded-recursive. A PlannedAction whose arguments nest
 deeper than the interpreter's recursion limit raised ``RecursionError`` during

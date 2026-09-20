@@ -1,7 +1,9 @@
 # Related architectures: VAIS ↔ "Proof of Execution"
 
-**Task:** P0-5 (architectural comparison).
-**Status:** draft v2 — re-verified against `bf38ab0` (rc9), 2026-09-09.
+**Status:** v2, current as of 0.12.0rc10.
+**Source base:** VAIS claims verified against `bf38ab0` (the rc9 TCB-hardening base) on
+2026-09-09. The one rc10 change to the enforcement path, the `deep_freeze` recursion bound, is
+noted where it affects a row.
 **Primary comparison:** *Proof of Execution: Runtime Verification for Governed AI Agent
 Actions*, arXiv 2607.05397 (Jul 2026) — referred to below as **PoE**.
 

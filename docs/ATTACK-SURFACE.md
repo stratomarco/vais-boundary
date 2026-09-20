@@ -1,19 +1,19 @@
 # Attack surface of the VAIS enforcement layer
 
-**Task:** P1-1 (enforcement-layer attack-surface map). **Deps:** P0-5 (done).
-**Status:** draft v2 — re-verified against `bf38ab0` (rc9), 2026-09-09.
-**Verified against:** `bf38ab0` (rc9 TCB-hardening base).
+**Status:** v2, current as of 0.12.0rc10.
+**Source base:** written against `6e0aad0` (rc7), re-verified against `bf38ab0` (the rc9
+TCB-hardening base) on 2026-09-09, and updated for the rc10 recursion bound in S3.
 
 This document enumerates every input that crosses a trust boundary into the VAIS reference
 monitor / invariant engine, names its entry function as `module:function`, states the security
-property it is supposed to uphold, and records **existing test coverage** so the later P1 tasks
-(P1-2…P1-5) do not re-test what is already tested. It is a map, not a fuzzing campaign — no new
-adversarial harness is written here.
+property it is supposed to uphold, and records **existing test coverage**. It is a map, not a
+fuzzing campaign — no adversarial harness is written here.
 
-**Method.** Every row was read in source. Where the planned expected-surface list (written from the README as `[ASSUMPTION]`) disagrees with the code, the code wins and the
-correction is called out. Claims about *undemonstrated* weaknesses are labelled **[hypothesis –
-P1-x]** and are not asserted as findings; a finding requires a failing test, which these tasks
-have not yet produced.
+**Method.** Every row was read in source. Where the expected-surface list written from the README
+disagrees with the code, the code wins and the correction is called out. Claims about
+*undemonstrated* weaknesses are labelled **[hypothesis]** and are not asserted as findings; a
+finding requires a failing test. The one hypothesis that produced a failing test became FIND-041
+and is fixed in rc10; the rest remain hypotheses.
 
 **Base note (v2).** This document was first written against the RC7 tree (`6e0aad0`)
 and has been re-verified against `bf38ab0`. Of the
@@ -22,8 +22,14 @@ enforcement-path modules, only **`models.py`, `invariants.py`, `policy.py`, `mcp
 `executor.py`, `behavioral_gate.py` are **byte-identical** to `77eb7e7`, so their line refs are
 unchanged. rc8/rc9 is a **TCB-hardening pass** and its net effect on this map is: **it closes the
 Unicode/name-collision families under S3 and adds type-sensitive comparison under S9** — the
-"no coverage" optimism of v1 is corrected below, and the surviving P1-2 target is narrowed to
+"no coverage" optimism of v1 is corrected below, and the remaining S3 target is narrowed to
 *structural* and *reference-vs-referent* collisions, which the NFC work does not touch.
+
+**rc10 note.** The unbounded-recursion weakness recorded under S3 was reproduced with a failing
+test and fixed: `deep_freeze` now bounds nesting at `MAX_SECURITY_DEPTH` and raises `ValueError`,
+so the failure routes through the existing fail-closed path (FIND-041). The residual in §4 —
+nesting that fails inside an adapter before any monitor decision exists, leaving no audit entry —
+is recorded as LIM-033 and is **not** fixed. S13 also ships unmitigated.
 
 ---
 
@@ -43,6 +49,20 @@ Unicode/name-collision families under S3 and adds type-sensitive comparison unde
 ---
 
 ## 1. Surface summary
+
+**Reading the Owner column.** The `P0-x` / `P1-x` / `IMP-xxx` labels are this project's internal
+work-item identifiers, kept so each row says where its follow-up lives rather than leaving the
+gaps unattributed. They group the remaining work as follows, and none of them is a claim that the
+work is done:
+
+| Label | Means |
+|---|---|
+| `P1-1` | Mapped in this document; no gap identified, nothing further planned. |
+| `P1-2` | Fingerprint and approval identity. **Closed for recursion in rc10** (FIND-041); reference-vs-referent TOCTOU remains an accepted application-level risk. |
+| `P1-3` | Provenance and confidentiality lattice under adversarial flows. Not started. |
+| `P1-4` | Audit-chain adversarial testing beyond single-event tampering. Not started. |
+| `P1-5` | Fault injection against config parsing and invariant evaluation. Not started. |
+| `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated in rc10**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |
 |---|---|---|---|---|---|---|

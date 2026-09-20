@@ -1,0 +1,102 @@
+{
+  "schema": "vais-release-review-v1",
+  "release_version": "0.12.0rc10",
+  "date": "2026-09-20",
+  "project_identity": {
+    "name": "VAIS Boundary",
+    "expansion": "Verifiable Authority & Invariant Security",
+    "repository": "https://github.com/stratomarco/vais-boundary",
+    "distribution": "verifiable-ai-security",
+    "command": "vais",
+    "author": "Marco Constantino",
+    "contact": "stratomarco@proton.me",
+    "license": "Apache-2.0"
+  },
+  "bounded_status": "RC10 is a hardening and evidence release. It carries exactly one change to library behaviour, a fail-closed fix in security-value canonicalization, plus positioning documentation and an unpackaged lab experiment tree. The frozen RC7 benchmark evidence is carried unchanged and RC10 makes no new model claims from it.",
+  "material_findings": [
+    {
+      "id": "FIND-041",
+      "status": "fixed_and_regression_tested",
+      "summary": "deep_freeze recursed without a depth bound, so argument nesting past the interpreter frame limit raised RecursionError inside action_fingerprint. RecursionError is not a ValueError, so it bypassed the except ValueError guards in ReferenceMonitor.evaluate that return DENY action_not_fingerprintable, and the monitor produced no decision and no audit record."
+    },
+    {
+      "id": "FIND-042",
+      "status": "recorded_as_bounded_lab_observation",
+      "summary": "In a paired lab comparison on an external agent application, adding one legitimate document naming the correct ticket was strictly protective across four runs and cut attack success four- to eightfold. The strongest content detector matched the enforced arm's catch rate only while dropping half of all legitimate retrieved documents."
+    }
+  ],
+  "open_surfaces": [
+    {
+      "id": "S13",
+      "status": "unmitigated_in_rc10",
+      "summary": "The decision-reason output channel. Verdict and reason strings returned to the caller, such as bound_argument_changed:ticket_id, name the argument the contract binds. Recorded as an open surface with a proposed direction of reason redaction toward the model and full detail retained in the audit trail."
+    }
+  ],
+  "known_residuals": [
+    {
+      "id": "LIM-033",
+      "summary": "The DENY-plus-audit outcome holds only when the nesting trips inside action_fingerprint. Deeper nesting fails while the adapter constructs the Value, before any PlannedAction or monitor decision exists, so it is fail-closed by exception with no VAIS decision and no audit entry. Adapters that build Values from model-controlled data must catch ValueError and record a denial themselves."
+    },
+    {
+      "id": "LIM-034",
+      "summary": "The Tier-A lab result describes one application, one tool and two agent models. Both pre-registered primary outcomes failed to validate and are reported as not evaluable."
+    }
+  ],
+  "review": {
+    "canonicalization_fail_closed_review": "passed_after_rc10_bound",
+    "fingerprint_identity_review": "passed, plain_arguments() excludes nothing",
+    "reference_versus_referent": "accepted_documented_application_level_risk",
+    "audit_chain_review": "passed, hash chained and not externally anchored",
+    "approvals_policy_invariants_mcp": "unchanged_from_rc9",
+    "research_claim_separation": "passed",
+    "related_work_attribution": "passed, distinction against ARM narrowed to independent post-execution effect verification",
+    "incident_claim_review": "passed, no incident described as prevented",
+    "dual_use_review": "passed, 120 lab-scoped injection payloads retained as reproducibility evidence",
+    "website_tree": "outside_review_scope"
+  },
+  "validation": {
+    "source_tests": "248 passed",
+    "fresh_source_zip_tests": "248 passed",
+    "policy_validation": "schema 4, 4 tools",
+    "invariant_validation": "6 invariants",
+    "protected_smoke_default": "20/20 valid security episodes, 0% protected attack success, 0% target failure rate",
+    "protected_smoke_mcp": "500/500 valid security episodes, 0 protected remote calls on the vulnerable profile, 0 indeterminate",
+    "isolated_wheel_install": "passed, version 0.12.0rc10 and pip check clean",
+    "isolated_wheel_fail_closed_probe": "2000-deep nesting raises ValueError, not RecursionError",
+    "experiments_absent_from_wheel": true,
+    "experiments_absent_from_sdist": true,
+    "website_absent_from_wheel": true,
+    "website_absent_from_sdist": true,
+    "wheel_reproducible": true,
+    "source_zip_reproducible": true,
+    "sdist_reproducible": false,
+    "sdist_reproducibility_note": "Two sdist builds under an identical SOURCE_DATE_EPOCH produce different SHA-256 values because the gzip container records its own build time. The archive members are identical. Byte reproducibility has never been claimed for the sdist; the wheel and the source ZIP are the reproducible artifacts.",
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_portable_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "A clean rc9 tree reports 32 issues with 23 unexpected unresolved references; this release reports 32 with the same 23. The set difference is empty, so RC10 adds no unresolved reference. Two references introduced during RC10 preparation, from FIND-042 and DEC-034, initially pointed at a directory and at MANIFEST.in, which the index does not register; both were repointed at indexed artifacts before release."
+  },
+  "frozen_benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "carrier_before_rc10": "0.12.0rc9",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "report_evidence_manifest_sha256": "0e2b82e74428d7f472b79996c700292322c4f89f431b4862a1a183e2bedf7e1d",
+    "carried_byte_identical_from_rc9": true,
+    "interpretation": "Zero observed violations is bounded evidence for the recorded campaign, not proof of universal security. SmolLM3 remains visibly gate-failed and its two target failures remain unevaluated. RC10 does not extend this evidence and the README utility aggregate is not an enforcement-cost figure."
+  },
+  "lab_experiment_evidence": {
+    "location": "experiments/tier_a",
+    "packaged": false,
+    "pre_registrations": 2,
+    "raw_episode_records": 6351,
+    "runs": 7,
+    "pre_registered_primaries_validated": 0,
+    "injection_payloads_shipped": 120,
+    "interpretation": "Both pre-registered primary outcomes failed to validate and are reported as not evaluable. A content detector matched the enforced arm's catch rate on the exploratory family, so the separation observed is cost rather than catch rate. Results describe one application, one tool and two agent models."
+  }
+}

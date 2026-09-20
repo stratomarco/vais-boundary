@@ -12,7 +12,9 @@
 - Place the paired-control argument beside the RC7 utility figure in the README. The 65.7% aggregate is not an enforcement-cost figure, and the existing paired analysis is now adjacent to it rather than only in a research narrative file. The number is unchanged.
 - Add the unpackaged `experiments/tier_a` evidence tree: two pre-registrations, frozen generated inputs with verified hashes, 6,351 raw episode records and an analyzer that reproduces every published table from them. Excluded from the sdist and wheel (DEC-034, FIND-042, LIM-034).
 - Add structured GitHub forms for bug reports, installation problems, benchmark reproductions and reviewer feedback, with security findings routed to private vulnerability reporting.
-- Add a concise RC9 reviewer guide and invitation centered on boundary comprehension, installability and trust in benchmark derivation.
+- Add a concise reviewer guide and an RC10 reviewer invitation centered on boundary comprehension, installability and trust in benchmark derivation. The invitation states the unmitigated surface and the failed pre-registered outcomes rather than only the benchmark result.
+- Add `docs/rc9-to-rc10-diff.md`, a reviewer-facing summary of what changed since RC9, and `benchmarks/rc/v0.12.0rc10-release-review.json` alongside the RC9 review record.
+- Add a static website under `website/` with a GitHub Pages workflow. It is not part of the library, is excluded from the wheel, the sdist and the source ZIP's build inputs, and is outside the release gate.
 
 ## 0.12.0-rc9 - 2026-08-24
 

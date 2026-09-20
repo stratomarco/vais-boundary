@@ -1,4 +1,4 @@
-"""P1-2: the two collision families that survive rc9's NFC hardening.
+"""The two collision families that survive rc9's NFC hardening.
 
 rc8/rc9 closed the Unicode/name-collision and scalar-type families (see
 docs/ATTACK-SURFACE.md S3). Two families remain, and neither is a canonicalization

@@ -146,12 +146,12 @@ The automated runner validates the frozen model inventory, loads one model at a 
 vais list-lmstudio-models
 
 vais benchmark --all --dry-run `
-  --output-dir .\results\rc9 `
-  --report-dir .\results\rc9\report
+  --output-dir .\results\rc10 `
+  --report-dir .\results\rc10\report
 
 vais benchmark --all `
-  --output-dir .\results\rc9 `
-  --report-dir .\results\rc9\report
+  --output-dir .\results\rc10 `
+  --report-dir .\results\rc10\report
 ```
 
 The panel has two explicitly labeled reasoning cohorts: fourteen reasoning-off models and DeepSeek-R1-Distill-Llama-8B in a native-reasoning cohort. Reasoning conformance is checked from observed output, not trusted from the requested setting. Cross-cohort utility, latency, token, and attack-added-event values are not presented as directly comparable.

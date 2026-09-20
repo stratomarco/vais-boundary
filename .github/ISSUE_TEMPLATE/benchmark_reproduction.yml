@@ -22,7 +22,7 @@ body:
     id: version
     attributes:
       label: VAIS version and commit
-      placeholder: 0.12.0rc9 / commit SHA
+      placeholder: 0.12.0rc10 / commit SHA
     validations:
       required: true
   - type: textarea

@@ -25,7 +25,7 @@ body:
     attributes:
       label: VAIS version or commit
       description: Paste `vais version` and, for a source checkout, `git rev-parse HEAD`.
-      placeholder: 0.12.0rc9 / commit SHA
+      placeholder: 0.12.0rc10 / commit SHA
     validations:
       required: true
   - type: input
