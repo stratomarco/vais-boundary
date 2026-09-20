@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: ['website/**', '.github/workflows/website.yml']
   push:
-    branches: [dev]
+    branches: [main]
     paths: ['website/**', '.github/workflows/website.yml']
   workflow_dispatch:
 
@@ -54,7 +54,7 @@ jobs:
           retention-days: 7
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     permissions:

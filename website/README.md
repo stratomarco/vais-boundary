@@ -14,7 +14,7 @@ Use Node.js 24, then run `npm ci` and `npm run dev` in this folder. Without a We
 4. Under Settings → Pages, select **GitHub Actions**. Verify the domain in the GitHub account before connecting it to the repository. Add the exact GitHub-provided TXT verification record at the registrar.
 5. For the apex domain, create DNS-only A records for `@` pointing to `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, and `185.199.111.153`. Set `www` as a DNS-only CNAME to `stratomarco.github.io`. Preserve unrelated email and verification records. Do not add wildcard DNS records. Use DNS-only at Cloudflare so GitHub serves its own HTTPS certificate directly.
 6. Set the repository's Pages custom domain to `vaisboundary.com` and the Actions variable `SITE_URL` to `https://vaisboundary.com`. Once the certificate is ready, enable **Enforce HTTPS**. GitHub manages the Let's Encrypt certificate automatically.
-7. Merge the website change into `dev`. The Website workflow publishes changes under `website/` from that branch. It can also be run manually on `dev` once the workflow is available. Allow `dev` in the `github-pages` environment's deployment rules if needed.
+7. Land the website change on `main`. The Website workflow publishes changes under `website/` from that branch only, and can also be run manually on it. Allow `main` in the `github-pages` environment's deployment rules if needed. Changes on any other branch build and upload a preview artifact but never deploy.
 8. Check the real domain, `www` redirect, mobile layout, download link, and article links. Submit one explicitly authorized contact test and verify its arrival in the recipient inbox. No test messages have been sent during initial development.
 
 Domain and contact account setup are required before the site is ready to launch. Before accepting real messages, the maintainer should review the privacy page for their actual retention and contact practices. It is factual explanatory copy, not a legal compliance assessment.
@@ -36,7 +36,7 @@ date: "2026-09-20"
 Write your article here using Markdown headings, links, and code blocks.
 ```
 
-Save and merge into `dev`. Astro generates the article page and adds it to the article list, newest first. Keep unpublished drafts outside `src/pages/`: files inside that folder generate publicly accessible pages even if hidden from the list.
+Save and land it on `main`. Astro generates the article page and adds it to the article list, newest first. Keep unpublished drafts outside `src/pages/`: files inside that folder generate publicly accessible pages even if hidden from the list.
 
 ## Branding and scope
 
