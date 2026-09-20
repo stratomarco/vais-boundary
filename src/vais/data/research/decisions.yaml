@@ -185,3 +185,15 @@ decisions:
     decision: Elide exception messages from protected and unprotected MCP records while preserving exception class, deterministic request identity, indeterminate state and unsafe-retry status.
     rationale: Assessment baselines still produce retained artifacts, so intentionally bypassing authorization does not justify persisting secret-bearing transport text.
     evidence: [src/vais/mcp.py, tests/test_mcp.py, docs/mcp-security.md]
+
+  - id: DEC-033
+    date: 2026-09-20
+    decision: Bound security-value recursion and route the failure through the existing fail-closed canonicalization path rather than adding a broad exception handler, and record in LIM-033 that deeper nesting still fails in the adapter without a VAIS decision or audit entry.
+    rationale: A guard that only catches ValueError cannot be protected by catching everything, because that would convert unknown faults into silent denials; bounding the input keeps one fail-closed path and leaves the residual visible.
+    evidence: [src/vais/models.py, tests/test_fingerprint_recursion.py, docs/ATTACK-SURFACE.md]
+
+  - id: DEC-034
+    date: 2026-09-20
+    decision: Keep the Tier-A lab experiment in the repository as an unpackaged evidence tree, with its pre-registrations, frozen inputs and raw episode records, and exclude it from the distributed sdist and wheel.
+    rationale: The experiment depends on an external training application and on a local model server, so it is reproducible evidence for readers of the repository but not part of the installable library.
+    evidence: [experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/RESULTS-v2.md, MANIFEST.in]

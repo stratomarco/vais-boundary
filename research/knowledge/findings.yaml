@@ -246,3 +246,15 @@ findings:
     version: "0.12.0rc9"
     type: secret_handling_defect
     evidence: [docs/v0.12.0rc9-release-review.md, tests/test_mcp.py, docs/mcp-security.md]
+
+  - id: FIND-041
+    finding: RC10 review found that deep_freeze recursed without a depth bound, so argument nesting past the interpreter limit raised RecursionError inside action_fingerprint. RecursionError is not a ValueError, so it bypassed the except ValueError guards in ReferenceMonitor.evaluate that exist to return a DENY with reason action_not_fingerprintable. The monitor produced no decision and no audit record, failing closed only by crashing the caller. RC10 bounds the recursion at MAX_SECURITY_DEPTH and raises ValueError so the failure routes through the existing fail-closed path.
+    version: "0.12.0rc10"
+    type: tcb_fail_closed_defect
+    evidence: [docs/ATTACK-SURFACE.md, tests/test_fingerprint_recursion.py, src/vais/models.py]
+
+  - id: FIND-042
+    finding: A paired lab comparison on an external agent application used identical injection payloads with and without one legitimate document naming the correct ticket. The true document was strictly protective across four runs, since no payload succeeded with it present but failed without it, and attack success fell four- to eightfold. In the same runs the strongest content detector reached the same catch rate only while dropping half of all legitimate retrieved documents.
+    version: "0.12.0rc10"
+    type: external_experiment_observation
+    evidence: [experiments/tier_a/RESULTS-v2.md, experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/evidence]

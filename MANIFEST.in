@@ -28,3 +28,5 @@ recursive-include .github *.yml
 recursive-include research *.md *.yaml *.json *.jsonl
 prune research/db
 prune research/evidence
+
+prune experiments

@@ -65,3 +65,9 @@ limitations:
 
   - id: LIM-032
     limitation: Rewriting reachable Git refs removes the prior corporate address from the shared repository history but cannot erase copies already fetched by another party or guarantee immediate removal from hosting-provider caches.
+
+  - id: LIM-033
+    limitation: The RC10 recursion bound produces a DENY plus audit record only when argument nesting trips inside action_fingerprint. Deeper nesting fails earlier, while the adapter constructs the Value and before any PlannedAction or monitor decision exists, so the outcome is fail-closed by exception with no VAIS decision and no audit entry. Adapters that build Values from model-controlled data must catch ValueError and record a denial themselves.
+
+  - id: LIM-034
+    limitation: The Tier-A lab comparison ran on one external application, one tool and two agent models, and both of its pre-registered primary outcomes failed to validate enough attacks to evaluate. Its guardrail and enforcement numbers describe that setup only and are not a general claim about prompt-injection defences.
