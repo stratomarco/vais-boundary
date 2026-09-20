@@ -1,0 +1,5 @@
+---
+import Page from '../layouts/Page.astro';
+const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
+---
+<Page title="Page not found — VAIS Boundary"><section class="wrap page-content"><p class="eyebrow">404</p><h1>Outside the boundary.</h1><p class="intro">That page could not be found.</p><a class="button primary" href={root}>Back to VAIS Boundary</a></section></Page>

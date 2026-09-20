@@ -1,0 +1,9 @@
+---
+import Page from '../../layouts/Page.astro';
+const posts = Object.values(import.meta.glob('./*.md', { eager: true })).filter((post) => !post.frontmatter.draft).sort((a, b) => String(b.frontmatter.date).localeCompare(String(a.frontmatter.date)));
+---
+<Page title="Articles — VAIS Boundary" description="Practical guides to using VAIS Boundary with AI-enabled applications and agents.">
+  <section class="wrap page-content"><p class="eyebrow">From the project</p><h1>Articles &amp; guides.</h1><p class="intro">Practical notes on using VAIS Boundary.</p>
+    {posts.length ? <ul class="post-list">{posts.map((post) => <li><p class="eyebrow">{post.frontmatter.date}</p><h2><a href={post.url}>{post.frontmatter.title}</a></h2><p>{post.frontmatter.description}</p></li>)}</ul> : <div class="empty"><h2>The first guide is on its way.</h2><p>For installation and usage today, read the <a href="https://github.com/stratomarco/vais-boundary/blob/dev/HOWTO.md">project’s how-to guide</a>.</p></div>}
+  </section>
+</Page>
