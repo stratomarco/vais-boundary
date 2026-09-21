@@ -71,3 +71,6 @@ limitations:
 
   - id: LIM-034
     limitation: The Tier-A lab comparison ran on one external application, one tool and two agent models, and both of its pre-registered primary outcomes failed to validate enough attacks to evaluate. Its guardrail and enforcement numbers describe that setup only and are not a general claim about prompt-injection defences.
+
+  - id: LIM-035
+    limitation: The max_effect_count invariant added in RC11 closes the volume half of composition in VERIFY only. ReferenceMonitor.evaluate takes a single PlannedAction and holds no state across decisions, so six identically authorized actions yield six independent ALLOW decisions and a breach of the bound is detected by the verifier after the fact rather than denied in flight. Enforcing a bound during execution would require per-task state threaded through the monitor signature and through every adapter, and is not attempted in this release. The limitation is asserted by a test so that it stays visible.

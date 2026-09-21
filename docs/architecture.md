@@ -99,6 +99,8 @@ v0.3 supports:
 - `forbidden_values`;
 - `exact_action_approval`.
 
+0.12.0rc11 adds `max_effect_count`, the first invariant whose subject is the **set** of effects rather than a single effect. It is evaluated in VERIFY only: the reference monitor decides one action at a time and keeps no state across decisions, so a breach of the bound is detected after the fact rather than denied in flight. See `docs/security-invariants.md` and LIM-035.
+
 Effects also preserve the exact action fingerprint when the action is canonicalizable, allowing the invariant engine to independently detect approval replay against a modified high-consequence action.
 
 The invariant engine is intentionally separate from the reference monitor. That independence gives testing an oracle capable of catching reference-monitor implementation bugs.

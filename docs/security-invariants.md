@@ -86,3 +86,21 @@ The capstone began with level 1 as a verifiable training gate. VAIS makes level 
 ### `exact_action_approval`
 
 Checks that a high-consequence observable effect above a configured threshold was produced by the exact action fingerprint present in the task contract's approval set. This independently detects approval replay after material action changes.
+
+### `max_effect_count`
+
+Bounds how many effects of one kind a task may produce:
+
+```yaml
+- id: record_read_volume
+  description: a task may read at most five records
+  type: max_effect_count
+  effect: record_read
+  max_count: 5
+```
+
+This is the first invariant whose subject is the **set** of effects rather than a single effect, and it exists because of a gap an external reviewer identified in [issue #2](https://github.com/stratomarco/vais-boundary/issues/2). Composition has two halves. The *flow* half — a sequence such as a secret read followed by a public send — was already expressible, since each step can be individually legitimate while the ordering is not. The *volume* half was not: N individually authorized effects whose **count** is the problem could not be written down at all, because the schema is a closed allowlist and rejected any field it did not know.
+
+`max_count` must be a non-negative integer. Booleans are rejected, because `bool` is an `int` in Python and a boolean bound is a configuration error rather than a threshold; floats are rejected, because a fractional bound would make the comparison depend on rounding. A bound of `0` forbids the effect kind entirely. One violation is reported per invariant, not one per excess effect, and it names the effect that crossed the bound — a run that breaches a bound of five by five thousand produces one violation, not 4,995.
+
+**This closes the gap in VERIFY only, and not in ENFORCE.** `ReferenceMonitor.evaluate` takes a single `PlannedAction` and holds no state across decisions, so six identically authorized actions produce six independent `ALLOW` decisions. The breach is observed by the verifier after the fact; it is not denied in flight. Enforcing a bound during execution would require per-task state threaded through the monitor's signature and through every adapter, which is recorded as **LIM-035** and deliberately not attempted in this release. `tests/test_invariant_cardinality.py` asserts the limitation so that it stays visible.

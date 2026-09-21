@@ -197,3 +197,9 @@ decisions:
     decision: Keep the Tier-A lab experiment in the repository as an unpackaged evidence tree, with its pre-registrations, frozen inputs and raw episode records, and exclude it from the distributed sdist and wheel.
     rationale: The experiment depends on an external training application and on a local model server, so it is reproducible evidence for readers of the repository but not part of the installable library.
     evidence: [experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/RESULTS-v2.md, docs/v0.12.0rc10-release-review.md]
+
+  - id: DEC-035
+    date: 2026-09-21
+    decision: Close the volume half of composition in VERIFY with a max_effect_count invariant type in RC11, and record the ENFORCE half as a documented limitation with no promised date rather than changing the reference monitor signature in the same release.
+    rationale: The reviewer's complaint was that a bound was not expressible, and an aggregate invariant makes it expressible and independently checkable using the effect list the engine already receives. In-flight denial would change the signature of the central security function and require every adapter to thread a counter, which is the same class of obligation that LIM-033 already shows adapters can drop silently. Splitting the fix along the existing VERIFY and ENFORCE boundary keeps each half honest about what it does.
+    evidence: [src/vais/invariants.py, tests/test_invariant_cardinality.py, docs/security-invariants.md]

@@ -24,6 +24,14 @@ class InvariantDefinition:
     max_confidentiality: ConfidentialityLevel | None = None
     forbidden_values: tuple[str, ...] = ()
     greater_than: float | None = None
+    max_count: int | None = None
+
+
+# Invariant types that read the whole effect list instead of one effect at a time.
+# See LIM-035: a bound over a set of effects is detected here, in VERIFY, and is not
+# enforced in flight, because the reference monitor decides one action at a time and
+# holds no state across decisions.
+AGGREGATE_INVARIANT_TYPES = frozenset({"max_effect_count"})
 
 
 @dataclass(frozen=True)
@@ -49,6 +57,11 @@ class DeclarativeInvariantEngine:
     ) -> tuple[InvariantViolation, ...]:
         violations: list[InvariantViolation] = []
         for invariant in self.invariants:
+            if invariant.type in AGGREGATE_INVARIANT_TYPES:
+                aggregate = self._aggregate_violation(invariant, effects)
+                if aggregate is not None:
+                    violations.append(aggregate)
+                continue
             for index, effect in enumerate(effects):
                 if effect.kind != invariant.effect:
                     continue
@@ -62,6 +75,32 @@ class DeclarativeInvariantEngine:
                         )
                     )
         return tuple(violations)
+
+    @staticmethod
+    def _aggregate_violation(
+        invariant: InvariantDefinition,
+        effects: list[Effect],
+    ) -> InvariantViolation | None:
+        """Evaluate an invariant whose subject is the set of effects, not one effect.
+
+        A single violation is reported per invariant rather than one per excess effect,
+        so a run that breaches a bound of 5 by 5,000 does not emit 4,995 violations.
+        """
+        if invariant.type != "max_effect_count":
+            raise AssertionError(f"unhandled aggregate invariant type: {invariant.type}")
+        assert invariant.max_count is not None
+        matching = [index for index, effect in enumerate(effects) if effect.kind == invariant.effect]
+        if len(matching) <= invariant.max_count:
+            return None
+        return InvariantViolation(
+            invariant_id=invariant.id,
+            # The effect that crossed the bound, so the violation still names a real effect.
+            effect_index=matching[invariant.max_count],
+            reason=(
+                f"effect_count_exceeds_limit:{invariant.effect}:"
+                f"{len(matching)}>{invariant.max_count}"
+            ),
+        )
 
     @staticmethod
     def _violation_reason(
@@ -175,6 +214,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
             "max_confidentiality",
             "forbidden_values",
             "greater_than",
+            "max_count",
         },
         path,
     )
@@ -190,6 +230,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         "confidentiality_ceiling",
         "forbidden_values",
         "exact_action_approval",
+        "max_effect_count",
     }
     if invariant_type not in supported:
         _fail(f"{path}.type", f"supported values are: {', '.join(sorted(supported))}")
@@ -199,6 +240,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
     max_confidentiality = None
     forbidden_values: tuple[str, ...] = ()
     greater_than: float | None = None
+    max_count: int | None = None
 
     if invariant_type in {"contract_binding", "confidentiality_ceiling", "forbidden_values", "exact_action_approval"}:
         field = _non_empty_string(raw.get("field"), f"{path}.field")
@@ -231,6 +273,16 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         if not math.isfinite(greater_than):
             _fail(f"{path}.greater_than", "must be finite")
 
+    if invariant_type == "max_effect_count":
+        raw_max = raw.get("max_count")
+        # bool is an int in Python, and a float bound would make the comparison
+        # depend on rounding. A count is an integer or it is a configuration error.
+        if isinstance(raw_max, bool) or not isinstance(raw_max, int):
+            _fail(f"{path}.max_count", "must be an integer")
+        if raw_max < 0:
+            _fail(f"{path}.max_count", "must not be negative")
+        max_count = raw_max
+
     return InvariantDefinition(
         id=invariant_id,
         description=description,
@@ -241,6 +293,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         max_confidentiality=max_confidentiality,
         forbidden_values=forbidden_values,
         greater_than=greater_than,
+        max_count=max_count,
     )
 
 

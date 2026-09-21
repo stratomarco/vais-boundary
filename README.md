@@ -96,7 +96,7 @@ VAIS requires Python 3.11 or newer. These commands install the development check
 git clone https://github.com/stratomarco/vais-boundary.git
 Set-Location .\vais-boundary
 
-py -3.12 -m venv .venv
+py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
@@ -105,6 +105,20 @@ vais version
 vais validate-policy .\policies\default.yaml
 vais validate-invariants .\invariants\default.yaml
 vais mcp-demo
+```
+
+Python 3.11 through 3.14 are supported and all eight combinations are exercised in CI; pin a
+specific interpreter with `py -3.12` only if you need one.
+
+### No installation at all
+
+PyYAML is the only runtime dependency, so the tour runs straight from a checkout. This is the
+shortest path on a locked-down machine:
+
+```bash
+PYTHONPATH=src python3 -m vais version
+PYTHONPATH=src python3 -m vais validate-policy policies/default.yaml
+PYTHONPATH=src python3 -m vais mcp-demo
 ```
 
 ### Linux or macOS

@@ -258,3 +258,9 @@ findings:
     version: "0.12.0rc10"
     type: external_experiment_observation
     evidence: [experiments/tier_a/RESULTS-v2.md, experiments/tier_a/PREREGISTRATION-v2.md, experiments/tier_a/evidence/v2-primary/core.jsonl]
+
+  - id: FIND-043
+    finding: An external reviewer reported in issue 2 that the central property, stated over an unauthorized externally observable effect in the singular, covers only one half of composition. The flow half, a sequence such as a secret read followed by a public send, was already expressible through trace-level invariants. The volume half, N individually authorized effects whose count is the problem, was not expressible at all. Every code claim in the report was verified. ReferenceMonitor.evaluate takes one PlannedAction, ProtectedExecutor.run dissolves its action list in a loop that accumulates nothing into a later decision, the invariant engine folds per effect, and the closed policy field allowlist would reject a cardinality field at load. The closed schema is what turned an absent quota into an inexpressible one.
+    version: "0.12.0rc11"
+    type: external_review_scope_gap
+    evidence: [docs/security-invariants.md, tests/test_invariant_cardinality.py, src/vais/invariants.py]

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add the `max_effect_count` invariant type, the first whose subject is the set of effects rather than one effect. It bounds how many effects of one kind a task may produce, reports one violation per invariant rather than one per excess effect, and names the effect that crossed the bound. `max_count` must be a non-negative integer; Booleans and floats are rejected (FIND-043, DEC-035).
+- Record that this closes the volume half of composition in VERIFY only. `ReferenceMonitor.evaluate` takes a single `PlannedAction` and holds no state across decisions, so six identically authorized actions still produce six `ALLOW` decisions and a breach is detected after the fact rather than denied in flight. `tests/test_invariant_cardinality.py` asserts the limitation so it stays visible (LIM-035).
+- Add S14 to `docs/ATTACK-SURFACE.md` with the verified mechanism, and document the new type in `docs/security-invariants.md` and `docs/architecture.md`. Both halves of composition are now named, with the covered one distinguished from the open one.
+- Relax the Windows quick start from `py -3.12` to `py -3`, which matches `requires-python` and the CI matrix, and document the zero-install `PYTHONPATH=src` tour for locked-down machines. Both were reported by an external reviewer and the documented commands were run before being written down.
+
 ## 0.12.0-rc10 - 2026-09-20
 
 - Bound recursion in security-value canonicalization. `deep_freeze` previously recursed without a depth limit, so argument nesting past the interpreter's frame limit raised `RecursionError` inside `action_fingerprint`. `RecursionError` is not a `ValueError`, so it bypassed the `except ValueError` guards in `ReferenceMonitor.evaluate` that return a DENY with reason `action_not_fingerprintable`, and the monitor produced no decision and no audit record. The bound raises `ValueError` so the failure routes through the existing fail-closed path; no broad exception handler was added (FIND-041, DEC-033).

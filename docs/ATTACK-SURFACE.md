@@ -79,6 +79,7 @@ work is done:
 | S11 | Executor fail-closed seam | `executor.py:ProtectedExecutor.run` (l.51) | authorized decision → real effect | Only `DecisionType.ALLOW` executes; DENY / REQUIRE_APPROVAL emit no effect | `test_protected_executor` (2) | P1-5 |
 | S12 | Numeric threshold coercion | `monitor.py` (l.109-115), `invariants.py` (l.116-122) | model-supplied numeric field → threshold test | `bool` and non-finite rejected; non-numeric → DENY / `invalid_numeric_field` | `test_tcb_hardening::test_policy_threshold_rejects_nonfinite` | P1-1 (no gap) |
 | S13 | Decision-reason disclosure (output channel) | `monitor.py:ReferenceMonitor.evaluate` return value; `mcp.py:MCPProtectedClient.execute` | reference monitor → caller / agent loop | Enforcement outcomes must not hand an adaptive attacker a probing oracle | none | IMP-003 |
+| S14 | **Effect-set cardinality (volume composition)** | `monitor.py:ReferenceMonitor.evaluate` (one action); `executor.py:ProtectedExecutor.run` (loop, no accumulator); `invariants.py` aggregate path | many individually authorized actions → one unauthorized aggregate | A bound over a *set* of effects must be expressible and checkable | `test_invariant_cardinality` (13 tests, VERIFY side; the ENFORCE limitation is asserted) | **VERIFY closed in rc11; ENFORCE open (LIM-035)** |
 
 ---
 
@@ -350,6 +351,34 @@ work is done:
   with the audit trail keeping full detail, is likely the cheapest real mitigation. Not
   implemented. `docs/threat-model.md` currently covers this only under a generic side-channel
   non-goal.
+
+### S14 — Effect-set cardinality (volume composition)  ·  **VERIFY closed rc11, ENFORCE open**
+
+Reported by an external reviewer in [issue #2](https://github.com/stratomarco/vais-boundary/issues/2),
+and every code claim in that report was verified before it was accepted.
+
+- **The gap.** The central property is stated over "**an** unauthorized externally observable
+  effect", singular. Composition has two halves and the wording covers one. The **flow** half — a
+  secret read followed by a public send, where each step is legitimate and the ordering is not —
+  is expressible, and was named in the v0.9.0 changelog. The **volume** half — N individually
+  authorized effects whose *count* is the problem — was not expressible at all.
+- **Verified mechanism.** `ReferenceMonitor.evaluate` (`monitor.py:28`) takes one
+  `PlannedAction`. `ProtectedExecutor.run` (`executor.py:38`) receives `list[PlannedAction]` and
+  dissolves it in a `for` loop; nothing produced in one iteration re-enters a later decision. The
+  invariant engine folded `for index, effect in enumerate(effects)`, per effect. The policy field
+  allowlist (`policy.py:130`) is closed — `allow`, `arguments`, `approval`, `required_scope`,
+  `exact_approval_required`, `reject_undeclared_arguments` — so a cardinality field would have
+  been rejected at load rather than ignored.
+- **Why that framing matters.** The closed schema is the right decision and it is also what turns
+  "no quota was found" into "a quota is not expressible". An operator could not have added one.
+- **rc11 — VERIFY closed.** `max_effect_count` evaluates over the whole effect list the engine
+  already receives. One violation per invariant, naming the effect that crossed the bound.
+- **rc11 — ENFORCE open (LIM-035).** Denying the action that would breach the bound needs
+  per-task state threaded through `evaluate`'s signature and through every adapter. That is the
+  same obligation LIM-033 already shows adapters can silently drop, so it is not attempted here.
+  `tests/test_invariant_cardinality.py` asserts that six identically authorized actions still
+  produce six `ALLOW` decisions; if a later release enforces the bound, that test should fail and
+  be rewritten.
 
 ## 3. Coverage gaps mapped to owning tasks (the P1 to-do, for the owner)
 
