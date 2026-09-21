@@ -31,6 +31,16 @@ so the failure routes through the existing fail-closed path (FIND-041). The resi
 nesting that fails inside an adapter before any monitor decision exists, leaving no audit entry —
 is recorded as LIM-033 and is **not** fixed. S13 also ships unmitigated.
 
+**rc11 fault-injection note (P1-5).** Config faults all fail closed: a missing file raises, a
+corrupt or over-permissive one is rejected, and an **empty policy file loads as deny-all rather
+than allow-all**, which is the cell that mattered most. Invariant faults fail closed too: an
+absent effect field reports `missing_effect_provenance`, and an evaluator that raises propagates
+rather than reading as "nothing was violated", because no broad handler exists anywhere in the
+enforcement path. The approval store did **not** fail closed and is fixed (FIND-046). Three cells
+have no mechanism to test and are recorded rather than quietly dropped: there is no clock in the
+enforcement path so clock skew cannot move a decision, there is no timeout so a fault that never
+returns hangs instead of denying (LIM-040), and OOM is not reproducible in a unit test.
+
 **rc11 note.** S14 was added after an external reviewer found that the central property covers
 only the flow half of composition and not the volume half; the VERIFY half is closed and the
 ENFORCE half is LIM-035. S4 and S5 were then tested properly (FIND-044). The lattice holds through
@@ -70,20 +80,20 @@ work is done:
 | `P1-2` | Fingerprint and approval identity. **Closed for recursion in rc10** (FIND-041); reference-vs-referent TOCTOU remains an accepted application-level risk. |
 | `P1-3` | Provenance and confidentiality lattice under adversarial flows. **Done in rc11** (FIND-044): no laundering path found through derivation, and the defaults are recorded as asymmetric (LIM-036). |
 | `P1-4` | Audit-chain adversarial testing beyond single-event tampering. **Done in rc11** (FIND-045): the boundary is whether the attacker rebuilds, not which manipulation is used (LIM-037, LIM-038). |
-| `P1-5` | Fault injection against config parsing and invariant evaluation. Not started. |
+| `P1-5` | Fault injection against config parsing and invariant evaluation. **Done in rc11**; found and fixed a fail-open in the approval store (FIND-046) and recorded LIM-039 to LIM-041. |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated in rc10**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |
 |---|---|---|---|---|---|---|
-| S1 | Config file parsing (policy / invariants / MCP profile) | `policy.py:load_policy`, `invariants.py:load_invariants`, `mcp.py:load_mcp_profile` | integrity-protected config → in-memory policy | Strict schema; unknown field / wrong type / bad version rejected; default is `deny` | strong (`test_policy_validation`, `test_invariants::test_invariant_loader_is_strict`, `test_mcp`) | P1-5 (fail-open under malformed input) |
+| S1 | Config file parsing (policy / invariants / MCP profile) | `policy.py:load_policy`, `invariants.py:load_invariants`, `mcp.py:load_mcp_profile` | integrity-protected config → in-memory policy | Strict schema; unknown field / wrong type / bad version rejected; default is `deny` | strong, plus `test_fault_injection` (missing, empty, truncated, malformed, wrong-typed and over-permissive files) | **P1-5 done**; an empty file is deny-all, not allow-all. YAML errors are not `PolicyValidationError` (LIM-039) |
 | S2 | Capability scope resolution | `monitor.py:ReferenceMonitor.evaluate` (scope block, l.64) | model-proposed action → contract scopes | Required scope must be present exactly; model cannot add scopes | `test_reference_monitor::test_denies_missing_capability_scope` | P1-1 (no gap; exact-match) |
 | S3 | **Canonical action fingerprinting** | `models.py:action_fingerprint` → `plain_arguments`, `deep_freeze`, `canonical_json` | proposed action → approval identity | Two security-distinct actions must not share a fingerprint | rc9 closed Unicode/name classes; **P1-2 fixed unbounded-recursion** (`test_fingerprint_recursion`) + recorded reference-vs-referent risk and inverse-utility negative evidence (`test_fingerprint_collisions`) | **P1-2 (recursion done; TOCTOU→S6)** |
 | S4 | Provenance lattice transitions | `taint.py:derive_value`, `taint.py:derive_model_output` | untrusted data → derived label | `derived_untrusted` never launders back to `trusted` without explicit declassification | `test_taint` plus `test_provenance_lattice` (seeded DAGs, depth >= 12, mutation-checked) | **P1-3 done; no laundering path through derivation** |
 | S5 | Data-classification propagation | `taint.py:_max_confidentiality` (join in `derive_value`); enforced at `monitor.py` (l.77-86) and `invariants.py` `confidentiality_ceiling` | secret data → egress effect | Confidentiality is monotone (`join = max`); `secret` cannot silently drop to `public` | as S4, plus the ceiling tests | **P1-3 done; defaults are asymmetric, see LIM-036** |
-| S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening` consume-once / identity / concurrency) | **P1-2** (reference-vs-referent TOCTOU) |
+| S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening`) plus `test_fault_injection` (durability under a failed write) | **P1-2** (reference-vs-referent TOCTOU); FIND-046 fixed in rc11 |
 | S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; partial modification detected. Fork, tail truncation and any rebuilt chain are **not** detectable without a signed head (G-B1) | `test_audit_chain_integrity` (23 tests, mutation-checked) plus `test_tcb_hardening` | **P1-4 done; boundary demonstrated, LIM-037/038** |
 | S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) | P1-1 (see S8 notes) |
-| S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) | **P1-5** (fail-open audit) |
+| S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) plus `test_fault_injection` | **P1-5 done**; an evaluator that raises propagates rather than reading as no-violations. An invariant on an effect kind never produced is inert (LIM-041) |
 | S10 | Static-policy gap under `default_action: allow` | `monitor.py:ReferenceMonitor.evaluate` (l.48-54) | tool in contract but absent from static policy | Dynamic contract authorizes; bound-arg checks still apply | `test_reference_monitor::test_bound_argument_is_enforced_even_when_static_default_is_allow` | P1-1 (see S10 notes) |
 | S11 | Executor fail-closed seam | `executor.py:ProtectedExecutor.run` (l.51) | authorized decision → real effect | Only `DecisionType.ALLOW` executes; DENY / REQUIRE_APPROVAL emit no effect | `test_protected_executor` (2) | P1-5 |
 | S12 | Numeric threshold coercion | `monitor.py` (l.109-115), `invariants.py` (l.116-122) | model-supplied numeric field → threshold test | `bool` and non-finite rejected; non-numeric → DENY / `invalid_numeric_field` | `test_tcb_hardening::test_policy_threshold_rejects_nonfinite` | P1-1 (no gap) |

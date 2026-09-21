@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
@@ -47,9 +48,10 @@ class ApprovalStore:
         fingerprint = action_fingerprint(action)
         grant = ApprovalGrant(fingerprint, contract.principal_id, contract.session_id,
                               contract.tenant_id, contract.capability_id)
+        key = self._key(fingerprint, contract)
         with self._lock:
-            self._grants[self._key(fingerprint, contract)] = grant
-            self._persist()
+            with self._durable(key):
+                self._grants[key] = grant
         return grant
 
     def consume(self, action: PlannedAction, contract: TaskContract) -> bool:
@@ -59,9 +61,36 @@ class ApprovalStore:
             grant = self._grants.get(key)
             if grant is None or grant.consumed:
                 return False
-            self._grants[key] = ApprovalGrant(**{**asdict(grant), "consumed": True})
-            self._persist()
+            with self._durable(key):
+                self._grants[key] = ApprovalGrant(**{**asdict(grant), "consumed": True})
             return True
+
+    @contextmanager
+    def _durable(self, key: tuple[str, str, str, str, str]):
+        """Apply an in-memory change and persist it, or leave neither applied.
+
+        `consume` previously marked a grant spent in memory and then persisted.
+        When the write failed, memory said spent and the record said unspent. The
+        call itself failed closed, because the error propagated instead of
+        returning an authorization, but the next process to load the store read
+        the grant as unspent and would consume it again. Consume-once did not
+        survive a failed write across a restart (FIND-046).
+
+        Rolling the in-memory change back on failure keeps the two consistent.
+        The record is never less restrictive than memory, and an approval is
+        never silently spent by an infrastructure error.
+        """
+        had_key = key in self._grants
+        previous = self._grants.get(key)
+        try:
+            yield
+            self._persist()
+        except BaseException:
+            if had_key:
+                self._grants[key] = previous
+            else:
+                self._grants.pop(key, None)
+            raise
 
     def _load(self) -> None:
         raw = json.loads(self.path.read_text(encoding="utf-8"))

@@ -276,3 +276,9 @@ findings:
     version: "0.12.0rc11"
     type: tcb_boundary_demonstration
     evidence: [tests/test_audit_chain_integrity.py, src/vais/audit.py, docs/ATTACK-SURFACE.md]
+
+  - id: FIND-046
+    finding: P1-5 fault injection found that ApprovalStore.consume marked a grant spent in memory and then persisted. When the write failed, for example on a full or read-only volume, memory said spent and the stored record said unspent. The call itself failed closed, since the error propagated instead of returning an authorization, but the next process to load the store read the grant as unspent and would consume it again, so consume-once did not survive a failed write across a restart. The fix applies the in-memory change and the persist together and rolls the in-memory change back if the write fails, so the record is never less restrictive than memory and an approval is never silently spent by an infrastructure error. Reverting the fix is caught by the regression test.
+    version: "0.12.0rc11"
+    type: tcb_fail_open_defect
+    evidence: [tests/test_fault_injection.py, src/vais/approvals.py, docs/ATTACK-SURFACE.md]

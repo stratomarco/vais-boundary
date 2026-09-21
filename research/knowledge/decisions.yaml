@@ -215,3 +215,9 @@ decisions:
     decision: Leave the audit chain unsigned and unanchored for now, and record the demonstrated detection boundary in tests instead of narrowing the claim informally.
     rationale: Signing the chain moves key management into the trusted computing base and is a larger change than this release should carry, and the threat model already lists cryptographic tamper-evidence as a non-goal. What was missing was not the caveat but the demonstration, so each undetected manipulation is now asserted by a test that is expected to start failing if a signed head or external commitment is ever added.
     evidence: [tests/test_audit_chain_integrity.py, src/vais/audit.py, docs/threat-model.md]
+
+  - id: DEC-038
+    date: 2026-09-22
+    decision: Make the approval store's in-memory change and its persist atomic with respect to each other by rolling the in-memory change back when the write fails, using a context manager that catches BaseException and re-raises it.
+    rationale: The alternative orderings are worse. Persisting before updating memory would require serialising a state the store does not yet hold, and leaving the divergence in place lets a restart replay a spent approval. The handler is broad but it re-raises rather than swallowing, so it converts no fault into a silent decision and does not contradict DEC-033; it changes only whether memory and the stored record agree afterwards.
+    evidence: [src/vais/approvals.py, tests/test_fault_injection.py, docs/ATTACK-SURFACE.md]

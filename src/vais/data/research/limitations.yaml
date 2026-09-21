@@ -83,3 +83,12 @@ limitations:
 
   - id: LIM-038
     limitation: AuditTrail.verify returns a bare boolean and reports no locus for a break. An investigator learns that the chain is inconsistent but not at which event, on which of the three checks, or whether the fault is one edited record or a wholly rewritten prefix. For a trail whose stated purpose is investigation this is a weak signal.
+
+  - id: LIM-039
+    limitation: The policy loader rejects schema faults as PolicyValidationError but a file that is not valid YAML at all surfaces as a yaml.YAMLError, which is unrelated by inheritance. Both fail closed, but an application catching PolicyValidationError in order to degrade gracefully will not catch a malformed policy file and will see an unhandled exception of a different type instead.
+
+  - id: LIM-040
+    limitation: There is no evaluation timeout anywhere in the enforcement path. A pathological invariant, a slow approval store or a blocking adapter does not produce a denial; it hangs the caller. Fault injection can demonstrate that faults which raise fail closed, and cannot demonstrate a deny for faults which simply never return.
+
+  - id: LIM-041
+    limitation: An invariant whose effect kind is never produced by the application is silently inert. Nothing validates that the effect named in an invariant is one the application emits, so a typo such as payment_send against an application emitting payment_sent loads cleanly, evaluates cleanly and never fires. The loader cannot detect this because it has no inventory of the effect kinds an application produces.
