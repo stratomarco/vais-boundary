@@ -74,3 +74,6 @@ limitations:
 
   - id: LIM-035
     limitation: The max_effect_count invariant added in RC11 closes the volume half of composition in VERIFY only. ReferenceMonitor.evaluate takes a single PlannedAction and holds no state across decisions, so six identically authorized actions yield six independent ALLOW decisions and a breach of the bound is detected by the verifier after the fact rather than denied in flight. Enforcing a bound during execution would require per-task state threaded through the monitor signature and through every adapter, and is not attempted in this release. The limitation is asserted by a test so that it stays visible.
+
+  - id: LIM-036
+    limitation: Confidentiality enforcement is only as good as the application's labelling at the point data enters the system. A confidentiality_ceiling invariant fails closed when effect provenance is absent, reporting missing_effect_provenance, but it cannot fail closed when provenance is present and understates the true level, because a label is all it has. label_mcp_input defaults to public, so remote data is understated unless the caller supplies a level. Integrity does not share this property, since nothing the application omits can make untrusted data trusted.

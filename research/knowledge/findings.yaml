@@ -264,3 +264,9 @@ findings:
     version: "0.12.0rc11"
     type: external_review_scope_gap
     evidence: [docs/security-invariants.md, tests/test_invariant_cardinality.py, src/vais/invariants.py]
+
+  - id: FIND-044
+    finding: P1-3 tested the provenance lattice against its own docstring rather than against its implementation, using expected labels written from the stated rule and seeded DAGs of depth at least twelve with mixed trusted and untrusted roots. No laundering path was found through derivation, and five mutations of the lattice rules were each caught by the suite. The material result is a negative one plus an asymmetry. Integrity defaults to the cautious end, since MCP data is untrusted unless vouched for and a derivation with no inputs is derived_untrusted. Confidentiality defaults to public, the bottom of the lattice, which is an assertion the library cannot justify about remote data. Public is the identity element for the join, so the default keeps unlabelled inputs from raising every ceiling they touch, which is a reasonable trade and not a conservative one.
+    version: "0.12.0rc11"
+    type: property_test_negative_result
+    evidence: [tests/test_provenance_lattice.py, src/vais/taint.py, docs/ATTACK-SURFACE.md]

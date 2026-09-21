@@ -203,3 +203,9 @@ decisions:
     decision: Close the volume half of composition in VERIFY with a max_effect_count invariant type in RC11, and record the ENFORCE half as a documented limitation with no promised date rather than changing the reference monitor signature in the same release.
     rationale: The reviewer's complaint was that a bound was not expressible, and an aggregate invariant makes it expressible and independently checkable using the effect list the engine already receives. In-flight denial would change the signature of the central security function and require every adapter to thread a counter, which is the same class of obligation that LIM-033 already shows adapters can drop silently. Splitting the fix along the existing VERIFY and ENFORCE boundary keeps each half honest about what it does.
     evidence: [src/vais/invariants.py, tests/test_invariant_cardinality.py, docs/security-invariants.md]
+
+  - id: DEC-036
+    date: 2026-09-21
+    decision: Test the provenance lattice with a seeded deterministic DAG generator and an independently written expected-label function, rather than adding a property-based testing dependency.
+    rationale: This project records seeds and freezes inputs everywhere else, and a failing case from a fixed seed reproduces exactly, which matters more here than shrinking. The expected labels are written from the taint docstring rather than from the implementation, so the suite checks the stated rule instead of restating the code; mutation testing confirmed that five separate breakages of the lattice rules are each caught. Adding a dependency for one module was not justified when the runtime dependency footprint is a stated property of the project.
+    evidence: [tests/test_provenance_lattice.py, src/vais/taint.py, docs/ATTACK-SURFACE.md]
