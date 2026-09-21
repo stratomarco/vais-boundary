@@ -270,3 +270,9 @@ findings:
     version: "0.12.0rc11"
     type: property_test_negative_result
     evidence: [tests/test_provenance_lattice.py, src/vais/taint.py, docs/ATTACK-SURFACE.md]
+
+  - id: FIND-045
+    finding: P1-4 ran fork, truncate, splice and reorder against the audit chain and found the detection boundary is not drawn by which manipulation is performed but by whether the attacker recomputes the chain afterwards. Editing any field in place, dropping events from the front, and naive reorder or splice are all caught. Truncating the tail is not caught and needs no recomputation at all, since verify has no notion of expected length and no signed head, so any prefix of a valid chain is itself a valid chain. Splicing a forged authorization decision, deleting an event, or reversing the whole chain all pass verification once the attacker rebuilds sequence, previous_hash and event_hash, which requires only public SHA-256 because the chain carries no secret. A fork is invisible from either branch by construction. The S7 hypothesis predicted truncation and fork correctly and did not anticipate that splice and reorder are caught only while the attacker declines to rebuild.
+    version: "0.12.0rc11"
+    type: tcb_boundary_demonstration
+    evidence: [tests/test_audit_chain_integrity.py, src/vais/audit.py, docs/ATTACK-SURFACE.md]

@@ -69,7 +69,7 @@ work is done:
 | `P1-1` | Mapped in this document; no gap identified, nothing further planned. |
 | `P1-2` | Fingerprint and approval identity. **Closed for recursion in rc10** (FIND-041); reference-vs-referent TOCTOU remains an accepted application-level risk. |
 | `P1-3` | Provenance and confidentiality lattice under adversarial flows. **Done in rc11** (FIND-044): no laundering path found through derivation, and the defaults are recorded as asymmetric (LIM-036). |
-| `P1-4` | Audit-chain adversarial testing beyond single-event tampering. Not started. |
+| `P1-4` | Audit-chain adversarial testing beyond single-event tampering. **Done in rc11** (FIND-045): the boundary is whether the attacker rebuilds, not which manipulation is used (LIM-037, LIM-038). |
 | `P1-5` | Fault injection against config parsing and invariant evaluation. Not started. |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated in rc10**. |
 
@@ -81,7 +81,7 @@ work is done:
 | S4 | Provenance lattice transitions | `taint.py:derive_value`, `taint.py:derive_model_output` | untrusted data → derived label | `derived_untrusted` never launders back to `trusted` without explicit declassification | `test_taint` plus `test_provenance_lattice` (seeded DAGs, depth >= 12, mutation-checked) | **P1-3 done; no laundering path through derivation** |
 | S5 | Data-classification propagation | `taint.py:_max_confidentiality` (join in `derive_value`); enforced at `monitor.py` (l.77-86) and `invariants.py` `confidentiality_ceiling` | secret data → egress effect | Confidentiality is monotone (`join = max`); `secret` cannot silently drop to `public` | as S4, plus the ceiling tests | **P1-3 done; defaults are asymmetric, see LIM-036** |
 | S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening` consume-once / identity / concurrency) | **P1-2** (reference-vs-referent TOCTOU) |
-| S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; fork / truncate / splice / reorder detected | partial (`test_tcb_hardening::test_audit_chain_detects_tampering`) — single-event edit only | **P1-4** |
+| S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; partial modification detected. Fork, tail truncation and any rebuilt chain are **not** detectable without a signed head (G-B1) | `test_audit_chain_integrity` (23 tests, mutation-checked) plus `test_tcb_hardening` | **P1-4 done; boundary demonstrated, LIM-037/038** |
 | S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) | P1-1 (see S8 notes) |
 | S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) | **P1-5** (fail-open audit) |
 | S10 | Static-policy gap under `default_action: allow` | `monitor.py:ReferenceMonitor.evaluate` (l.48-54) | tool in contract but absent from static policy | Dynamic contract authorizes; bound-arg checks still apply | `test_reference_monitor::test_bound_argument_is_enforced_even_when_static_default_is_allow` | P1-1 (see S10 notes) |
@@ -250,13 +250,20 @@ work is done:
   previous_hash}` with SHA-256; `verify()` re-walks and checks `sequence == expected` (1..N),
   `previous_hash == previous event_hash`, and hash recomputation. The chain is **unsigned**
   (P0-5 gap G-B1) — the threat model lists cryptographic tamper-evidence as an explicit non-goal.
-- **[hypothesis – P1-4]** because `verify()` has **no notion of expected length and no signed
-  head**, a **truncation** to any prefix `1..k` should still pass `verify()` — the shortened
-  chain is internally consistent. Splice/reorder should break the `previous_hash` linkage and be
-  caught; a **fork** (two divergent chains sharing a prefix) is undetectable from a single chain.
-  P1-4 must demonstrate each of fork / truncate / splice / reorder with a test and record which
-  are caught vs. which need an external anchor (signed head or length commitment). Truncation is
-  the predicted weak spot; **do not assert it until the test fails.**
+- **P1-4 result (rc11, `test_audit_chain_integrity`).** The hypothesis was right about
+  truncation and fork and wrong about splice/reorder in one important way. The line is drawn by
+  whether the attacker **rebuilds**, not by which manipulation is used, because rebuilding needs
+  only public SHA-256 and the chain holds no key.
+  **Caught:** any in-place field edit (8 fields, parameterised); dropping events from the front;
+  naive reorder; naive splice; a first event not starting from zero. Each of the verifier's three
+  checks is additionally tripped in isolation, so removing any one of them fails the suite.
+  **Not caught (LIM-037):** truncating the tail, which needs no rebuild at all and is therefore
+  the cheapest attack; splicing a forged `allow` then rebuilding; deleting an event then
+  rebuilding; reversing the chain then rebuilding; and a fork, which is invisible from either
+  branch by construction. Each is asserted by a test expected to fail if a signed head or external
+  commitment is added.
+  **Also recorded (LIM-038):** `verify()` returns a bare `bool` with no locus, so an investigator
+  cannot distinguish one edited record from a wholly rewritten prefix.
 - **Related:** `_reject_secret_fields` (`audit.py:85`) fails closed on secret-bearing detail keys
   — already tested (`test_audit_rejects_secret_bearing_fields`).
 

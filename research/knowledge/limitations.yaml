@@ -77,3 +77,9 @@ limitations:
 
   - id: LIM-036
     limitation: Confidentiality enforcement is only as good as the application's labelling at the point data enters the system. A confidentiality_ceiling invariant fails closed when effect provenance is absent, reporting missing_effect_provenance, but it cannot fail closed when provenance is present and understates the true level, because a label is all it has. label_mcp_input defaults to public, so remote data is understated unless the caller supplies a level. Integrity does not share this property, since nothing the application omits can make untrusted data trusted.
+
+  - id: LIM-037
+    limitation: The audit chain is tamper-evident against partial modification only. An actor with write access to the whole log can splice in an authorization decision that never happened, delete an event, or reorder the chain, and verify still returns true, because rebuilding the chain needs only public SHA-256 and no key. Truncating the tail passes verification without any rebuild. A fork cannot be seen from either branch. Closing these requires a signed head or an external commitment, recorded as gap G-B1 against Proof of Execution, and cryptographically tamper-evident audit storage remains an explicit non-goal in the threat model.
+
+  - id: LIM-038
+    limitation: AuditTrail.verify returns a bare boolean and reports no locus for a break. An investigator learns that the chain is inconsistent but not at which event, on which of the three checks, or whether the fault is one edited record or a wholly rewritten prefix. For a trail whose stated purpose is investigation this is a weak signal.
