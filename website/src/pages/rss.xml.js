@@ -1,7 +1,9 @@
 import rss from '@astrojs/rss';
 
+// Newest first. The glob returns files in path order, which is not publication order.
 const posts = Object.values(import.meta.glob('./articles/*.md', { eager: true }))
-  .filter((post) => !post.frontmatter.draft);
+  .filter((post) => !post.frontmatter.draft)
+  .sort((a, b) => String(b.frontmatter.date).localeCompare(String(a.frontmatter.date)));
 
 export function GET(context) {
   return rss({

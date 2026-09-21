@@ -3,6 +3,19 @@ import Page from './Page.astro';
 const { frontmatter } = Astro.props;
 const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
 ---
-<Page title={`${frontmatter.title} — VAIS Boundary`} description={frontmatter.description}>
-  <article class="wrap page-content prose"><a href={`${root}articles/`}>← All articles</a><p class="eyebrow">{frontmatter.date}</p><h1>{frontmatter.title}</h1><p class="intro">{frontmatter.description}</p><slot /></article>
+<Page
+  title={`${frontmatter.title} — VAIS Boundary`}
+  description={frontmatter.description}
+  canonicalUrl={frontmatter.canonical}
+>
+  <article class="wrap page-content prose">
+    <a href={`${root}articles/`}>← All articles</a>
+    <p class="eyebrow">{frontmatter.date}</p>
+    <h1>{frontmatter.title}</h1>
+    <p class="intro">{frontmatter.description}</p>
+    {frontmatter.canonical && (
+      <p class="origin">Originally published on <a href={frontmatter.canonical}>Medium</a>.</p>
+    )}
+    <slot />
+  </article>
 </Page>
