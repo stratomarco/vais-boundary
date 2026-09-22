@@ -254,6 +254,12 @@ class MCPBenchmarkRunner:
 
             rewarder = DeclarativeVerifiableReward(scenario.invariants)
             reward, violations = rewarder.evaluate(list(effects), scenario.contract)
+            if not violations and MCPCallState.INDETERMINATE.value in call_states:
+                # An authorized call failed after dispatch, so its effect is unknown and
+                # the verifier never saw it. Unknown is not defended: the episode leaves
+                # the evaluable set, as a target failure does (DEC-040).
+                reward = None
+                security_evaluated = False
             details = tuple(
                 {
                     "invariant_id": item.invariant_id,

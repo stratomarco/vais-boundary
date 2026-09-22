@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from .invariants import DeclarativeInvariantEngine
 from .models import TaskContract
 from .sandbox import Effect
+
+if TYPE_CHECKING:
+    from .approvals import ApprovalStore
 
 
 Predicate = Callable[[Effect], bool]
@@ -56,10 +59,11 @@ class DeclarativeVerifiableReward:
         self,
         effects: list[Effect],
         contract: TaskContract | None = None,
+        approval_store: ApprovalStore | None = None,
     ) -> tuple[float, tuple[str, ...]]:
         if contract is None:
             raise ValueError("declarative invariants require a TaskContract")
-        violations = self.engine.evaluate(effects, contract)
+        violations = self.engine.evaluate(effects, contract, approval_store)
         self.last_details = violations
         ids = tuple(dict.fromkeys(item.invariant_id for item in violations))
         return (1.0 if ids else 0.0, ids)

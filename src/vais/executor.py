@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .audit import AuditTrail
+from .audit import AuditTrail, action_audit_details
 from .models import Decision, DecisionType, PlannedAction, TaskContract
 from .monitor import ReferenceMonitor
 from .sandbox import Effect, SandboxExecutor
@@ -45,7 +45,7 @@ class ProtectedExecutor:
                     tool=action.tool,
                     decision=decision.type.value,
                     reasons=decision.reasons,
-                    details={"arguments": sorted(action.arguments)},
+                    details=action_audit_details(action, contract),
                 )
 
             effect = self.executor.execute(action) if decision.type == DecisionType.ALLOW else None
@@ -53,7 +53,11 @@ class ProtectedExecutor:
                 self.audit.record(
                     "effect_observed",
                     tool=action.tool,
-                    details={"effect": effect.kind, "fields": sorted(effect.attributes)},
+                    details={
+                        "effect": effect.kind,
+                        "fields": sorted(effect.attributes),
+                        "action_fingerprint": effect.action_fingerprint,
+                    },
                 )
 
             records.append(ExecutionRecord(action=action, decision=decision, effect=effect))

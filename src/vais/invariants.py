@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Callable
 import math
 import unicodedata
 
@@ -11,6 +11,9 @@ import yaml
 from .exceptions import PolicyValidationError
 from .models import ConfidentialityLevel, TaskContract, security_equal
 from .sandbox import Effect
+
+if TYPE_CHECKING:
+    from .approvals import ApprovalStore
 
 
 @dataclass(frozen=True)
@@ -31,7 +34,7 @@ class InvariantDefinition:
 # See LIM-035: a bound over a set of effects is detected here, in VERIFY, and is not
 # enforced in flight, because the reference monitor decides one action at a time and
 # holds no state across decisions.
-AGGREGATE_INVARIANT_TYPES = frozenset({"max_effect_count"})
+AGGREGATE_INVARIANT_TYPES = frozenset({"max_effect_count", "approval_single_use"})
 
 
 @dataclass(frozen=True)
@@ -54,18 +57,34 @@ class DeclarativeInvariantEngine:
         self,
         effects: list[Effect],
         contract: TaskContract,
+        approval_store: ApprovalStore | None = None,
     ) -> tuple[InvariantViolation, ...]:
+        """Check every invariant against the observed effects.
+
+        Pass the ``approval_store`` the enforcement path consumed from, if it used one.
+        Without it, ``exact_action_approval`` can only see approvals carried in the
+        contract, and an effect correctly approved through the store is reported as
+        unapproved (FIND-050).
+        """
+
+        def approved(fingerprint: str) -> bool:
+            if fingerprint in contract.approved_action_fingerprints:
+                return True
+            # A consumed grant, not merely a granted one. The effect exists, so if it
+            # went through the store-backed decision its grant was consumed. An
+            # unconsumed grant beside an observed effect means the effect did not come
+            # through that decision, which is not evidence of approval (DEC-041).
+            return approval_store is not None and approval_store.was_consumed(fingerprint, contract)
+
         violations: list[InvariantViolation] = []
         for invariant in self.invariants:
             if invariant.type in AGGREGATE_INVARIANT_TYPES:
-                aggregate = self._aggregate_violation(invariant, effects)
-                if aggregate is not None:
-                    violations.append(aggregate)
+                violations.extend(self._aggregate_violations(invariant, effects))
                 continue
             for index, effect in enumerate(effects):
                 if effect.kind != invariant.effect:
                     continue
-                reason = self._violation_reason(invariant, effect, contract)
+                reason = self._violation_reason(invariant, effect, contract, approved)
                 if reason:
                     violations.append(
                         InvariantViolation(
@@ -77,36 +96,81 @@ class DeclarativeInvariantEngine:
         return tuple(violations)
 
     @staticmethod
-    def _aggregate_violation(
+    def _aggregate_violations(
         invariant: InvariantDefinition,
         effects: list[Effect],
-    ) -> InvariantViolation | None:
-        """Evaluate an invariant whose subject is the set of effects, not one effect.
+    ) -> list[InvariantViolation]:
+        """Evaluate an invariant whose subject is the set of effects, not one effect."""
+        if invariant.type == "max_effect_count":
+            # One violation per invariant rather than one per excess effect, so a run
+            # that breaches a bound of 5 by 5,000 does not emit 4,995 violations.
+            assert invariant.max_count is not None
+            matching = [index for index, effect in enumerate(effects) if effect.kind == invariant.effect]
+            if len(matching) <= invariant.max_count:
+                return []
+            return [InvariantViolation(
+                invariant_id=invariant.id,
+                # The effect that crossed the bound, so the violation still names a real effect.
+                effect_index=matching[invariant.max_count],
+                reason=(
+                    f"effect_count_exceeds_limit:{invariant.effect}:"
+                    f"{len(matching)}>{invariant.max_count}"
+                ),
+            )]
+        if invariant.type == "approval_single_use":
+            return DeclarativeInvariantEngine._reused_approvals(invariant, effects)
+        raise AssertionError(f"unhandled aggregate invariant type: {invariant.type}")
 
-        A single violation is reported per invariant rather than one per excess effect,
-        so a run that breaches a bound of 5 by 5,000 does not emit 4,995 violations.
+    @staticmethod
+    def _reused_approvals(
+        invariant: InvariantDefinition,
+        effects: list[Effect],
+    ) -> list[InvariantViolation]:
+        """Report each exact approval that authorized more than one effect (FIND-051).
+
+        ``exact_action_approval`` asks whether an effect was approved. It cannot see how
+        many times the same approval was used, so one approval replayed across two
+        identical payments passed it twice. This asks the complementary question over the
+        whole run: each approved fingerprint above the threshold may produce one effect.
+
+        Effects below the threshold, without a numeric field or without a fingerprint are
+        left to ``exact_action_approval``, which already reports the last two. A second
+        identical action that was genuinely re-approved is also reported; the store keeps
+        one grant per identity and cannot say it was approved twice, so VERIFY flags it
+        for review rather than guess (DEC-042).
         """
-        if invariant.type != "max_effect_count":
-            raise AssertionError(f"unhandled aggregate invariant type: {invariant.type}")
-        assert invariant.max_count is not None
-        matching = [index for index, effect in enumerate(effects) if effect.kind == invariant.effect]
-        if len(matching) <= invariant.max_count:
-            return None
-        return InvariantViolation(
-            invariant_id=invariant.id,
-            # The effect that crossed the bound, so the violation still names a real effect.
-            effect_index=matching[invariant.max_count],
-            reason=(
-                f"effect_count_exceeds_limit:{invariant.effect}:"
-                f"{len(matching)}>{invariant.max_count}"
-            ),
-        )
+        assert invariant.field is not None
+        assert invariant.greater_than is not None
+        seen: dict[str, list[int]] = {}
+        for index, effect in enumerate(effects):
+            if effect.kind != invariant.effect or effect.action_fingerprint is None:
+                continue
+            actual = effect.attributes.get(invariant.field)
+            try:
+                numeric = float(actual)
+                if isinstance(actual, bool) or not math.isfinite(numeric):
+                    continue
+            except (TypeError, ValueError):
+                continue
+            if numeric > invariant.greater_than:
+                seen.setdefault(effect.action_fingerprint, []).append(index)
+        return [
+            InvariantViolation(
+                invariant_id=invariant.id,
+                # The first reuse: the approval was already spent by indices[0].
+                effect_index=indices[1],
+                reason=f"approval_reused:{invariant.effect}:{len(indices)}>1",
+            )
+            for indices in seen.values()
+            if len(indices) > 1
+        ]
 
     @staticmethod
     def _violation_reason(
         invariant: InvariantDefinition,
         effect: Effect,
         contract: TaskContract,
+        approved: Callable[[str], bool],
     ) -> str | None:
         if invariant.type == "forbidden_effect":
             return f"forbidden_effect:{effect.kind}"
@@ -163,7 +227,7 @@ class DeclarativeInvariantEngine:
                 return None
             if effect.action_fingerprint is None:
                 return "missing_effect_action_fingerprint"
-            if effect.action_fingerprint not in contract.approved_action_fingerprints:
+            if not approved(effect.action_fingerprint):
                 return "effect_not_exactly_approved"
             return None
 
@@ -236,6 +300,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         "forbidden_values",
         "exact_action_approval",
         "max_effect_count",
+        "approval_single_use",
     }
     if invariant_type not in supported:
         _fail(f"{path}.type", f"supported values are: {', '.join(sorted(supported))}")
@@ -247,7 +312,10 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
     greater_than: float | None = None
     max_count: int | None = None
 
-    if invariant_type in {"contract_binding", "confidentiality_ceiling", "forbidden_values", "exact_action_approval"}:
+    if invariant_type in {
+        "contract_binding", "confidentiality_ceiling", "forbidden_values",
+        "exact_action_approval", "approval_single_use",
+    }:
         field = _non_empty_string(raw.get("field"), f"{path}.field")
 
     if invariant_type == "contract_binding":
@@ -270,7 +338,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
             parsed.append(_non_empty_string(value, f"{path}.forbidden_values[{index}]"))
         forbidden_values = tuple(parsed)
 
-    if invariant_type == "exact_action_approval":
+    if invariant_type in {"exact_action_approval", "approval_single_use"}:
         raw_threshold = raw.get("greater_than")
         if isinstance(raw_threshold, bool) or not isinstance(raw_threshold, (int, float)):
             _fail(f"{path}.greater_than", "must be a number")

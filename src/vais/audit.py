@@ -6,7 +6,7 @@ from typing import Any
 import hashlib
 import threading
 
-from .models import canonical_json, deep_freeze
+from .models import PlannedAction, TaskContract, action_fingerprint, canonical_json, deep_freeze
 
 
 @dataclass(frozen=True)
@@ -80,6 +80,30 @@ class AuditTrail:
 
     def write_jsonl(self, path: str | Path) -> None:
         Path(path).write_text(self.to_jsonl() + ("\n" if self._events else ""), encoding="utf-8")
+
+
+def action_audit_details(action: PlannedAction, contract: TaskContract) -> dict[str, Any]:
+    """Details that identify which action was decided, and for whom, without its values.
+
+    Before rc12 an authorization event carried only the argument names, so the chain
+    could show that *a* payment was allowed but not which one or for which session.
+    The fingerprint is a SHA-256 of the canonical action and carries no argument value,
+    so it adds identity without adding secrets. An action that cannot be fingerprinted
+    records ``None``; the monitor denies those, and the audit must still record the
+    denial rather than raise.
+    """
+    try:
+        fingerprint = action_fingerprint(action)
+    except ValueError:
+        fingerprint = None
+    return {
+        "arguments": sorted(action.arguments),
+        "action_fingerprint": fingerprint,
+        "principal_id": contract.principal_id,
+        "session_id": contract.session_id,
+        "tenant_id": contract.tenant_id,
+        "capability_id": contract.capability_id,
+    }
 
 
 def _reject_secret_fields(value: Any) -> None:

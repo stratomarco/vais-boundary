@@ -293,10 +293,19 @@ class Decision:
     type: DecisionType
     reasons: tuple[str, ...] = ()
 class FrozenDict(dict):
-    """A JSON-compatible dictionary that rejects mutation."""
+    """A JSON-compatible dictionary that rejects mutation.
+
+    Every in-place mutator ``dict`` defines is blocked, including ``|=``. That one
+    was missed until rc12 (FIND-052): ``dict.__ior__`` is implemented in C and does
+    not route through ``update``, so ``contract.bound_arguments |= {...}`` rewrote a
+    trusted binding. What Python cannot block is a deliberate unbound call such as
+    ``dict.update(mapping, ...)``; this guards against accidents, not hostile code
+    running in-process, which the threat model already excludes.
+    """
     def _immutable(self, *args: Any, **kwargs: Any) -> None:
         raise TypeError("security mapping is immutable")
     __setitem__ = __delitem__ = clear = pop = popitem = setdefault = update = _immutable
+    __ior__ = _immutable
 
     def __copy__(self) -> "FrozenDict":
         return self

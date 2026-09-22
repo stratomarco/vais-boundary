@@ -41,3 +41,10 @@ invariants:
     effect: payment_sent
     field: amount
     greater_than: 100
+
+  - id: payment_approval_single_use
+    description: Each exact approval authorizes one payment above 100, not every identical payment after it.
+    type: approval_single_use
+    effect: payment_sent
+    field: amount
+    greater_than: 100

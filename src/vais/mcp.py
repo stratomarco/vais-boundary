@@ -21,6 +21,8 @@ from .models import (
     FrozenDict,
     action_fingerprint,
 )
+from .approvals import ApprovalStore
+from .audit import AuditTrail, action_audit_details
 from .monitor import ReferenceMonitor
 from .sandbox import Effect
 
@@ -216,6 +218,12 @@ class MCPProtectedClient:
     action is authorized. Only ``ALLOW`` is forwarded to ``session.call_tool``.
     ``DENY`` and ``REQUIRE_APPROVAL`` never reach the MCP server.
 
+    Pass an ``approval_store`` for consume-once approvals. Without one the monitor
+    falls back to the contract's approved fingerprints, which authorize an exact
+    action for as long as the contract is in use (LIM-044). Before rc12 this client
+    could not take a store at all, so consume-once never held on the MCP path
+    (FIND-049).
+
     The wrapper is intentionally small. It is suitable for an agent host that
     already owns an MCP ``ClientSession``. A fully transparent protocol proxy
     for arbitrary hosts is a future integration layer, not implied here.
@@ -228,6 +236,8 @@ class MCPProtectedClient:
         session: MCPToolSession,
         profile: MCPProfile,
         monitor: ReferenceMonitor,
+        approval_store: ApprovalStore | None = None,
+        audit: AuditTrail | None = None,
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
@@ -235,6 +245,20 @@ class MCPProtectedClient:
         self.session = session
         self.profile = profile
         self.monitor = monitor
+        self.approval_store = approval_store
+        self.audit = audit
+
+    def _audit_decision(
+        self, action: PlannedAction, contract: TaskContract, decision: Decision
+    ) -> None:
+        if self.audit:
+            self.audit.record(
+                "authorization_decision",
+                tool=action.tool,
+                decision=decision.type.value,
+                reasons=decision.reasons,
+                details=action_audit_details(action, contract),
+            )
 
     async def execute(self, action: PlannedAction, contract: TaskContract) -> MCPExecutionRecord:
         try:
@@ -243,28 +267,33 @@ class MCPProtectedClient:
             request_id = None
         binding = self.profile.by_canonical_tool(action.tool)
         if binding is None:
+            decision = Decision(DecisionType.DENY, (f"mcp_binding_missing:{action.tool}",))
+            self._audit_decision(action, contract, decision)
             return MCPExecutionRecord(
                 action=action,
                 binding=None,
-                decision=Decision(DecisionType.DENY, (f"mcp_binding_missing:{action.tool}",)),
+                decision=decision,
                 effect=None,
                 result=None,
                 call_state=MCPCallState.NOT_CALLED,
             )
         if binding.server_id != self.server_id:
+            decision = Decision(
+                DecisionType.DENY,
+                (f"mcp_server_mismatch:{binding.server_id}!={self.server_id}",),
+            )
+            self._audit_decision(action, contract, decision)
             return MCPExecutionRecord(
                 action=action,
                 binding=binding,
-                decision=Decision(
-                    DecisionType.DENY,
-                    (f"mcp_server_mismatch:{binding.server_id}!={self.server_id}",),
-                ),
+                decision=decision,
                 effect=None,
                 result=None,
                 call_state=MCPCallState.NOT_CALLED,
             )
 
-        decision = self.monitor.evaluate(action, contract)
+        decision = self.monitor.evaluate(action, contract, self.approval_store)
+        self._audit_decision(action, contract, decision)
         if decision.type != DecisionType.ALLOW:
             return MCPExecutionRecord(
                 action, binding, decision, None, None, MCPCallState.NOT_CALLED
@@ -273,6 +302,13 @@ class MCPProtectedClient:
         try:
             raw_result = await self.session.call_tool(binding.tool_name, action.plain_arguments())
         except Exception as exc:
+            if self.audit:
+                # The exception class only. Messages can carry secrets (FIND-020, FIND-040).
+                self.audit.record(
+                    "effect_indeterminate",
+                    tool=action.tool,
+                    details={"error": type(exc).__name__, "action_fingerprint": request_id},
+                )
             return MCPExecutionRecord(
                 action=action,
                 binding=binding,
@@ -286,6 +322,16 @@ class MCPProtectedClient:
             )
 
         effect = _effect_from_binding(action, binding)
+        if self.audit:
+            self.audit.record(
+                "effect_observed",
+                tool=action.tool,
+                details={
+                    "effect": effect.kind,
+                    "fields": sorted(effect.attributes),
+                    "action_fingerprint": effect.action_fingerprint,
+                },
+            )
         result_data = extract_mcp_result_data(raw_result)
         result = label_mcp_input(
             result_data,
@@ -513,7 +559,12 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             )
             canonical = tool_raw.get("canonical_tool")
             if canonical is None:
-                canonical = canonical_mcp_tool(server_id, tool_name)
+                try:
+                    canonical = canonical_mcp_tool(server_id, tool_name)
+                except ValueError as exc:
+                    # A ':' in a server or tool name escaped as ValueError, outside
+                    # this loader's contract (FIND-054).
+                    _fail(tool_path, str(exc))
             canonical = _string(canonical, f"{tool_path}.canonical_tool")
 
             result_conf = _confidentiality(
@@ -531,22 +582,31 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             )
             fields: dict[str, str] = {}
             for effect_field, argument_name in field_raw.items():
-                fields[
-                    _string(effect_field, f"{tool_path}.effect.argument_fields.<effect_field>")
-                ] = _string(
+                key = _string(effect_field, f"{tool_path}.effect.argument_fields.<effect_field>")
+                # _string returns the NFC form, so two distinct YAML keys can meet here.
+                # Assigning would let the later one silently replace the earlier, and
+                # MCPEffectMapping's own duplicate check never sees them (FIND-055).
+                if key in fields:
+                    _fail(
+                        f"{tool_path}.effect.argument_fields",
+                        "Unicode normalization produced a duplicate effect field",
+                    )
+                fields[key] = _string(
                     argument_name,
                     f"{tool_path}.effect.argument_fields.{effect_field}",
                 )
 
-            bindings.append(
-                MCPToolBinding(
+            try:
+                binding = MCPToolBinding(
                     server_id=server_id,
                     tool_name=tool_name,
                     canonical_tool=canonical,
                     result_policy=MCPResultPolicy(result_conf),
                     effect=MCPEffectMapping(effect_kind, fields),
                 )
-            )
+            except ValueError as exc:
+                _fail(tool_path, str(exc))
+            bindings.append(binding)
 
     try:
         return MCPProfile(tuple(bindings), version=version)

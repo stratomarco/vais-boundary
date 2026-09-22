@@ -16,6 +16,7 @@ and an injected fault is detected and classified `real`.
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,6 +37,7 @@ POLICY_VERSIONS = {1, 2, 3, 4}
 INVARIANT_TYPES = {
     "forbidden_effect", "contract_binding", "confidentiality_ceiling",
     "forbidden_values", "exact_action_approval", "max_effect_count",
+    "approval_single_use",
 }
 
 
@@ -135,6 +137,12 @@ def _postconditions_invariants(engine) -> list[str]:
             broken.append(f"unsupported invariant type survived loading: {item.type}")
         if item.type == "max_effect_count" and not isinstance(item.max_count, int):
             broken.append("max_effect_count must carry an integer bound")
+        if item.type == "approval_single_use" and (
+            not item.field
+            or not isinstance(item.greater_than, float)
+            or not math.isfinite(item.greater_than)
+        ):
+            broken.append("approval_single_use must carry a field and a finite threshold")
     return broken
 
 

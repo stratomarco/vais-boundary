@@ -65,6 +65,16 @@ class ApprovalStore:
                 self._grants[key] = ApprovalGrant(**{**asdict(grant), "consumed": True})
             return True
 
+    def was_consumed(self, fingerprint: str, contract: TaskContract) -> bool:
+        """Whether a grant for this exact fingerprint and identity has been consumed.
+
+        Read-only, for the verifier. Takes the fingerprint rather than the action
+        because an observed effect carries only its action's fingerprint.
+        """
+        with self._lock:
+            grant = self._grants.get(self._key(fingerprint, contract))
+            return grant is not None and grant.consumed
+
     @contextmanager
     def _durable(self, key: tuple[str, str, str, str, str]):
         """Apply an in-memory change and persist it, or leave neither applied.

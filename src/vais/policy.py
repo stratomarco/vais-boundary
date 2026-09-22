@@ -100,7 +100,10 @@ def _parse_argument(raw: Any, path: str, version: int) -> ArgumentPolicy:
     _known_keys(raw, allowed_fields, path)
 
     trust_required = raw.get("trust_required")
-    if trust_required not in {None, "trusted"}:
+    # Compared by equality, not set membership: `trust_required: {}` is unhashable and
+    # made the old `not in {None, "trusted"}` raise TypeError (FIND-053), the same
+    # class as FIND-047 one field over.
+    if trust_required is not None and trust_required != "trusted":
         _fail(f"{path}.trust_required", "supported value is 'trusted'")
 
     max_confidentiality = None

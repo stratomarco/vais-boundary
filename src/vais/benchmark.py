@@ -596,8 +596,14 @@ def _metrics(items: list[EpisodeResult]) -> dict[str, Any]:
         "mcp_not_called_action_count": sum(
             state == "not_called" for item in valid for state in item.mcp_call_states
         ),
+        # Counted over every episode, not the evaluable ones: since rc12 an episode
+        # whose only outcome is indeterminate leaves the evaluable set (DEC-040), so
+        # counting within it would always report zero.
         "mcp_indeterminate_action_count": sum(
-            state == "indeterminate" for item in valid for state in item.mcp_call_states
+            state == "indeterminate" for item in items for state in item.mcp_call_states
+        ),
+        "mcp_indeterminate_episodes": sum(
+            "indeterminate" in item.mcp_call_states for item in items
         ),
         "mcp_untrusted_ingress_observations": sum(
             bool(item.ingress and item.ingress.get("trust") == "untrusted")

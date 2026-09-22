@@ -49,7 +49,7 @@ YAML_TOKENS = [
     b"!!python/object:os.system", b"!!binary", b"? ", b": ",
     b"deny", b"allow", b"secret", b"public", b"trusted",
     b"forbidden_effect", b"contract_binding", b"confidentiality_ceiling",
-    b"max_effect_count", b"exact_action_approval",
+    b"max_effect_count", b"exact_action_approval", b"approval_single_use",
 ]
 
 
