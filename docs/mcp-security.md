@@ -95,6 +95,18 @@ effect:
 
 That lets the existing invariant engine verify the same security properties regardless of whether `send_email` is a local Python function, an HTTP API or an MCP tool.
 
+**What an MCP effect is.** Once `call_tool` returns, the effect is built from the arguments VAIS sent. The server's reply is kept as the record's `result`, labelled untrusted, and is not consulted. So the verifier establishes that an authorized request for X was dispatched and returned, not that X is the external state that resulted. A server that performs something other than what it was asked is not detected; receipt or read-back reconciliation would close that and is not implemented (LIM-046, LIM-049).
+
+Since 0.12.0rc12 the profile loader rejects two effect fields whose names are equal after NFC normalisation, rather than silently keeping the later one (FIND-055), and reports a `:` in a server or tool name as a validation error (FIND-054).
+
+## Approvals and audit
+
+`MCPProtectedClient` accepts an optional `approval_store` and forwards it to the reference monitor, so an exact-action approval is consumed once on the MCP path as it is on `ProtectedExecutor`. Before 0.12.0rc12 the client could not take a store, and a contract-held approval authorized the same call every time it was proposed (FIND-049). Without a store that is still the behaviour (LIM-044).
+
+When VERIFY runs over MCP effects approved through a store, pass the same store to the invariant engine, or `exact_action_approval` cannot see the grants and reports the effect as unapproved (FIND-050).
+
+The client also accepts an optional `audit` trail. Every decision, including denials made before the monitor is consulted, is recorded with the action fingerprint and the contract identity; observed and indeterminate outcomes are recorded as `effect_observed` and `effect_indeterminate`. No argument value and no exception message is recorded.
+
 ## Scope through v0.8
 
 v0.7 is an **agent-host integration wrapper**, not yet a transparent wire proxy for arbitrary MCP applications.
@@ -136,6 +148,8 @@ If an authorized MCP call raises after transmission, VAIS cannot safely assume t
 - `indeterminate`: the call was authorized and attempted, but transport/runtime failure makes the external outcome uncertain.
 
 An `indeterminate` call is not counted as proof that the external effect did not happen. Production integrations should use idempotency keys, server-side audit receipts or domain-specific reconciliation for high-consequence tools.
+
+Since 0.12.0rc12 it is not counted as a defended outcome either. An indeterminate call produces no effect record, so the verifier sees nothing, and an episode that scored zero on that basis would look secure because its outcome could not be observed. Absent a verified violation, every benchmark scorer now removes such an episode from the evaluable set and counts it separately, the same rule already applied to target failures (DEC-040).
 
 ## Real local-model demonstration
 

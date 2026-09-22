@@ -101,9 +101,11 @@ v0.3 supports:
 
 0.12.0rc11 adds `max_effect_count`, the first invariant whose subject is the **set** of effects rather than a single effect. It is evaluated in VERIFY only: the reference monitor decides one action at a time and keeps no state across decisions, so a breach of the bound is detected after the fact rather than denied in flight. See `docs/security-invariants.md` and LIM-035.
 
+0.12.0rc12 adds `approval_single_use`, the second such invariant, which reports one exact approval authorizing more than one effect (FIND-051). `exact_action_approval` also accepts the `ApprovalStore` the enforcement path consumed from; before rc12 it saw only contract-held approvals and flagged effects approved through the store (FIND-050).
+
 Effects also preserve the exact action fingerprint when the action is canonicalizable, allowing the invariant engine to independently detect approval replay against a modified high-consequence action.
 
-The invariant engine is intentionally separate from the reference monitor. That independence gives testing an oracle capable of catching reference-monitor implementation bugs.
+The invariant engine is intentionally separate from the reference monitor. That independence gives testing an oracle capable of catching reference-monitor implementation bugs. It is not independent of the executor: an effect is what the execution boundary reports, and on the MCP path that is the dispatched request rather than state read back from the system of record (LIM-046).
 
 ## 7. Verifiable reward
 
@@ -120,6 +122,8 @@ Research may add shaping rewards later, but those must be reported separately fr
 ## 8. Audit trail
 
 Authorization decisions and effects can be recorded in a deterministic JSONL audit trail. Core events use sequence numbers instead of timestamps so regression tests remain reproducible.
+
+Since 0.12.0rc12 both `ProtectedExecutor` and `MCPProtectedClient` record, for every decision, the action fingerprint and the contract's principal, session, tenant and capability identity, so the chain shows which action was decided and for whom. Argument values are never recorded (DEC-043).
 
 Production adapters may enrich events with time, actor, request, trace and deployment metadata.
 

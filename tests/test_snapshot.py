@@ -37,20 +37,4 @@ def test_default_benchmark_summary_matches_committed_snapshot():
             encoding="utf-8"
         )
     )
-    assert _strip_zero_rc12_key(actual, "mcp_indeterminate_episodes") == expected
-
-
-def _strip_zero_rc12_key(summary, key):
-    """Remove a counter rc12 added after this snapshot was frozen, asserting it is zero.
-
-    The snapshot is a historical record and stays byte-identical. rc12 added an
-    indeterminate-outcome counter (DEC-040); the deterministic sessions here never
-    fail after dispatch, so it must be zero everywhere and nothing else may differ.
-    """
-    if isinstance(summary, dict):
-        if key in summary:
-            assert summary[key] == 0, f"{key} is {summary[key]}, expected 0"
-        return {k: _strip_zero_rc12_key(v, key) for k, v in summary.items() if k != key}
-    if isinstance(summary, list):
-        return [_strip_zero_rc12_key(item, key) for item in summary]
-    return summary
+    assert actual == expected

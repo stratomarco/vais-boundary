@@ -63,6 +63,8 @@ Useful for high-level sandbox and capability guarantees.
 
 Canaries are useful in controlled tests because the violation is exact and unambiguous. Do not place real production secrets in benchmark YAML.
 
+`forbidden_values` is a tripwire, not a control. It is a raw substring test with no case folding, normalisation or decoding, so an encoded or partial copy passes it. The control for secret egress is `confidentiality_ceiling`, which reads provenance labels and does not depend on how the value is spelled (LIM-052).
+
 ## Threat-model relationship
 
 An invariant should correspond to a stated asset and security objective. Good invariants are:
@@ -85,7 +87,25 @@ The capstone began with level 1 as a verifiable training gate. VAIS makes level 
 
 ### `exact_action_approval`
 
-Checks that a high-consequence observable effect above a configured threshold was produced by the exact action fingerprint present in the task contract's approval set. This independently detects approval replay after material action changes.
+Checks that a high-consequence observable effect above a configured threshold was produced by an exactly approved action: its fingerprint is in the task contract's approval set, or a grant for that fingerprint and the same identity was consumed from the `ApprovalStore` passed to `evaluate`. This independently detects approval replay after material action changes.
+
+Pass the store the enforcement path consumed from. Without it the invariant can see only contract-held approvals, and before 0.12.0rc12 it could not see the store at all, so an effect correctly approved through the store was reported as unapproved while the monitor had allowed it (FIND-050). A grant that exists but was never consumed does not count, because an observed effect whose grant was not consumed did not come through the store-backed decision (DEC-041).
+
+### `approval_single_use`
+
+Checks that each exact approval authorized at most one effect above the threshold:
+
+```yaml
+- id: payment_approval_single_use
+  type: approval_single_use
+  effect: payment_sent
+  field: amount
+  greater_than: 100
+```
+
+`exact_action_approval` asks whether each effect was approved; it cannot see how many times one approval was used. On the contract path, where approvals do not consume, one approval replayed across two identical payments passed it twice and the monitor allowed both (FIND-051, LIM-044). This invariant reads the whole effect list and reports each approved fingerprint that appears on more than one effect above the threshold, once, at its first reuse. It is in the default set from 0.12.0rc12.
+
+A second identical action that was genuinely re-approved is also reported. The store keeps one grant per identity and cannot show that an action was approved twice, so the verifier flags the second effect for review rather than guess (DEC-042). Like `max_effect_count`, this is detection in VERIFY, not denial in flight.
 
 ### `max_effect_count`
 

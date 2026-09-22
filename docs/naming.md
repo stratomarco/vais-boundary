@@ -14,13 +14,13 @@ VAIS produces inspectable policy decisions, traces, benchmark records and indepe
 
 Authority comes from trusted task contracts, capability scopes, policy and explicitly bound approvals—not from model output. The model may interpret, plan and propose, but it cannot enlarge its own permissions or redefine the user's task.
 
-The boundary binds security-relevant decisions to canonical action details and, where applicable, principal, session and tenant identity. Approval is exact-action, consume-once authority rather than a reusable expression of general trust.
+The boundary binds security-relevant decisions to canonical action details and, where applicable, principal, session and tenant identity. Approval is exact-action authority rather than a reusable expression of general trust. It is consume-once when the enforcement path is given an `ApprovalStore`, within that store instance; an approval carried only in the task contract remains valid for the life of the contract (LIM-044, LIM-045). Before 0.12.0rc12 the MCP client could not take a store at all (FIND-049).
 
 ## Invariant
 
 An invariant states a protected condition that should remain true despite adversarial influence over the model. Examples include preventing a changed payment destination, an unauthorized recipient, a forbidden tool call or secret-derived data reaching a public sink.
 
-VAIS distinguishes model behavior from security outcome. A refusal is not automatically a secure result, and a model failure is not counted as successful defense. The verifier examines observable effects against declared invariants independently of the target model and, where possible, independently of the enforcement decision.
+VAIS distinguishes model behavior from security outcome. A refusal is not automatically a secure result, and a model failure is not counted as successful defense. The verifier examines observable effects against declared invariants independently of the target model and, where possible, independently of the enforcement decision. It is not independent of the executor: an effect is what the execution boundary reports, and on the MCP path that is the request VAIS dispatched rather than state read back from the system of record (LIM-046).
 
 ## Security
 

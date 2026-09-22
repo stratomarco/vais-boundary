@@ -60,7 +60,7 @@ Create and activate a virtual environment, then install the exact wheel file:
 
 ```powershell
 python -m pip install --force-reinstall `
-  ".\dist\rc11-final\verifiable_ai_security-0.12.0rc11-py3-none-any.whl"
+  ".\dist\rc12-final\verifiable_ai_security-0.12.0rc12-py3-none-any.whl"
 ```
 
 Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.

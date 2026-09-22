@@ -42,10 +42,20 @@ The LLM may follow the attacker's instruction. The framework does not require pr
 ## Assumptions
 
 - policy, invariant files and enforcement code are loaded from an integrity-protected environment;
-- the real tool cannot be reached through an alternate path that bypasses `ProtectedExecutor`;
-- adapters correctly label external sources and preserve labels across transformations;
-- trusted upstream components are not already compromised;
-- an effect adapter accurately represents whether a consequential action occurred.
+- the real tool cannot be reached through an alternate path that bypasses the enforcement boundary, meaning `ProtectedExecutor` or `MCPProtectedClient`. This is assumed, not tested: the library cannot enforce it because the application holds the tool credentials (LIM-050);
+- adapters correctly label external sources and preserve labels across transformations, including re-labelling a model-produced value as trusted only when it exactly equals a contract binding (LIM-053);
+- trusted upstream components are not already compromised, which includes the MCP servers VAIS dispatches to (LIM-049);
+- an effect adapter accurately represents whether a consequential action occurred. On the MCP path the effect is the request VAIS dispatched, not state read back from the system of record, so this assumption is what lets the verifier treat a returned call as the effect it asked for (LIM-046);
+- one `ApprovalStore` instance serves each approval file. Consume-once holds within an instance and not across processes sharing a file (LIM-045).
+
+## Known gaps
+
+Recorded in the research ledger rather than here, so they carry evidence and stay current:
+
+- authority has no freshness: no contract validity window, revision or revocation, and approvals never expire (LIM-047);
+- authority is judged per argument, and a proposed action carries no provenance of its own, so an argument without a trust requirement can come from hostile content while the authority-bearing ones stay trusted (LIM-048);
+- without an `ApprovalStore`, a contract-held approval is reusable for the life of the contract; VERIFY reports the reuse and ENFORCE does not prevent it (LIM-044);
+- a bound over a set of effects is checked in VERIFY and not enforced in flight (LIM-035).
 
 ## Current non-goals
 
@@ -55,6 +65,8 @@ The LLM may follow the attacker's instruction. The framework does not require pr
 - side-channel resistance;
 - cryptographically tamper-evident audit storage;
 - automatic safe declassification/endorsement of untrusted information;
-- protecting applications that deliberately give the model unrestricted credentials outside VAIS.
+- protecting applications that deliberately give the model unrestricted credentials outside VAIS;
+- mediating the agent's final text answer or any reasoning trace. VAIS mediates tool calls only, so an application that displays or logs model text must treat it as a separate egress channel (LIM-051);
+- detecting an MCP server that performs an effect other than the one requested (LIM-049).
 
 These boundaries must remain explicit so successful demos are not mistaken for stronger guarantees than the code actually provides.
