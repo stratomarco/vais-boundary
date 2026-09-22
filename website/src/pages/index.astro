@@ -36,8 +36,8 @@ const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
         <h3>What it does not show</h3>
         <ul>
           <li>Not proof of universal security. One campaign, recorded model builds, one local runtime.</li>
-          <li><b>65.7% is not the cost of enforcement.</b> In the paired control, discordant pairs split almost evenly — 25 success-to-failure against 28 failure-to-success.</li>
-          <li>One enforcement surface ships <b>unmitigated</b>: the decision reason returned to the caller can disclose which argument a contract binds.</li>
+          <li><b>65.7% is not the cost of enforcement.</b> In the paired control, discordant pairs split almost evenly: 25 success-to-failure against 28 failure-to-success.</li>
+          <li>Two enforcement gaps ship <b>unmitigated</b>: the decision reason returned to the caller can disclose which argument a contract binds, and a limit on how many times an effect happens is checked after the fact but not yet blocked.</li>
           <li>In a separate lab experiment both pre-registered primary outcomes <b>failed to validate</b>, and a content-filter guardrail matched the enforced arm's catch rate. The difference showed up as cost, not catch.</li>
           <li>Release candidate software. Not production hardened.</li>
         </ul>
