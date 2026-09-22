@@ -22,3 +22,9 @@ results/
 research/db/*.sqlite
 research/evidence/*.json
 research/evidence/*.jsonl
+
+# Campaign run state: the accumulated corpus is cached by CI, not committed.
+# campaigns/corpus/ IS committed and is the seed set.
+campaigns/corpus_run/
+campaigns/reports/
+.coverage

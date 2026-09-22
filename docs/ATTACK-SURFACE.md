@@ -31,6 +31,14 @@ so the failure routes through the existing fail-closed path (FIND-041). The resi
 nesting that fails inside an adapter before any monitor decision exists, leaving no audit entry —
 is recorded as LIM-033 and is **not** fixed. S13 also ships unmitigated.
 
+**rc11 campaign note (P1-6).** The P1-2 to P1-5 work is now continuous: `campaigns/` runs
+deterministic mutation campaigns against the policy loader, the invariant loader and security-value
+canonicalization, short on every push and long nightly, gated on triage verdict rather than on
+whether anything was raised. It found two loader faults in its first hour, both the same class of a
+validator assuming YAML hands it a string, and both fixed (FIND-047, FIND-048). Faults that die
+inside a dependency are reported and do not gate (LIM-043), and the campaign is not coverage-guided
+(LIM-042). The gate is known to fire because reverting the FIND-047 fix makes it fire.
+
 **rc11 fault-injection note (P1-5).** Config faults all fail closed: a missing file raises, a
 corrupt or over-permissive one is rejected, and an **empty policy file loads as deny-all rather
 than allow-all**, which is the cell that mattered most. Invariant faults fail closed too: an
@@ -81,6 +89,7 @@ work is done:
 | `P1-3` | Provenance and confidentiality lattice under adversarial flows. **Done in rc11** (FIND-044): no laundering path found through derivation, and the defaults are recorded as asymmetric (LIM-036). |
 | `P1-4` | Audit-chain adversarial testing beyond single-event tampering. **Done in rc11** (FIND-045): the boundary is whether the attacker rebuilds, not which manipulation is used (LIM-037, LIM-038). |
 | `P1-5` | Fault injection against config parsing and invariant evaluation. **Done in rc11**; found and fixed a fail-open in the approval store (FIND-046) and recorded LIM-039 to LIM-041. |
+| `P1-6` | Continuous campaigns in CI. **Done in rc11**; found FIND-047 and FIND-048 in the loaders (LIM-042, LIM-043). |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated in rc10**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |

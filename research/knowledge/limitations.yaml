@@ -92,3 +92,9 @@ limitations:
 
   - id: LIM-041
     limitation: An invariant whose effect kind is never produced by the application is silently inert. Nothing validates that the effect named in an invariant is one the application emits, so a typo such as payment_send against an application emitting payment_sent loads cleanly, evaluates cleanly and never fires. The loader cannot detect this because it has no inventory of the effect kinds an application produces.
+
+  - id: LIM-042
+    limitation: The continuous campaign is a deterministic mutation campaign with a persisted regression corpus, not coverage-guided fuzzing. No feedback loop steers the mutator toward unexplored branches, so it explores far less efficiently than libFuzzer or Atheris would, and the accumulated corpus holds only inputs that produced a new fault signature rather than inputs that increased coverage. Coverage is measured and reported as evidence that inputs reach the target code, and is not used to guide generation.
+
+  - id: LIM-043
+    limitation: A campaign fault that dies inside a dependency is classified for review and does not fail CI, because the code is not this project's to fix. Deeply nested YAML exhausts the PyYAML scanner's stack, so a malformed policy or invariant file can raise RecursionError rather than the declared PolicyValidationError. The loader's contract is violated in that case and the condition is reported rather than silenced, but no gate fires on it.

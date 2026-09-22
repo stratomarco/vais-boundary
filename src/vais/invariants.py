@@ -183,7 +183,12 @@ def _mapping(value: Any, path: str) -> dict[str, Any]:
 def _known_keys(raw: dict[str, Any], allowed: set[str], path: str) -> None:
     unknown = set(raw) - allowed
     if unknown:
-        _fail(path, f"unknown field(s): {', '.join(sorted(unknown))}")
+        # YAML keys are not necessarily strings. `1: x`, `true: x` and `~: x` all
+        # produce non-string keys, and sorting or joining them raised TypeError
+        # here instead of reporting an unknown field (FIND-048). Rendering through
+        # str() keeps the message useful and the rejection in contract.
+        rendered = ", ".join(sorted(str(key) for key in unknown))
+        _fail(path, f"unknown field(s): {rendered}")
 
 
 def _non_empty_string(value: Any, path: str) -> str:

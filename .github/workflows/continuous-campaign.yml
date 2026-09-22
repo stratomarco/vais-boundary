@@ -1,0 +1,149 @@
+name: continuous-campaign
+
+# Continuous mutation campaigns against the parsers and canonicalizers that take
+# hostile input. Short on push and pull request, long nightly. Modelled on
+# mapfuzz's continuous-fuzz workflow, with the same discipline: every harness
+# self-tests before its campaign runs, faults deduplicate by location rather than
+# by artifact count, and the job fails only when triage classifies a fault as
+# `real`. A fault that died inside a dependency is reported and does not gate,
+# because this project cannot fix PyYAML's stack depth in its own tree.
+#
+# The gate is meaningful only because it is known to fire: reverting the
+# FIND-047 fix makes the policy campaign exit 1, and `tests/test_campaign_triage.py`
+# asserts the classifier and the gate on every commit.
+
+on:
+  push:
+    branches: [main]
+    paths: ['campaigns/**', 'src/vais/**', '.github/workflows/continuous-campaign.yml']
+  pull_request:
+    paths: ['campaigns/**', 'src/vais/**', '.github/workflows/continuous-campaign.yml']
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: campaign-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  campaign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [policy, invariants, value]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -e ".[dev]" coverage
+
+      - name: Self-test the harness before trusting a campaign result
+        run: python -m campaigns.run --selftest
+
+      - name: Restore the accumulated regression corpus
+        uses: actions/cache@v4
+        with:
+          path: campaigns/corpus_run/${{ matrix.target }}
+          key: campaign-corpus-${{ matrix.target }}-${{ github.run_id }}
+          restore-keys: campaign-corpus-${{ matrix.target }}-
+
+      - name: Seed the run corpus from the committed corpus
+        run: |
+          mkdir -p campaigns/corpus_run/${{ matrix.target }}
+          cp -n campaigns/corpus/${{ matrix.target }}/* campaigns/corpus_run/${{ matrix.target }}/ 2>/dev/null || true
+          echo "corpus entries: $(ls -1 campaigns/corpus_run/${{ matrix.target }} | wc -l)"
+
+      - name: Campaign
+        id: campaign
+        run: |
+          SECONDS_BUDGET=45
+          if [ "${{ github.event_name }}" = "schedule" ]; then SECONDS_BUDGET=900; fi
+          mkdir -p campaigns/reports
+          set +e
+          coverage run --source=vais -m campaigns.run \
+            --target ${{ matrix.target }} \
+            --seconds "$SECONDS_BUDGET" \
+            --seed "${{ github.run_number }}" \
+            --corpus campaigns/corpus_run/${{ matrix.target }} \
+            --corpus-out campaigns/corpus_run/${{ matrix.target }} \
+            --report campaigns/reports/${{ matrix.target }}.json
+          echo "gate=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Coverage of the target code
+        run: |
+          coverage report --include="*/vais/policy.py,*/vais/invariants.py,*/vais/models.py,*/vais/mcp.py" \
+            | tee campaigns/reports/${{ matrix.target }}-coverage.txt
+
+      - name: Deduplicate the corpus before caching
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib
+          directory = pathlib.Path("campaigns/corpus_run/${{ matrix.target }}")
+          seen, removed = set(), 0
+          for path in sorted(directory.iterdir()):
+              if not path.is_file():
+                  continue
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if digest in seen:
+                  path.unlink(); removed += 1
+              else:
+                  seen.add(digest)
+          print(f"corpus: {len(seen)} unique entries, {removed} duplicates removed")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: campaign-${{ matrix.target }}
+          path: campaigns/reports/
+          retention-days: 30
+
+      - name: Open an issue for a new real finding
+        if: steps.campaign.outputs.gate != '0' && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Campaign finding: ${{ matrix.target }} target"
+          EXISTING=$(gh issue list --state open --search "$TITLE in:title" --json number --jq 'length')
+          if [ "$EXISTING" != "0" ]; then
+            echo "an open issue already exists for this target; not filing a duplicate"
+            exit 0
+          fi
+          {
+            echo "The nightly campaign classified at least one fault as \`real\` on the \`${{ matrix.target }}\` target."
+            echo
+            echo "A \`real\` verdict means the fault died inside VAIS code, so it is a validator that"
+            echo "missed a case rather than an input rejected cleanly. Faults inside a dependency are"
+            echo "classified \`review\` and do not reach this step."
+            echo
+            echo '```json'
+            cat campaigns/reports/${{ matrix.target }}.json
+            echo '```'
+            echo
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "The corpus entry that reproduces it is attached to that run as \`campaign-${{ matrix.target }}\`."
+          } > body.md
+          gh issue create --title "$TITLE" --body-file body.md --label bug
+
+      - name: Gate on real findings
+        if: steps.campaign.outputs.gate != '0'
+        run: |
+          echo "triage classified at least one fault as real"
+          cat campaigns/reports/${{ matrix.target }}.json
+          exit 1

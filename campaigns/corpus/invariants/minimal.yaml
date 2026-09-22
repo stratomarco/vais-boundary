@@ -1,0 +1,11 @@
+version: 1
+invariants:
+  - id: forbid
+    description: forbids an effect outright
+    type: forbidden_effect
+    effect: email_sent
+  - id: bound
+    description: bounds how many reads a task may make
+    type: max_effect_count
+    effect: record_read
+    max_count: 5

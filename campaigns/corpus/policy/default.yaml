@@ -1,0 +1,33 @@
+version: 4
+default_action: deny
+
+tools:
+  read_document:
+    allow: true
+    required_scope: documents:read
+    arguments:
+      path:
+        trust_required: trusted
+
+  send_email:
+    allow: true
+    required_scope: email:send
+    arguments:
+      recipient:
+        trust_required: trusted
+      body:
+        max_confidentiality: public
+
+  make_payment:
+    allow: true
+    required_scope: payments:send
+    arguments:
+      destination:
+        trust_required: trusted
+      amount: {}
+    approval:
+      field: amount
+      greater_than: 100
+
+  shell_exec:
+    allow: false

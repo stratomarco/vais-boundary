@@ -221,3 +221,9 @@ decisions:
     decision: Make the approval store's in-memory change and its persist atomic with respect to each other by rolling the in-memory change back when the write fails, using a context manager that catches BaseException and re-raises it.
     rationale: The alternative orderings are worse. Persisting before updating memory would require serialising a state the store does not yet hold, and leaving the divergence in place lets a restart replay a spent approval. The handler is broad but it re-raises rather than swallowing, so it converts no fault into a silent decision and does not contradict DEC-033; it changes only whether memory and the stored record agree afterwards.
     evidence: [src/vais/approvals.py, tests/test_fault_injection.py, docs/ATTACK-SURFACE.md]
+
+  - id: DEC-039
+    date: 2026-09-22
+    decision: Build the continuous campaign as a deterministic seeded mutation harness with its own triage, rather than adopting Atheris or libFuzzer, and gate CI on triage verdict rather than on whether any exception was raised.
+    rationale: Determinism matches how this project records evidence everywhere else, since a finding replays exactly from a seed and index, and it avoids a platform-specific dependency that does not install on the Windows half of the test matrix. The cost is real and is recorded in LIM-042, namely that without coverage feedback the mutator is much less efficient than a guided fuzzer. Gating on verdict rather than on any raised exception is what makes the campaign usable at all, because a loader that rejects malformed input by raising is working correctly and would otherwise fail every run.
+    evidence: [campaigns/README.md, tests/test_campaign_triage.py, src/vais/policy.py]

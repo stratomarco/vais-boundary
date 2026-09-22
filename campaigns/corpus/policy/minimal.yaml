@@ -1,0 +1,15 @@
+version: 4
+default_action: deny
+tools:
+  send_email:
+    allow: true
+    required_scope: email:send
+    reject_undeclared_arguments: true
+    arguments:
+      recipient:
+        trust_required: trusted
+      body:
+        max_confidentiality: public
+    approval:
+      field: amount
+      greater_than: 100

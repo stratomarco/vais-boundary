@@ -61,7 +61,12 @@ def _mapping(value: Any, path: str) -> dict[str, Any]:
 def _known_keys(raw: dict[str, Any], allowed: set[str], path: str) -> None:
     unknown = set(raw) - allowed
     if unknown:
-        _fail(path, f"unknown field(s): {', '.join(sorted(unknown))}")
+        # YAML keys are not necessarily strings. `1: x`, `true: x` and `~: x` all
+        # produce non-string keys, and sorting or joining them raised TypeError
+        # here instead of reporting an unknown field (FIND-048). Rendering through
+        # str() keeps the message useful and the rejection in contract.
+        rendered = ", ".join(sorted(str(key) for key in unknown))
+        _fail(path, f"unknown field(s): {rendered}")
 
 
 def _strict_bool(value: Any, path: str) -> bool:
@@ -201,7 +206,12 @@ def load_policy(path: str | Path) -> Policy:
         _fail("policy.version", "supported versions are 1, 2, 3 and 4")
 
     default_action = raw.get("default_action", "deny")
-    if default_action not in {"allow", "deny"}:
+    # The isinstance guard is load-bearing, not decoration. Set membership raises
+    # TypeError for an unhashable operand, so `default_action: [allow, deny]`
+    # reached this line and failed with "unhashable type: 'list'" rather than a
+    # PolicyValidationError. The version check above already has this shape and
+    # short-circuits correctly; this one did not (FIND-047).
+    if not isinstance(default_action, str) or default_action not in {"allow", "deny"}:
         _fail("policy.default_action", "must be 'allow' or 'deny'")
     if version >= 4 and default_action != "deny":
         _fail("policy.default_action", "policy v4 requires fail-closed 'deny'")

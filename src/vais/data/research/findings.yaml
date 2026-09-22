@@ -282,3 +282,15 @@ findings:
     version: "0.12.0rc11"
     type: tcb_fail_open_defect
     evidence: [tests/test_fault_injection.py, src/vais/approvals.py, docs/ATTACK-SURFACE.md]
+
+  - id: FIND-047
+    finding: The P1-6 campaign found that load_policy tested default_action with set membership and no type guard. Set membership raises TypeError for an unhashable operand, so a policy declaring default_action as a list or a mapping failed with unhashable type rather than PolicyValidationError. The version check immediately above already guarded with isinstance and short-circuits correctly; this one did not. It failed closed, in that no Policy was produced and the exception propagated, and it broke the loader's declared contract that malformed input is rejected as PolicyValidationError.
+    version: "0.12.0rc11"
+    type: loader_contract_defect
+    evidence: [tests/test_loader_input_types.py, src/vais/policy.py, campaigns/README.md]
+
+  - id: FIND-048
+    finding: The P1-6 campaign found that the unknown-field reporter sorted and joined YAML keys directly. YAML keys are not necessarily strings, so an integer, boolean, null, float or date key raised TypeError instead of reporting an unknown field. The helper is copied verbatim into the policy, invariant and MCP loaders, so the same latent fault existed in three places and was fixed in all three. As with FIND-047 the outcome was fail-closed by exception and out of contract.
+    version: "0.12.0rc11"
+    type: loader_contract_defect
+    evidence: [tests/test_loader_input_types.py, src/vais/policy.py, src/vais/invariants.py]
