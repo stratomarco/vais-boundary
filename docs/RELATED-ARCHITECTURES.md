@@ -1,6 +1,6 @@
 # Related architectures: VAIS ↔ "Proof of Execution"
 
-**Status:** v2, current as of 0.12.0rc10.
+**Status:** v2, current as of 0.12.0rc11.
 **Source base:** VAIS claims verified against `bf38ab0` (the rc9 TCB-hardening base) on
 2026-09-09. The one rc10 change to the enforcement path, the `deep_freeze` recursion bound, is
 noted where it affects a row.

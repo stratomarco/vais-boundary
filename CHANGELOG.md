@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0-rc11 - 2026-09-22
+
 - Add the `max_effect_count` invariant type, the first whose subject is the set of effects rather than one effect. It bounds how many effects of one kind a task may produce, reports one violation per invariant rather than one per excess effect, and names the effect that crossed the bound. `max_count` must be a non-negative integer; Booleans and floats are rejected (FIND-043, DEC-035).
 - Record that this closes the volume half of composition in VERIFY only. `ReferenceMonitor.evaluate` takes a single `PlannedAction` and holds no state across decisions, so six identically authorized actions still produce six `ALLOW` decisions and a breach is detected after the fact rather than denied in flight. `tests/test_invariant_cardinality.py` asserts the limitation so it stays visible (LIM-035).
 - Add S14 to `docs/ATTACK-SURFACE.md` with the verified mechanism, and document the new type in `docs/security-invariants.md` and `docs/architecture.md`. Both halves of composition are now named, with the covered one distinguished from the open one.
@@ -17,6 +19,7 @@
 - Add `campaigns/`, continuous mutation campaigns against the policy loader, the invariant loader and security-value canonicalization (P1-6). Short on every push, long nightly, with a persisted regression corpus, coverage reported as evidence that inputs reach the target code, faults deduplicated by location rather than artifact count, and CI gated on triage verdict rather than on whether anything was raised. Unpackaged, like `experiments/` (DEC-039).
 - **Fix two loader faults the campaign found in its first hour**, both the same class of a validator assuming YAML hands it a string. `default_action` was tested with set membership and no type guard, so `default_action: [allow, deny]` raised `TypeError` for an unhashable operand instead of `PolicyValidationError` (FIND-047). The unknown-field reporter sorted and joined YAML keys directly, so an integer, boolean, null, float or date key raised `TypeError` instead of being reported; the helper is copied into all three loaders, so the fault existed three times and is fixed in all three (FIND-048). Neither was a bypass: both failed closed by exception and both broke the declared contract.
 - Record that the campaign is a deterministic mutation harness rather than coverage-guided fuzzing (LIM-042), and that a fault dying inside a dependency is reported but does not gate, since deeply nested YAML exhausts PyYAML's scanner stack and that is not this project's code to fix (LIM-043).
+- Add `docs/rc10-to-rc11-diff.md` and `benchmarks/rc/v0.12.0rc11-release-review.json` alongside the RC10 records, and rename the reviewer invitation for this release.
 - Relax the Windows quick start from `py -3.12` to `py -3`, which matches `requires-python` and the CI matrix, and document the zero-install `PYTHONPATH=src` tour for locked-down machines. Both were reported by an external reviewer and the documented commands were run before being written down.
 
 ## 0.12.0-rc10 - 2026-09-20

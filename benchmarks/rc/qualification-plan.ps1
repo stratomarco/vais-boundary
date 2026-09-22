@@ -1,4 +1,4 @@
-# VAIS 0.12.0rc10 qualification campaign plan
+# VAIS 0.12.0rc11 qualification campaign plan
 # Load one named model in LM Studio before running its command.
 
 vais adaptive-reference-lmstudio `

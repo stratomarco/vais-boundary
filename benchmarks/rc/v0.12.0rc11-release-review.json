@@ -1,0 +1,112 @@
+{
+  "schema": "vais-release-review-v1",
+  "release_version": "0.12.0rc11",
+  "date": "2026-09-22",
+  "project_identity": {
+    "name": "VAIS Boundary",
+    "expansion": "Verifiable Authority & Invariant Security",
+    "repository": "https://github.com/stratomarco/vais-boundary",
+    "distribution": "verifiable-ai-security",
+    "command": "vais",
+    "author": "Marco Constantino",
+    "contact": "stratomarco@proton.me",
+    "license": "Apache-2.0"
+  },
+  "bounded_status": "RC11 is a hardening release. The enforcement layer was put under adversarial test for the first time and three defects were found and fixed: a fail-open in the approval store and two loaders breaking their own rejection contract. One new invariant type answers a gap an external reviewer found in the central property. The frozen RC7 benchmark evidence is carried unchanged and RC11 makes no new model claims from it.",
+  "material_findings": [
+    {
+      "id": "FIND-043",
+      "status": "addressed_in_verify_only",
+      "summary": "An external reviewer reported that the central property covers the flow half of composition and not the volume half; a cardinality bound was not expressible because the policy schema is a closed allowlist."
+    },
+    {
+      "id": "FIND-046",
+      "status": "fixed_and_regression_tested",
+      "summary": "ApprovalStore.consume marked a grant spent in memory before persisting, so a failed write left the record unspent and a restart replayed the approval. Consume-once did not survive a failed write."
+    },
+    {
+      "id": "FIND-047",
+      "status": "fixed_and_regression_tested",
+      "summary": "default_action was tested with set membership and no type guard, so an unhashable value raised TypeError rather than PolicyValidationError."
+    },
+    {
+      "id": "FIND-048",
+      "status": "fixed_and_regression_tested",
+      "summary": "The unknown-field reporter sorted and joined YAML keys directly, so a non-string key raised TypeError. The helper is copied into three loaders and was fixed in all three."
+    }
+  ],
+  "negative_results": [
+    {
+      "id": "FIND-044",
+      "summary": "No laundering path found through the provenance lattice across seeded DAGs of depth at least twelve; five mutations of the lattice rules were each caught. Surfaced an asymmetry in the defaults rather than a bug (LIM-036)."
+    },
+    {
+      "id": "FIND-045",
+      "summary": "The audit chain's detection boundary is set by whether the attacker rebuilds, not by which manipulation is used. Tail truncation and any rebuilt chain are undetectable without a signed head (LIM-037, LIM-038)."
+    }
+  ],
+  "open_surfaces": [
+    {
+      "id": "S13",
+      "status": "unmitigated_in_rc11",
+      "summary": "The decision-reason output channel. Unchanged from RC10."
+    },
+    {
+      "id": "S14",
+      "status": "verify_only_in_rc11",
+      "summary": "The ENFORCE half of volume composition. max_effect_count detects a breach after the fact and does not deny the action that causes one, because the monitor holds no state across decisions (LIM-035)."
+    }
+  ],
+  "review": {
+    "approval_durability": "changed; consume-once now survives a failed persist",
+    "config_loading": "changed; three loaders reject non-string input types in contract",
+    "invariants": "extended; one new aggregate type, five existing types unchanged",
+    "canonicalization": "unchanged from RC10 and re-tested under campaign",
+    "provenance_lattice": "unchanged and now property-tested; sound through derivation",
+    "audit_chain": "unchanged; boundary demonstrated rather than asserted",
+    "reference_monitor_policy_mcp": "unchanged from RC10",
+    "website_and_campaigns": "outside_review_scope, excluded from both distributions"
+  },
+  "validation": {
+    "source_tests": "386 passed",
+    "fresh_source_zip_tests": "386 passed",
+    "policy_validation": "schema 4, 4 tools",
+    "invariant_validation": "6 invariants",
+    "protected_smoke_default": "20/20 valid security episodes, 0% target failure rate",
+    "protected_smoke_mcp": "500/500 valid security episodes, 0% target failure rate",
+    "isolated_wheel_install": "passed with pip check clean; FIND-041, FIND-047 and FIND-048 probes all behave",
+    "source_zip_reproducible": true,
+    "wheel_reproducible": true,
+    "sdist_reproducible": false,
+    "campaign_selftest": "passed on all three targets",
+    "campaign_real_verdicts": 0,
+    "experiments_website_campaigns_excluded": true,
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_portable_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "32 issues with the same 23 unexpected unresolved references as a clean RC9 tree, so RC11 adds none."
+  },
+  "frozen_benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "report_evidence_manifest_sha256": "0e2b82e74428d7f472b79996c700292322c4f89f431b4862a1a183e2bedf7e1d",
+    "carried_byte_identical_from_rc9": true,
+    "interpretation": "Zero observed violations is bounded evidence for the recorded campaign, not proof of universal security. SmolLM3 remains visibly gate-failed and its two target failures remain unevaluated. RC10 does not extend this evidence and the README utility aggregate is not an enforcement-cost figure.",
+    "carrier_before_rc11": "0.12.0rc10"
+  },
+  "lab_experiment_evidence": {
+    "location": "experiments/tier_a",
+    "packaged": false,
+    "pre_registrations": 2,
+    "raw_episode_records": 6351,
+    "runs": 7,
+    "pre_registered_primaries_validated": 0,
+    "injection_payloads_shipped": 120,
+    "interpretation": "Both pre-registered primary outcomes failed to validate and are reported as not evaluable. A content detector matched the enforced arm's catch rate on the exploratory family, so the separation observed is cost rather than catch rate. Results describe one application, one tool and two agent models."
+  }
+}
