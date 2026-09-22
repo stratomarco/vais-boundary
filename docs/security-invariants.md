@@ -105,7 +105,23 @@ Checks that each exact approval authorized at most one effect above the threshol
 
 `exact_action_approval` asks whether each effect was approved; it cannot see how many times one approval was used. On the contract path, where approvals do not consume, one approval replayed across two identical payments passed it twice and the monitor allowed both (FIND-051, LIM-044). This invariant reads the whole effect list and reports each approved fingerprint that appears on more than one effect above the threshold, once, at its first reuse. It is in the default set from 0.12.0rc12.
 
-A second identical action that was genuinely re-approved is also reported. The store keeps one grant per identity and cannot show that an action was approved twice, so the verifier flags the second effect for review rather than guess (DEC-042). Like `max_effect_count`, this is detection in VERIFY, not denial in flight.
+A second identical action that was genuinely re-approved is also reported. The store keeps one grant per identity and cannot show that an action was approved twice, so the verifier flags the second effect for review rather than guess (DEC-042).
+
+This is detection in VERIFY. From 0.12.0rc13 the reuse can also be prevented in flight: with a `SessionLedger`, a contract-held approval is single-use, and an `ApprovalStore` grant was already consumed once.
+
+### `monitor_mediated`
+
+Checks that every effect of one kind corresponds to a decision the reference monitor actually made:
+
+```yaml
+- id: payments_went_through_the_monitor
+  type: monitor_mediated
+  effect: payment_sent
+```
+
+Complete mediation, the assumption that no consequential tool can be reached by a path that bypasses the monitor, cannot be enforced by a library, because the application holds the tool credentials (LIM-050). It can be checked after the fact. Pass the `SessionLedger` the enforcement path recorded into as `ledger=` to `evaluate`; each effect then consumes one recorded `ALLOW` with the same tool and action fingerprint, and an effect with none left is reported as `effect_not_in_ledger`.
+
+The check runs one way. An allowed call can fail before it takes effect, so a ledger entry without a matching effect is expected and not reported (DEC-046). Without a ledger the invariant reports `missing_session_ledger`, and with a ledger from another session `ledger_identity_mismatch`: it fails closed rather than passing. It is not in the default set, because it requires the ledger.
 
 ### `max_effect_count`
 
@@ -123,4 +139,8 @@ This is the first invariant whose subject is the **set** of effects rather than 
 
 `max_count` must be a non-negative integer. Booleans are rejected, because `bool` is an `int` in Python and a boolean bound is a configuration error rather than a threshold; floats are rejected, because a fractional bound would make the comparison depend on rounding. A bound of `0` forbids the effect kind entirely. One violation is reported per invariant, not one per excess effect, and it names the effect that crossed the bound — a run that breaches a bound of five by five thousand produces one violation, not 4,995.
 
-**This closes the gap in VERIFY only, and not in ENFORCE.** `ReferenceMonitor.evaluate` takes a single `PlannedAction` and holds no state across decisions, so six identically authorized actions produce six independent `ALLOW` decisions. The breach is observed by the verifier after the fact; it is not denied in flight. Enforcing a bound during execution would require per-task state threaded through the monitor's signature and through every adapter, which is recorded as **LIM-035** and deliberately not attempted in this release. `tests/test_invariant_cardinality.py` asserts the limitation so that it stays visible.
+**In rc11 this closed the gap in VERIFY only, and not in ENFORCE.** `ReferenceMonitor.evaluate` took a single `PlannedAction` and held no state across decisions, so six identically authorized actions produced six independent `ALLOW` decisions and a breach was observed only after the fact (**LIM-035**).
+
+**From 0.12.0rc13 the bound can also be enforced in flight.** Policy v5 adds `max_calls` per tool, and a `SessionLedger` passed to the monitor records what it has allowed for one session. With both, the call that would exceed the bound is denied with `call_limit_reached`. The limit is checked before any approval, so reaching it never spends a human's approval (DEC-045), and a tool that declares `max_calls` is denied outright when no ledger is supplied, rather than allowed without its limit (DEC-044). Pair `max_calls` in the policy with `max_effect_count` in the invariants: ENFORCE stops the excess call, and VERIFY confirms nothing got past. Without a ledger, LIM-035 still holds, and `tests/test_invariant_cardinality.py` still asserts it.
+
+The ledger is in memory and belongs to one process; a restart starts a fresh one (LIM-055).

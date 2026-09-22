@@ -79,6 +79,7 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 - `public`, `internal`, `confidential`, and `secret` data labels;
 - conservative information-flow propagation;
 - exact-action approvals bound to canonical action fingerprints;
+- an optional per-session ledger that enforces call limits in flight, makes contract-held approvals single-use, and lets VERIFY check that every effect was allowed;
 - principal, session, and tenant binding with consume-once approvals when an `ApprovalStore` is supplied, within one process;
 - protected MCP calls with explicit observed, not-called, and indeterminate outcomes, where an indeterminate outcome is never scored as defended;
 - tamper-evident audit hash chaining;

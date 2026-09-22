@@ -70,6 +70,14 @@ campaign found FIND-047 again one field over (FIND-053), and reading the MCP loa
 review also published what it could not fix as LIM-044 to LIM-054, including every point the
 reviewer raised. S15 was added: the agent's text and reasoning are not mediated at all.
 
+**rc13 note (P1b-3).** The monitor can now be given a `SessionLedger`. With one, S14's ENFORCE half
+closes: policy v5's `max_calls` is denied in flight, checked and recorded under one lock. A
+contract-held approval becomes single-use, closing LIM-044 for callers that pass a ledger, and
+the new `monitor_mediated` invariant reads the same ledger to report effects no recorded `ALLOW`
+accounts for, the first after-the-fact check on the complete-mediation assumption (LIM-050).
+Restructuring the approval path for this found FIND-056: a tool requiring both an exact and a
+threshold approval consumed the store grant twice and could never be allowed.
+
 ---
 
 ## 0. Two corrections to the planned surface list
@@ -103,7 +111,7 @@ work is done:
 | `P1-5` | Fault injection against config parsing and invariant evaluation. **Done in rc11**; found and fixed a fail-open in the approval store (FIND-046) and recorded LIM-039 to LIM-041. |
 | `P1-6` | Continuous campaigns in CI. **Done in rc11**; found FIND-047 and FIND-048 in the loaders (LIM-042, LIM-043). |
 | `P1b-1` | The rc12 review of the monitor's edges. **Done in rc12**: FIND-049 to FIND-055 fixed, LIM-044 to LIM-054 published. |
-| `P1b-3` | Stateful monitor with one ledger shared by ENFORCE and VERIFY. Planned, not started; the owner for LIM-035 and LIM-044. |
+| `P1b-3` | Stateful monitor with one ledger shared by ENFORCE and VERIFY. **Done in rc13**: `SessionLedger`, policy v5 `max_calls`, `monitor_mediated`; found and fixed FIND-056. |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated through rc12**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |
@@ -113,7 +121,7 @@ work is done:
 | S3 | **Canonical action fingerprinting** | `models.py:action_fingerprint` → `plain_arguments`, `deep_freeze`, `canonical_json` | proposed action → approval identity | Two security-distinct actions must not share a fingerprint | rc9 closed Unicode/name classes; **P1-2 fixed unbounded-recursion** (`test_fingerprint_recursion`) + recorded reference-vs-referent risk and inverse-utility negative evidence (`test_fingerprint_collisions`) | **P1-2 (recursion done; TOCTOU→S6)** |
 | S4 | Provenance lattice transitions | `taint.py:derive_value`, `taint.py:derive_model_output` | untrusted data → derived label | `derived_untrusted` never launders back to `trusted` without explicit declassification | `test_taint` plus `test_provenance_lattice` (seeded DAGs, depth >= 12, mutation-checked) | **P1-3 done; no laundering path through derivation** |
 | S5 | Data-classification propagation | `taint.py:_max_confidentiality` (join in `derive_value`); enforced at `monitor.py` (l.77-86) and `invariants.py` `confidentiality_ceiling` | secret data → egress effect | Confidentiality is monotone (`join = max`); `secret` cannot silently drop to `public` | as S4, plus the ceiling tests | **P1-3 done; defaults are asymmetric, see LIM-036** |
-| S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening`) plus `test_fault_injection` (durability under a failed write), `test_mcp_approval_store`, `test_approval_verify` | **P1-2** (reference-vs-referent TOCTOU); FIND-046 fixed in rc11; FIND-049 to 051 fixed in rc12. Consume-once needs a store and one process (LIM-044, LIM-045); no freshness (LIM-047) → **P1b-3** |
+| S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening`) plus `test_fault_injection` (durability under a failed write), `test_mcp_approval_store`, `test_approval_verify` | **P1-2** (reference-vs-referent TOCTOU); FIND-046 fixed in rc11; FIND-049 to 051 fixed in rc12; FIND-056 fixed in rc13. Consume-once needs a store or a ledger, and one process (LIM-044, LIM-045, LIM-055); no freshness (LIM-047) → **P1b-8** |
 | S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; partial modification detected. Fork, tail truncation and any rebuilt chain are **not** detectable without a signed head (G-B1) | `test_audit_chain_integrity` (23 tests, mutation-checked) plus `test_tcb_hardening`, `test_audit_identity` | **P1-4 done; boundary demonstrated, LIM-037/038**. rc12: events carry the action fingerprint and contract identity (DEC-043) |
 | S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) plus `test_mcp_approval_store`, `test_audit_identity` | P1-1 (see S8 notes). The effect is the dispatched request (LIM-046); a malicious server is out of scope (LIM-049); complete mediation is assumed (LIM-050) |
 | S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) plus `test_fault_injection` | **P1-5 done**; an evaluator that raises propagates rather than reading as no-violations. An invariant on an effect kind never produced is inert (LIM-041). rc12: sees store grants (FIND-050), `approval_single_use` (FIND-051); an indeterminate call is not scored as defended (DEC-040) |
@@ -121,7 +129,7 @@ work is done:
 | S11 | Executor fail-closed seam | `executor.py:ProtectedExecutor.run` (l.51) | authorized decision → real effect | Only `DecisionType.ALLOW` executes; DENY / REQUIRE_APPROVAL emit no effect | `test_protected_executor` (2) | P1-5 |
 | S12 | Numeric threshold coercion | `monitor.py` (l.109-115), `invariants.py` (l.116-122) | model-supplied numeric field → threshold test | `bool` and non-finite rejected; non-numeric → DENY / `invalid_numeric_field` | `test_tcb_hardening::test_policy_threshold_rejects_nonfinite` | P1-1 (no gap) |
 | S13 | Decision-reason disclosure (output channel) | `monitor.py:ReferenceMonitor.evaluate` return value; `mcp.py:MCPProtectedClient.execute` | reference monitor → caller / agent loop | Enforcement outcomes must not hand an adaptive attacker a probing oracle | none | IMP-003 |
-| S14 | **Effect-set cardinality (volume composition)** | `monitor.py:ReferenceMonitor.evaluate` (one action); `executor.py:ProtectedExecutor.run` (loop, no accumulator); `invariants.py` aggregate path | many individually authorized actions → one unauthorized aggregate | A bound over a *set* of effects must be expressible and checkable | `test_invariant_cardinality` (13 tests, VERIFY side; the ENFORCE limitation is asserted) | **VERIFY closed in rc11; ENFORCE open (LIM-035)** |
+| S14 | **Effect-set cardinality (volume composition)** | `monitor.py:ReferenceMonitor.evaluate` (one action); `executor.py:ProtectedExecutor.run` (loop, no accumulator); `invariants.py` aggregate path | many individually authorized actions → one unauthorized aggregate | A bound over a *set* of effects must be expressible and checkable | `test_invariant_cardinality` (13 tests, VERIFY side; the stateless limitation is asserted) plus `test_session_ledger` (ENFORCE with a ledger; ENFORCE and VERIFY agree over 200 seeded traces) | **VERIFY closed in rc11; ENFORCE closed in rc13 when a `SessionLedger` is supplied**; stateless callers keep LIM-035 |
 | S15 | **Model text and reasoning output** | none; outside every enforcement path | model → user, logs, UI | Confidential context must not leave through a channel no decision covers | none | **Unmediated (LIM-051)**; a non-goal in the threat model |
 | S16 | Security mapping immutability | `models.py:FrozenDict` (contract bindings, action arguments, policy tools, effect attributes) | integration code → security state after construction | Authority and fingerprinted state cannot be changed in place after construction | `test_frozen_mapping` (every mutator, including `\|=`) | **FIND-052 fixed in rc12**; deliberate unbound `dict` calls are not preventable in Python and are outside the threat model |
 
@@ -430,6 +438,13 @@ and every code claim in that report was verified before it was accepted.
   `tests/test_invariant_cardinality.py` asserts that six identically authorized actions still
   produce six `ALLOW` decisions; if a later release enforces the bound, that test should fail and
   be rewritten.
+- **rc13 — ENFORCE closed when a `SessionLedger` is supplied (P1b-3).** The state went into a
+  ledger passed to `evaluate` rather than into the monitor, which keeps one monitor usable across
+  sessions. Policy v5's `max_calls` is checked and recorded under the ledger's lock, before any
+  approval is consumed, and a declared limit with no ledger is denied rather than ignored. The
+  rc11 test above still passes and is still correct, because it exercises the stateless path,
+  which is unchanged; the ledger path is tested in `tests/test_session_ledger.py`, including a
+  property test that ENFORCE and VERIFY agree over 200 seeded traces when they share a ledger.
 
 ## 3. Coverage gaps mapped to owning tasks (the P1 to-do, for the owner)
 
@@ -452,7 +467,8 @@ and every code claim in that report was verified before it was accepted.
   from policy. Every cell must DENY / raise, never allow.
 
 P1-2's fingerprint work (recursion fix + collision characterization) is complete on branch
-`p1-2-fingerprint-hardening`. The P1-3/P1-4/P1-5 harnesses above are **not** written yet — they
+`p1-2-fingerprint-hardening`. *(Historical, rc10. The P1-3, P1-4 and P1-5 harnesses were written
+and shipped in rc11; see the legend in §1.)* The P1-3/P1-4/P1-5 harnesses above are **not** written yet — they
 remain the map's to-do.
 
 ---

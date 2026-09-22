@@ -251,3 +251,21 @@ decisions:
     decision: Record the action fingerprint and the contract identity in audit events on both enforcement paths, and never argument values.
     rationale: Before this an authorization event carried only argument names, so the chain could show that a payment was allowed but not which payment or for whom. The fingerprint is a SHA-256 of the canonical action and carries no argument value, so it adds identity without adding secrets, and it is the same value the approval store and the verifier use.
     evidence: [tests/test_audit_identity.py, src/vais/audit.py, src/vais/mcp.py]
+
+  - id: DEC-044
+    date: 2026-09-23
+    decision: Make the reference monitor stateful by passing it a SessionLedger per session rather than by holding state in the monitor, and deny a tool that declares max_calls when no ledger is supplied.
+    rationale: One monitor instance serves many sessions, so state held in it would mix sessions, while a ledger bound to one contract identity keeps each session's history separate and lets the caller decide its lifetime. Denying a declared limit without a ledger keeps the limit fail-closed, since silently allowing an action a policy says to bound is the failure this work exists to remove. The check and the record happen under the ledger's lock so concurrent decisions cannot both take the last call.
+    evidence: [tests/test_session_ledger.py, src/vais/ledger.py, src/vais/monitor.py]
+
+  - id: DEC-045
+    date: 2026-09-23
+    decision: Check call limits before approvals, and decide whether any approval is needed before consuming one, consuming at most once per decision.
+    rationale: Consuming an approval and then denying the action for a separate reason spends a human's decision on nothing. Ordering the limit first and deciding the approval once removes that, and removing the second consume is also the fix for FIND-056.
+    evidence: [tests/test_session_ledger.py, src/vais/monitor.py, docs/security-invariants.md]
+
+  - id: DEC-046
+    date: 2026-09-23
+    decision: Add monitor_mediated as an opt-in invariant that reports effects no recorded ALLOW accounts for, checking in one direction only, and keep it out of the default set.
+    rationale: Complete mediation cannot be enforced by a library but can be checked after the fact against the ledger ENFORCE wrote. An allowed call can fail before it takes effect, so an entry without an effect is expected and not reported, while an effect without an entry is exactly an unmediated effect. It stays out of the default set because it requires callers to pass the ledger to VERIFY and would otherwise fail closed for every caller that does not.
+    evidence: [tests/test_session_ledger.py, src/vais/invariants.py, docs/security-invariants.md]

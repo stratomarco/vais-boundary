@@ -105,6 +105,8 @@ Since 0.12.0rc12 the profile loader rejects two effect fields whose names are eq
 
 When VERIFY runs over MCP effects approved through a store, pass the same store to the invariant engine, or `exact_action_approval` cannot see the grants and reports the effect as unapproved (FIND-050).
 
+From 0.12.0rc13 the client also accepts a `ledger` (a `SessionLedger` for this session). With it the monitor enforces a tool's `max_calls` in flight and makes contract-held approvals single-use; pass the same ledger to VERIFY to check that every MCP effect corresponds to an `ALLOW` (`monitor_mediated`).
+
 The client also accepts an optional `audit` trail. Every decision, including denials made before the monitor is consulted, is recorded with the action fingerprint and the contract identity; observed and indeterminate outcomes are recorded as `effect_observed` and `effect_indeterminate`. No argument value and no exception message is recorded.
 
 ## Scope through v0.8

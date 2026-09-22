@@ -131,3 +131,6 @@ limitations:
 
   - id: LIM-054
     limitation: The MCP profile loader is not a target of the continuous campaign. The policy and invariant loaders and security-value canonicalisation are campaigned; FIND-054 and FIND-055 were found in the MCP loader by reading it.
+
+  - id: LIM-055
+    limitation: A SessionLedger lives in memory in one process and is not persisted, so a restart or a second worker starts from an empty ledger and the session's call limits and single-use contract approvals begin again. Statefulness is also opt-in. A caller that passes no ledger keeps the stateless behaviour described in LIM-035 and LIM-044, except that a tool declaring max_calls is then denied rather than allowed.

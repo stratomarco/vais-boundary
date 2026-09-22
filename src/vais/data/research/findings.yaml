@@ -336,3 +336,9 @@ findings:
     version: "0.12.0rc12"
     type: loader_contract_defect
     evidence: [tests/test_loader_contract_rc12.py, src/vais/mcp.py, docs/mcp-security.md]
+
+  - id: FIND-056
+    finding: A tool requiring both an exact approval and a threshold approval could never be allowed through an ApprovalStore. Each approval rule checked separately, so the first check consumed the grant and the second found it spent and returned require_approval, and the human's approval was burned in the process. It failed closed, since nothing executed, and made one legitimate configuration unusable. The contract path was unaffected because membership does not consume. Found while restructuring the monitor for the session ledger. Approval is now decided once and consumed at most once.
+    version: "0.12.0rc13"
+    type: tcb_defect
+    evidence: [tests/test_session_ledger.py, src/vais/monitor.py, docs/security-invariants.md]

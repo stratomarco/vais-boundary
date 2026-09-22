@@ -101,6 +101,8 @@ v0.3 supports:
 
 0.12.0rc11 adds `max_effect_count`, the first invariant whose subject is the **set** of effects rather than a single effect. It is evaluated in VERIFY only: the reference monitor decides one action at a time and keeps no state across decisions, so a breach of the bound is detected after the fact rather than denied in flight. See `docs/security-invariants.md` and LIM-035.
 
+0.12.0rc13 makes the reference monitor optionally stateful. A `SessionLedger` passed to `evaluate` records what the monitor allowed for one session; with it, policy v5's `max_calls` is enforced in flight, a contract-held approval is single-use, and the `monitor_mediated` invariant can check in VERIFY that every effect corresponds to a recorded `ALLOW`. The ledger is checked and written under one lock, belongs to one contract identity, and lives in one process (LIM-055). Without it the monitor behaves as before.
+
 0.12.0rc12 adds `approval_single_use`, the second such invariant, which reports one exact approval authorizing more than one effect (FIND-051). `exact_action_approval` also accepts the `ApprovalStore` the enforcement path consumed from; before rc12 it saw only contract-held approvals and flagged effects approved through the store (FIND-050).
 
 Effects also preserve the exact action fingerprint when the action is canonicalizable, allowing the invariant engine to independently detect approval replay against a modified high-consequence action.
