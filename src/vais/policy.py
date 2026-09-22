@@ -33,9 +33,17 @@ class ToolPolicy:
     required_scope: str | None = None
     exact_approval_required: bool = False
     reject_undeclared_arguments: bool = False
+    # How many times this tool may be allowed in one session. Enforced only when the
+    # reference monitor is given a SessionLedger; without one, a tool that declares a
+    # limit is denied rather than allowed without it.
+    max_calls: int | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "arguments", FrozenDict(self.arguments))
+        if self.max_calls is not None and (
+            isinstance(self.max_calls, bool) or not isinstance(self.max_calls, int) or self.max_calls < 0
+        ):
+            raise ValueError("max_calls must be a non-negative integer")
 
 
 @dataclass(frozen=True)
@@ -142,6 +150,8 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
         allowed_fields.add("exact_approval_required")
     if version >= 4:
         allowed_fields.add("reject_undeclared_arguments")
+    if version >= 5:
+        allowed_fields.add("max_calls")
     _known_keys(raw, allowed_fields, path)
 
     allow = _strict_bool(raw.get("allow", False), f"{path}.allow")
@@ -187,6 +197,16 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
                 "policy v4 requires fail-closed undeclared-argument rejection",
             )
 
+    max_calls = None
+    if version >= 5 and "max_calls" in raw:
+        max_calls = raw["max_calls"]
+        # bool is an int in Python, and a fractional limit would make the comparison
+        # depend on rounding. The same rule as max_effect_count (DEC-035).
+        if isinstance(max_calls, bool) or not isinstance(max_calls, int):
+            _fail(f"{path}.max_calls", "must be an integer")
+        if max_calls < 0:
+            _fail(f"{path}.max_calls", "must not be negative")
+
     return ToolPolicy(
         allow=allow,
         arguments=arguments,
@@ -194,6 +214,7 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
         required_scope=required_scope,
         exact_approval_required=exact_approval_required,
         reject_undeclared_arguments=reject_undeclared_arguments,
+        max_calls=max_calls,
     )
 
 
@@ -205,8 +226,8 @@ def load_policy(path: str | Path) -> Policy:
     _known_keys(raw, {"version", "default_action", "tools"}, "policy")
 
     version = raw.get("version", 1)
-    if isinstance(version, bool) or not isinstance(version, int) or version not in {1, 2, 3, 4}:
-        _fail("policy.version", "supported versions are 1, 2, 3 and 4")
+    if isinstance(version, bool) or not isinstance(version, int) or version not in {1, 2, 3, 4, 5}:
+        _fail("policy.version", "supported versions are 1, 2, 3, 4 and 5")
 
     default_action = raw.get("default_action", "deny")
     # The isinstance guard is load-bearing, not decoration. Set membership raises

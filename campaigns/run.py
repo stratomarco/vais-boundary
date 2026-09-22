@@ -50,6 +50,7 @@ YAML_TOKENS = [
     b"deny", b"allow", b"secret", b"public", b"trusted",
     b"forbidden_effect", b"contract_binding", b"confidentiality_ceiling",
     b"max_effect_count", b"exact_action_approval", b"approval_single_use",
+    b"max_calls", b"version: 5", b"monitor_mediated",
 ]
 
 

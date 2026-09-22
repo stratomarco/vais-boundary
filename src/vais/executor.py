@@ -7,6 +7,7 @@ from .models import Decision, DecisionType, PlannedAction, TaskContract
 from .monitor import ReferenceMonitor
 from .sandbox import Effect, SandboxExecutor
 from .approvals import ApprovalStore
+from .ledger import SessionLedger
 
 
 @dataclass(frozen=True)
@@ -29,16 +30,18 @@ class ProtectedExecutor:
         executor: SandboxExecutor,
         audit: AuditTrail | None = None,
         approval_store: ApprovalStore | None = None,
+        ledger: SessionLedger | None = None,
     ) -> None:
         self.monitor = monitor
         self.executor = executor
         self.audit = audit
         self.approval_store = approval_store
+        self.ledger = ledger
 
     def run(self, actions: list[PlannedAction], contract: TaskContract) -> list[ExecutionRecord]:
         records: list[ExecutionRecord] = []
         for action in actions:
-            decision = self.monitor.evaluate(action, contract, self.approval_store)
+            decision = self.monitor.evaluate(action, contract, self.approval_store, self.ledger)
             if self.audit:
                 self.audit.record(
                     "authorization_decision",

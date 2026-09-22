@@ -33,11 +33,11 @@ from vais.models import PlannedAction, Provenance, TrustLevel, Value, action_fin
 ACCEPTED_LOADER = (PolicyValidationError, yaml.YAMLError, UnicodeDecodeError)
 ACCEPTED_VALUE = (ValueError,)
 
-POLICY_VERSIONS = {1, 2, 3, 4}
+POLICY_VERSIONS = {1, 2, 3, 4, 5}
 INVARIANT_TYPES = {
     "forbidden_effect", "contract_binding", "confidentiality_ceiling",
     "forbidden_values", "exact_action_approval", "max_effect_count",
-    "approval_single_use",
+    "approval_single_use", "monitor_mediated",
 }
 
 
@@ -108,7 +108,7 @@ def _postconditions_policy(policy) -> list[str]:
     if policy.default_action not in {"allow", "deny"}:
         broken.append("default_action must be allow or deny")
     if policy.version not in POLICY_VERSIONS:
-        broken.append("version must be one of 1,2,3,4")
+        broken.append("version must be one of 1,2,3,4,5")
     if policy.version >= 4 and policy.default_action != "deny":
         broken.append("policy v4 must be fail-closed deny")
     for name, tool in policy.tools.items():
@@ -116,6 +116,10 @@ def _postconditions_policy(policy) -> list[str]:
             broken.append("tool names must be non-empty strings")
         if not isinstance(tool.allow, bool):
             broken.append("tool allow must be boolean")
+        if tool.max_calls is not None and (
+            isinstance(tool.max_calls, bool) or not isinstance(tool.max_calls, int) or tool.max_calls < 0
+        ):
+            broken.append("max_calls must be a non-negative integer")
     return broken
 
 

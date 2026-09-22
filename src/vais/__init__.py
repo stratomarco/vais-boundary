@@ -111,6 +111,7 @@ from .reference_agent_lmstudio import ReferenceAgentLMStudioTarget
 from .objectives import AttackObjectiveFinding, AttackObjectiveSpec, AttackObjectiveType
 from .policy import ArgumentPolicy, ApprovalPolicy, Policy, ToolPolicy, load_policy
 from .approvals import ApprovalGrant, ApprovalStore
+from .ledger import LedgerEntry, SessionLedger
 from .reward import DeclarativeVerifiableReward, SecurityInvariant, VerifiableReward
 from .sandbox import Effect, SandboxExecutor
 from .scenarios import ExpectedEffect, Scenario, default_scenarios
@@ -239,6 +240,8 @@ __all__ = [
     "load_policy",
     "ApprovalGrant",
     "ApprovalStore",
+    "LedgerEntry",
+    "SessionLedger",
     "default_scenarios",
     "stable_hash",
     "summarize_results",

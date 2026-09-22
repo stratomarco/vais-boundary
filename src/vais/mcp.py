@@ -23,6 +23,7 @@ from .models import (
 )
 from .approvals import ApprovalStore
 from .audit import AuditTrail, action_audit_details
+from .ledger import SessionLedger
 from .monitor import ReferenceMonitor
 from .sandbox import Effect
 
@@ -220,9 +221,10 @@ class MCPProtectedClient:
 
     Pass an ``approval_store`` for consume-once approvals. Without one the monitor
     falls back to the contract's approved fingerprints, which authorize an exact
-    action for as long as the contract is in use (LIM-044). Before rc12 this client
-    could not take a store at all, so consume-once never held on the MCP path
-    (FIND-049).
+    action for as long as the contract is in use unless a ``ledger`` is also passed
+    (LIM-044). Before rc12 this client could not take a store at all, so
+    consume-once never held on the MCP path (FIND-049). A ``ledger`` also enforces
+    ``max_calls`` and gives VERIFY the record of what was allowed.
 
     The wrapper is intentionally small. It is suitable for an agent host that
     already owns an MCP ``ClientSession``. A fully transparent protocol proxy
@@ -238,6 +240,7 @@ class MCPProtectedClient:
         monitor: ReferenceMonitor,
         approval_store: ApprovalStore | None = None,
         audit: AuditTrail | None = None,
+        ledger: SessionLedger | None = None,
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
@@ -247,6 +250,7 @@ class MCPProtectedClient:
         self.monitor = monitor
         self.approval_store = approval_store
         self.audit = audit
+        self.ledger = ledger
 
     def _audit_decision(
         self, action: PlannedAction, contract: TaskContract, decision: Decision
@@ -292,7 +296,7 @@ class MCPProtectedClient:
                 call_state=MCPCallState.NOT_CALLED,
             )
 
-        decision = self.monitor.evaluate(action, contract, self.approval_store)
+        decision = self.monitor.evaluate(action, contract, self.approval_store, self.ledger)
         self._audit_decision(action, contract, decision)
         if decision.type != DecisionType.ALLOW:
             return MCPExecutionRecord(

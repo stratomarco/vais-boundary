@@ -9,6 +9,7 @@ from .sandbox import Effect
 
 if TYPE_CHECKING:
     from .approvals import ApprovalStore
+    from .ledger import SessionLedger
 
 
 Predicate = Callable[[Effect], bool]
@@ -60,10 +61,11 @@ class DeclarativeVerifiableReward:
         effects: list[Effect],
         contract: TaskContract | None = None,
         approval_store: ApprovalStore | None = None,
+        ledger: SessionLedger | None = None,
     ) -> tuple[float, tuple[str, ...]]:
         if contract is None:
             raise ValueError("declarative invariants require a TaskContract")
-        violations = self.engine.evaluate(effects, contract, approval_store)
+        violations = self.engine.evaluate(effects, contract, approval_store, ledger)
         self.last_details = violations
         ids = tuple(dict.fromkeys(item.invariant_id for item in violations))
         return (1.0 if ids else 0.0, ids)

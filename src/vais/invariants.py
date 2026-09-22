@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from collections import Counter
 from typing import TYPE_CHECKING, Any, Callable
 import math
 import unicodedata
@@ -14,6 +15,7 @@ from .sandbox import Effect
 
 if TYPE_CHECKING:
     from .approvals import ApprovalStore
+    from .ledger import SessionLedger
 
 
 @dataclass(frozen=True)
@@ -34,7 +36,7 @@ class InvariantDefinition:
 # See LIM-035: a bound over a set of effects is detected here, in VERIFY, and is not
 # enforced in flight, because the reference monitor decides one action at a time and
 # holds no state across decisions.
-AGGREGATE_INVARIANT_TYPES = frozenset({"max_effect_count", "approval_single_use"})
+AGGREGATE_INVARIANT_TYPES = frozenset({"max_effect_count", "approval_single_use", "monitor_mediated"})
 
 
 @dataclass(frozen=True)
@@ -58,6 +60,7 @@ class DeclarativeInvariantEngine:
         effects: list[Effect],
         contract: TaskContract,
         approval_store: ApprovalStore | None = None,
+        ledger: SessionLedger | None = None,
     ) -> tuple[InvariantViolation, ...]:
         """Check every invariant against the observed effects.
 
@@ -65,6 +68,10 @@ class DeclarativeInvariantEngine:
         Without it, ``exact_action_approval`` can only see approvals carried in the
         contract, and an effect correctly approved through the store is reported as
         unapproved (FIND-050).
+
+        Pass the ``ledger`` the enforcement path recorded into, if it used one. The
+        ``monitor_mediated`` invariant reads it to find effects the monitor never
+        allowed, and fails closed without it.
         """
 
         def approved(fingerprint: str) -> bool:
@@ -79,7 +86,7 @@ class DeclarativeInvariantEngine:
         violations: list[InvariantViolation] = []
         for invariant in self.invariants:
             if invariant.type in AGGREGATE_INVARIANT_TYPES:
-                violations.extend(self._aggregate_violations(invariant, effects))
+                violations.extend(self._aggregate_violations(invariant, effects, contract, ledger))
                 continue
             for index, effect in enumerate(effects):
                 if effect.kind != invariant.effect:
@@ -99,6 +106,8 @@ class DeclarativeInvariantEngine:
     def _aggregate_violations(
         invariant: InvariantDefinition,
         effects: list[Effect],
+        contract: TaskContract,
+        ledger: SessionLedger | None,
     ) -> list[InvariantViolation]:
         """Evaluate an invariant whose subject is the set of effects, not one effect."""
         if invariant.type == "max_effect_count":
@@ -119,7 +128,45 @@ class DeclarativeInvariantEngine:
             )]
         if invariant.type == "approval_single_use":
             return DeclarativeInvariantEngine._reused_approvals(invariant, effects)
+        if invariant.type == "monitor_mediated":
+            return DeclarativeInvariantEngine._unmediated(invariant, effects, contract, ledger)
         raise AssertionError(f"unhandled aggregate invariant type: {invariant.type}")
+
+    @staticmethod
+    def _unmediated(
+        invariant: InvariantDefinition,
+        effects: list[Effect],
+        contract: TaskContract,
+        ledger: SessionLedger | None,
+    ) -> list[InvariantViolation]:
+        """Report each effect of this kind that no recorded ALLOW accounts for.
+
+        Complete mediation, the assumption that no consequential tool is reachable by a
+        path that bypasses the monitor (LIM-050), cannot be enforced by a library. It
+        can be checked after the fact: every effect should correspond to a decision the
+        monitor made. Each effect consumes one ledger entry with the same tool and
+        action fingerprint, so two effects need two recorded ALLOWs.
+
+        The ledger can hold more entries than there are effects, since an allowed call
+        may fail before it takes effect. The check runs one way: an effect without an
+        entry is reported; an entry without an effect is not.
+        """
+        matching = [index for index, effect in enumerate(effects) if effect.kind == invariant.effect]
+        if not matching:
+            return []
+        if ledger is None:
+            return [InvariantViolation(invariant.id, matching[0], "missing_session_ledger")]
+        if not ledger.matches(contract):
+            return [InvariantViolation(invariant.id, matching[0], "ledger_identity_mismatch")]
+        available = Counter((entry.tool, entry.action_fingerprint) for entry in ledger.entries)
+        violations: list[InvariantViolation] = []
+        for index in matching:
+            key = (effects[index].tool, effects[index].action_fingerprint)
+            if available[key] > 0:
+                available[key] -= 1
+            else:
+                violations.append(InvariantViolation(invariant.id, index, "effect_not_in_ledger"))
+        return violations
 
     @staticmethod
     def _reused_approvals(
@@ -301,6 +348,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         "exact_action_approval",
         "max_effect_count",
         "approval_single_use",
+        "monitor_mediated",
     }
     if invariant_type not in supported:
         _fail(f"{path}.type", f"supported values are: {', '.join(sorted(supported))}")

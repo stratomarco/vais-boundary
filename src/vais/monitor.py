@@ -11,6 +11,7 @@ from .models import (
 )
 from .policy import Policy
 from .approvals import ApprovalStore
+from .ledger import LedgerEntry, SessionLedger
 import math
 
 
@@ -19,18 +20,45 @@ class ReferenceMonitor:
 
     Enforcement order is intentionally fail-closed:
     dynamic task authorization -> static tool policy -> capability scope ->
-    argument integrity/confidentiality -> approval requirements.
+    argument integrity/confidentiality -> call limits -> approval requirements.
+
+    Without a ``SessionLedger`` the monitor decides one action at a time and keeps
+    no state, so limits over several actions are left to VERIFY (LIM-035) and an
+    approval held in the contract can be used repeatedly (LIM-044). With one, it
+    enforces ``max_calls`` in flight and makes contract-held approvals single-use,
+    checking and recording under the ledger's lock.
     """
 
     def __init__(self, policy: Policy) -> None:
         self.policy = policy
 
     def evaluate(self, action: PlannedAction, contract: TaskContract,
-                 approval_store: ApprovalStore | None = None) -> Decision:
+                 approval_store: ApprovalStore | None = None,
+                 ledger: SessionLedger | None = None) -> Decision:
+        if ledger is None:
+            return self._evaluate(action, contract, approval_store, None)[0]
+        if not ledger.matches(contract):
+            # A ledger records one session's history. Reading another session's
+            # would let one session spend another's limits or approvals.
+            return Decision(DecisionType.DENY, ("ledger_identity_mismatch",))
+        with ledger.lock:
+            decision, contract_approval = self._evaluate(action, contract, approval_store, ledger)
+            if decision.type == DecisionType.ALLOW:
+                try:
+                    fingerprint = action_fingerprint(action)
+                except ValueError:
+                    fingerprint = None
+                ledger.record(LedgerEntry(action.tool, fingerprint, contract_approval))
+            return decision
+
+    def _evaluate(self, action: PlannedAction, contract: TaskContract,
+                  approval_store: ApprovalStore | None,
+                  ledger: SessionLedger | None) -> tuple[Decision, bool]:
+        """Return the decision and whether a contract-held approval authorized it."""
         reasons: list[str] = []
 
         if action.tool not in contract.allowed_tools:
-            return Decision(DecisionType.DENY, (f"tool_not_authorized:{action.tool}",))
+            return Decision(DecisionType.DENY, (f"tool_not_authorized:{action.tool}",)), False
 
         # Dynamic authorization always wins over permissive static policy.
         for (tool, field), trusted in contract.bound_arguments.items():
@@ -48,13 +76,13 @@ class ReferenceMonitor:
         tool_policy = self.policy.tools.get(action.tool)
         if tool_policy is None:
             if reasons:
-                return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons)))
+                return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons))), False
             if self.policy.default_action == "allow":
-                return Decision(DecisionType.ALLOW)
-            return Decision(DecisionType.DENY, (f"tool_not_in_policy:{action.tool}",))
+                return Decision(DecisionType.ALLOW), False
+            return Decision(DecisionType.DENY, (f"tool_not_in_policy:{action.tool}",)), False
 
         if not tool_policy.allow:
-            return Decision(DecisionType.DENY, (f"tool_denied_by_policy:{action.tool}",))
+            return Decision(DecisionType.DENY, (f"tool_denied_by_policy:{action.tool}",)), False
 
         if tool_policy.reject_undeclared_arguments:
             extras = sorted(set(action.arguments) - set(tool_policy.arguments))
@@ -86,44 +114,59 @@ class ReferenceMonitor:
                     )
 
         if reasons:
-            return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons)))
+            return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons))), False
 
-        if tool_policy.exact_approval_required:
-            try:
-                fingerprint = action_fingerprint(action)
-            except ValueError:
-                return Decision(DecisionType.DENY, ("action_not_fingerprintable",))
-            approved = (approval_store.consume(action, contract) if approval_store is not None
-                        else fingerprint in contract.approved_action_fingerprints)
-            if not approved:
+        # Call limits come before approvals, so reaching a limit never spends a
+        # human's approval on an action that is then denied anyway.
+        if tool_policy.max_calls is not None:
+            if ledger is None:
+                # A declared limit that cannot be enforced must not be silently ignored.
+                return Decision(DecisionType.DENY, (f"call_limit_requires_ledger:{action.tool}",)), False
+            if ledger.calls(action.tool) >= tool_policy.max_calls:
                 return Decision(
-                    DecisionType.REQUIRE_APPROVAL,
-                    (f"exact_approval_required:{action.tool}",),
-                )
+                    DecisionType.DENY,
+                    (f"call_limit_reached:{action.tool}:{tool_policy.max_calls}",),
+                ), False
+
+        # Decide whether any approval is needed, then check for one once. Before
+        # rc13 each approval rule checked separately, so a tool requiring both an
+        # exact approval and a threshold approval consumed the store grant in the
+        # first check and found it spent in the second: the action could never be
+        # allowed, and the approval was burned (FIND-056).
+        approval_reason: str | None = None
+        if tool_policy.exact_approval_required:
+            approval_reason = f"exact_approval_required:{action.tool}"
 
         approval = tool_policy.approval
         if approval:
             value = action.arguments.get(approval.field)
             if value is None:
-                return Decision(DecisionType.DENY, (f"missing_approval_field:{approval.field}",))
+                return Decision(DecisionType.DENY, (f"missing_approval_field:{approval.field}",)), False
             try:
                 numeric = float(value.data)
                 if isinstance(value.data, bool) or not math.isfinite(numeric):
                     raise ValueError
                 exceeds = numeric > approval.greater_than
             except (TypeError, ValueError):
-                return Decision(DecisionType.DENY, (f"invalid_numeric_field:{approval.field}",))
-            if exceeds:
-                try:
-                    fingerprint = action_fingerprint(action)
-                except ValueError:
-                    return Decision(DecisionType.DENY, ("action_not_fingerprintable",))
-                approved = (approval_store.consume(action, contract) if approval_store is not None
-                            else fingerprint in contract.approved_action_fingerprints)
-                if not approved:
-                    return Decision(
-                        DecisionType.REQUIRE_APPROVAL,
-                        (f"approval_required:{action.tool}:{approval.field}",),
-                    )
+                return Decision(DecisionType.DENY, (f"invalid_numeric_field:{approval.field}",)), False
+            if exceeds and approval_reason is None:
+                approval_reason = f"approval_required:{action.tool}:{approval.field}"
 
-        return Decision(DecisionType.ALLOW)
+        if approval_reason is None:
+            return Decision(DecisionType.ALLOW), False
+
+        try:
+            fingerprint = action_fingerprint(action)
+        except ValueError:
+            return Decision(DecisionType.DENY, ("action_not_fingerprintable",)), False
+
+        if approval_store is not None:
+            if approval_store.consume(action, contract):
+                return Decision(DecisionType.ALLOW), False
+            return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False
+
+        if fingerprint in contract.approved_action_fingerprints and (
+            ledger is None or not ledger.contract_approval_used(fingerprint)
+        ):
+            return Decision(DecisionType.ALLOW), True
+        return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False

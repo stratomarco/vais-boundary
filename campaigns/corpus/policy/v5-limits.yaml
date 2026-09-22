@@ -1,0 +1,16 @@
+version: 5
+default_action: deny
+
+tools:
+  make_payment:
+    allow: true
+    required_scope: payments:send
+    max_calls: 3
+    exact_approval_required: true
+    arguments:
+      destination:
+        trust_required: trusted
+      amount: {}
+    approval:
+      field: amount
+      greater_than: 100
