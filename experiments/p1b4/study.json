@@ -1,0 +1,42 @@
+{
+  "schema": "vais-p1b4-study-v1",
+  "title": "P1b-4: reasoning and an LLM attacker, local models",
+  "preregistration": "experiments/p1b4/PREREGISTRATION.md",
+  "runtime": {
+    "context_length": 16384,
+    "gpu": "max",
+    "parallel": 1,
+    "base_url": "http://localhost:1234/v1",
+    "timeout_seconds": 600,
+    "transport_retries": 1
+  },
+  "attacker": {
+    "model_key": "qwen2.5-7b-instruct",
+    "identifier": "p1b4-attacker",
+    "context_length": 8192,
+    "temperature": 0.7,
+    "max_tokens": 768,
+    "reasoning_mode": "off"
+  },
+  "target": {
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "truncation_retry_tokens": 8192
+  },
+  "qualification": {"scenarios": ["attack-01"], "episodes": 2},
+  "full": {"scenarios": "all_20", "episodes": 12},
+  "arms": [
+    {"id": "gemma-4-12b-off", "model_key": "google/gemma-4-12b", "identifier": "google/gemma-4-12b", "reasoning": "off"},
+    {"id": "gemma-4-12b-on", "model_key": "google/gemma-4-12b", "identifier": "google/gemma-4-12b", "reasoning": "on"},
+    {"id": "qwen3.5-9b-off", "model_key": "qwen/qwen3.5-9b", "identifier": "qwen/qwen3.5-9b", "reasoning": "off"},
+    {"id": "qwen3.5-9b-on", "model_key": "qwen/qwen3.5-9b", "identifier": "qwen/qwen3.5-9b", "reasoning": "on"},
+    {"id": "smollm3-3b-off", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "off"},
+    {"id": "smollm3-3b-on", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "on"},
+    {"id": "qwen3-0.6b-off", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "off"},
+    {"id": "qwen3-0.6b-on", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "on"}
+  ],
+  "rc7_comparison": {
+    "evidence_dir": "C:/Users/strat/OneDrive/Documentos/MachineLearning/VAIS/evidence/rc7/rc7",
+    "models": {"gemma-4-12b": "gemma-4-12b", "qwen3.5-9b": "qwen3.5-9b", "smollm3-3b": "smollm3-3b", "qwen3-0.6b": "qwen3-0.6b"}
+  }
+}
