@@ -294,3 +294,45 @@ findings:
     version: "0.12.0rc11"
     type: loader_contract_defect
     evidence: [tests/test_loader_input_types.py, src/vais/policy.py, src/vais/invariants.py]
+
+  - id: FIND-049
+    finding: MCPProtectedClient took no ApprovalStore and called the reference monitor without one, so the monitor fell back to the contract's approved fingerprints, which never consume. Consume-once therefore never held on the MCP path, and one approval authorized the same MCP call every time it was proposed; three identical calls were all allowed and dispatched. It was not a bypass, since the approved action was exactly the one that ran, and it contradicted the documented claim that approval is consume-once authority. Found while answering an external reviewer's question about authority freshness. The client now accepts an approval store and forwards it.
+    version: "0.12.0rc12"
+    type: tcb_defect
+    evidence: [tests/test_mcp_approval_store.py, src/vais/mcp.py, docs/mcp-security.md]
+
+  - id: FIND-050
+    finding: ENFORCE and VERIFY disagreed about approvals. The reference monitor consumes ApprovalStore grants, but the exact_action_approval invariant looked only at the contract's approved fingerprints, so a payment correctly approved through the store was allowed by the monitor and then reported by the verifier as effect_not_exactly_approved. The store is the recommended consume-once mechanism and the default invariant set could not pass it. No benchmark exercised the store path under VERIFY, which is why nothing caught it. The engine and DeclarativeVerifiableReward now accept the store, and a consumed grant for the same identity counts as approval.
+    version: "0.12.0rc12"
+    type: tcb_verifier_defect
+    evidence: [tests/test_approval_verify.py, src/vais/invariants.py, docs/security-invariants.md]
+
+  - id: FIND-051
+    finding: No invariant looked at how many times one approval was used. exact_action_approval asks whether each effect was approved, so on the contract path one approval replayed across two identical payments passed it twice, and ENFORCE allowed both because contract-held approvals do not consume. Both layers were silent. The new aggregate invariant approval_single_use reports each exact approval that authorized more than one effect above its threshold, and is in the default set.
+    version: "0.12.0rc12"
+    type: tcb_verifier_defect
+    evidence: [tests/test_approval_verify.py, src/vais/invariants.py, docs/security-invariants.md]
+
+  - id: FIND-052
+    finding: FrozenDict blocked __setitem__, update, pop and the other mutators but not the in-place union operator. dict.__ior__ is implemented in C and does not route through the overridden update, so an in-place union on a TaskContract's bound_arguments replaced a trusted binding and an in-place union on a PlannedAction's arguments changed its fingerprint after the fact. A model cannot reach this since it does not execute Python, and integration code can do it by accident. It contradicted the TaskContract docstring's claim of immutable authorization.
+    version: "0.12.0rc12"
+    type: tcb_defect
+    evidence: [tests/test_frozen_mapping.py, src/vais/models.py, docs/ATTACK-SURFACE.md]
+
+  - id: FIND-053
+    finding: The continuous campaign found, on its first run against the rc12 tree, that the policy loader tested trust_required with set membership. An unhashable value such as an empty mapping raised TypeError instead of PolicyValidationError. It is FIND-047 again one field over, since rc11 fixed default_action and did not search the file for the same pattern. Fail-closed by exception and out of contract, like FIND-047 and FIND-048.
+    version: "0.12.0rc12"
+    type: loader_contract_defect
+    evidence: [tests/test_loader_contract_rc12.py, src/vais/policy.py, campaigns/README.md]
+
+  - id: FIND-054
+    finding: A colon in an MCP server or tool name reached canonical_mcp_tool inside the profile loader and escaped as ValueError rather than PolicyValidationError. Found by reading the MCP loader while triaging FIND-053. The MCP profile loader is not a campaign target, which is why no campaign caught it.
+    version: "0.12.0rc12"
+    type: loader_contract_defect
+    evidence: [tests/test_loader_contract_rc12.py, src/vais/mcp.py, docs/mcp-security.md]
+
+  - id: FIND-055
+    finding: The MCP profile loader normalised effect field names to NFC and then assigned them into a dictionary, so two distinct YAML keys that normalise alike collapsed into one and the later silently replaced the earlier. The duplicate check rc9 added to MCPEffectMapping never saw them because the loader had already merged them, so the mapping a reviewer reads in the file and the mapping the loader returns could disagree. Found in the same reading as FIND-054. The loader now rejects the duplicate.
+    version: "0.12.0rc12"
+    type: loader_contract_defect
+    evidence: [tests/test_loader_contract_rc12.py, src/vais/mcp.py, docs/mcp-security.md]

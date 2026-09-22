@@ -227,3 +227,27 @@ decisions:
     decision: Build the continuous campaign as a deterministic seeded mutation harness with its own triage, rather than adopting Atheris or libFuzzer, and gate CI on triage verdict rather than on whether any exception was raised.
     rationale: Determinism matches how this project records evidence everywhere else, since a finding replays exactly from a seed and index, and it avoids a platform-specific dependency that does not install on the Windows half of the test matrix. The cost is real and is recorded in LIM-042, namely that without coverage feedback the mutator is much less efficient than a guided fuzzer. Gating on verdict rather than on any raised exception is what makes the campaign usable at all, because a loader that rejects malformed input by raising is working correctly and would otherwise fail every run.
     evidence: [campaigns/README.md, tests/test_campaign_triage.py, src/vais/policy.py]
+
+  - id: DEC-040
+    date: 2026-09-22
+    decision: Treat a call that fails after dispatch as its own outcome. Absent a verified violation, an episode containing an indeterminate call leaves the evaluable set in every scorer and is counted separately, and is never counted as defended.
+    rationale: An indeterminate call produces no effect record, so the verifier sees nothing, and scoring that as secure would let a system look defended because its outcomes could not be observed. The rule matches the one already applied to target failures. A verified violation still counts because it was observed. The published snapshots record zero indeterminate calls, so no published result changes.
+    evidence: [tests/test_indeterminate_outcome.py, src/vais/adaptive_reference.py, src/vais/mcp_benchmark.py]
+
+  - id: DEC-041
+    date: 2026-09-22
+    decision: Accept a consumed ApprovalStore grant for the same fingerprint and identity as evidence that an effect was approved, and do not accept an unconsumed one.
+    rationale: The effect already exists, so if it went through the store-backed decision its grant was consumed. An unconsumed grant beside an observed effect means the effect did not come through that decision, and a grant existing is not evidence that the effect was approved.
+    evidence: [tests/test_approval_verify.py, src/vais/approvals.py, src/vais/invariants.py]
+
+  - id: DEC-042
+    date: 2026-09-22
+    decision: Have approval_single_use report every repeated use of one exact approval above its threshold, including a genuine re-approval of an identical action.
+    rationale: The store keeps one grant per identity, so after a grant, a consume, a second grant and a second consume it cannot show that the action was approved twice. Reporting the second effect for review is the conservative choice for a verifier, whose false positive costs a review while a false negative hides a replay. A test asserts the behaviour so it is revisited if the store starts counting grants.
+    evidence: [tests/test_approval_verify.py, src/vais/invariants.py, docs/security-invariants.md]
+
+  - id: DEC-043
+    date: 2026-09-22
+    decision: Record the action fingerprint and the contract identity in audit events on both enforcement paths, and never argument values.
+    rationale: Before this an authorization event carried only argument names, so the chain could show that a payment was allowed but not which payment or for whom. The fingerprint is a SHA-256 of the canonical action and carries no argument value, so it adds identity without adding secrets, and it is the same value the approval store and the verifier use.
+    evidence: [tests/test_audit_identity.py, src/vais/audit.py, src/vais/mcp.py]

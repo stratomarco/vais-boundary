@@ -98,3 +98,36 @@ limitations:
 
   - id: LIM-043
     limitation: A campaign fault that dies inside a dependency is classified for review and does not fail CI, because the code is not this project's to fix. Deeply nested YAML exhausts the PyYAML scanner's stack, so a malformed policy or invariant file can raise RecursionError rather than the declared PolicyValidationError. The loader's contract is violated in that case and the condition is reported rather than silenced, but no gate fires on it.
+
+  - id: LIM-044
+    limitation: Without an ApprovalStore, an approval carried in the TaskContract authorizes its exact action for as long as the contract is in use, on both the executor and the MCP path. Consume-once requires passing a store. VERIFY now reports the reuse through approval_single_use, but ENFORCE does not prevent it, because the reference monitor holds no state across decisions. A test asserts the limitation so it stays visible.
+
+  - id: LIM-045
+    limitation: Consume-once holds within one ApprovalStore instance. Each instance loads its file at construction and then trusts its own memory, so two processes sharing one file can each consume the same approval, and the later write replaces the earlier. Any deployment running several worker processes against one store file is affected. Multi-process coordination is listed as future work and is not implemented.
+
+  - id: LIM-046
+    limitation: An observable effect on the MCP path is the request VAIS dispatched, not the external state that resulted. The effect is built from the arguments sent once call_tool returns, and the server's reply is labelled untrusted and not consulted. The verifier is therefore independent of the model and of the monitor's decision but not of the executor, and it establishes that an authorized request was dispatched and returned rather than that the requested state now exists. Receipt or read-back reconciliation would close this and is not implemented.
+
+  - id: LIM-047
+    limitation: Authority has no freshness. A TaskContract carries no validity window, revision or revocation, and approvals never expire, so nothing establishes that authority captured when a contract was created still holds when a consequential action finally executes or is retried.
+
+  - id: LIM-048
+    limitation: Authority is judged per argument, and the proposed action itself carries no provenance. Nothing records that an action was proposed because of untrusted content, so an argument without a trust requirement can be supplied by hostile content while the authority-bearing arguments stay trusted. The shipped default policy allows an untrusted payment amount up to its approval threshold to a trusted destination. This follows from the design, which models data flow and not control flow.
+
+  - id: LIM-049
+    limitation: A malicious or compromised MCP server is outside the threat model. Server results are labelled untrusted and tool definitions come from the application's profile rather than from the server, so a server cannot grant itself authority or redefine a tool's meaning to VAIS. A server that performs an effect other than the one requested is not detected (see LIM-046), and server data defaults to public confidentiality (see LIM-036).
+
+  - id: LIM-050
+    limitation: Complete mediation is an assumption, not a tested property. The threat model assumes no consequential tool can be reached by a path that bypasses the enforcement boundary, and nothing in the library can enforce that, because the application holds the tool credentials. Giving the enforced path exclusive possession of those credentials would make it an architectural property and is not implemented.
+
+  - id: LIM-051
+    limitation: VAIS mediates tool calls only. The agent's final text answer and any reasoning trace are not mediated, labelled or checked, so if an application displays or logs them, confidential context can leave through them without any VAIS decision.
+
+  - id: LIM-052
+    limitation: The forbidden_values invariant is a canary tripwire, not a control. It is a raw substring test with no case folding, normalisation or decoding, so encoded or partial copies pass it. Confidentiality ceilings over provenance are the control; this check detects test canaries appearing verbatim.
+
+  - id: LIM-053
+    limitation: Re-labelling a model-produced value as trusted when it exactly equals a contract binding is the most important step in integrating VAIS and is not a library function. Both benchmark adapters implement it separately, and each application has to implement it correctly for itself.
+
+  - id: LIM-054
+    limitation: The MCP profile loader is not a target of the continuous campaign. The policy and invariant loaders and security-value canonicalisation are campaigned; FIND-054 and FIND-055 were found in the MCP loader by reading it.
