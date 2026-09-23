@@ -83,6 +83,7 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 - principal, session, and tenant binding with consume-once approvals when an `ApprovalStore` is supplied, across processes sharing its file on one machine;
 - optional contract validity windows, approval expiry and session or capability revocation, and sub-agent contracts that can only narrow their parent's authority;
 - an optional action origin, the join of what was visible when an action was planned, so a policy can put a human in front of a tool once untrusted content is in play (measured on RC7: a gate, not a detector);
+- effect confidence: an MCP effect is `requested`, `acknowledged` by the server's reply, `confirmed` by a read-back from the system of record, or `contradicted`, and the verifier reports which level each verdict rests on;
 - a gateway (`vais gateway`) that serves MCP to the agent over streamable HTTP and is the only holder of the upstream credentials, so complete mediation is a property of the deployment rather than an assumption (see `docs/gateway.md`);
 - protected MCP calls with explicit observed, not-called, and indeterminate outcomes, where an indeterminate outcome is never scored as defended;
 - tamper-evident audit hash chaining;

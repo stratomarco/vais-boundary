@@ -145,6 +145,27 @@ attacked ones, because every workflow reads untrusted content before the model a
 therefore gates a tool behind a human; it does not detect an injection (FIND-057, LIM-064,
 DEC-056).
 
+### `effect_confidence`
+
+Requires the effects of one kind to be established at least to a given level:
+
+```yaml
+- id: payments_are_confirmed
+  type: effect_confidence
+  effect: payment_sent
+  min_confidence: confirmed      # or acknowledged
+```
+
+Effects carry a confidence (P1b-7): `requested` when the call was dispatched and returned,
+`acknowledged` when the server's reply repeats the effect, `confirmed` when a read-back from the
+system of record agrees, and `contradicted` when a reply or read-back reports a different value.
+A contradicted effect is reported as `effect_contradicted:<fields>` whatever the required level;
+one below the level as `effect_confidence_below:<level><<required>`. It is not in the default set.
+
+`DeclarativeInvariantEngine.verdict_basis(effects)` returns, for each invariant, the weakest
+confidence among the effects its verdict rests on, or `no_effects`. A verdict of "no violation"
+over `requested` effects says the requests were acceptable, not that the resulting state is.
+
 ### `max_effect_count`
 
 Bounds how many effects of one kind a task may produce:

@@ -95,7 +95,23 @@ effect:
 
 That lets the existing invariant engine verify the same security properties regardless of whether `send_email` is a local Python function, an HTTP API or an MCP tool.
 
-**What an MCP effect is.** Once `call_tool` returns, the effect is built from the arguments VAIS sent. The server's reply is kept as the record's `result`, labelled untrusted, and is not consulted. So the verifier establishes that an authorized request for X was dispatched and returned, not that X is the external state that resulted. A server that performs something other than what it was asked is not detected; receipt or read-back reconciliation would close that and is not implemented (LIM-046, LIM-049).
+**What an MCP effect is.** Once `call_tool` returns, the effect is built from the arguments VAIS sent. The server's reply is kept as the record's `result`, labelled untrusted, and unless the profile says otherwise it is not consulted. So by default the verifier establishes that an authorized request for X was dispatched and returned, not that X is the external state that resulted. A server that performs something other than what it was asked is not detected by default (LIM-046, LIM-049).
+
+**Receipts and read-back (0.12.0rc13, P1b-7).** A profile can say how to establish more than the request:
+
+```yaml
+effect:
+  kind: email_sent
+  argument_fields: {recipient: recipient, body: body}
+  acknowledge: {recipient: delivered_to}        # the reply must repeat the recipient
+  confirm:                                      # read the message back from the system of record
+    server: records
+    tool: get_message
+    arguments: {id: reply.message_id}
+    expect: {recipient: to}
+```
+
+The effect is then `acknowledged` when the reply repeats it, `confirmed` when the read-back agrees, and `contradicted` when either reports a different value, with the field names, never the values, in the audit. A contradiction always wins. Library callers pass `reconcilers` (effect kind to `EffectReconciler`, for example `MCPReadBackReconciler`) to `MCPProtectedClient`; the gateway builds them from `confirm` blocks. An acknowledgement is only the server's claim, and a read-back confirms only when the system it reads does not depend on the server that acted (LIM-065). Confidence is found after the effect and reported, not enforced (LIM-066).
 
 Since 0.12.0rc12 the profile loader rejects two effect fields whose names are equal after NFC normalisation, rather than silently keeping the later one (FIND-055), and reports a `:` in a server or tool name as a validation error (FIND-054).
 

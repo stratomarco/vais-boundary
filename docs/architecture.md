@@ -113,7 +113,7 @@ v0.3 supports:
 
 Effects also preserve the exact action fingerprint when the action is canonicalizable, allowing the invariant engine to independently detect approval replay against a modified high-consequence action.
 
-The invariant engine is intentionally separate from the reference monitor. That independence gives testing an oracle capable of catching reference-monitor implementation bugs. It is not independent of the executor: an effect is what the execution boundary reports, and on the MCP path that is the dispatched request rather than state read back from the system of record (LIM-046).
+The invariant engine is intentionally separate from the reference monitor. That independence gives testing an oracle capable of catching reference-monitor implementation bugs. It is not independent of the executor: an effect is what the execution boundary reports, and on the MCP path that is the dispatched request rather than state read back from the system of record (LIM-046). From 0.12.0rc13 each effect says how much is known about it: `requested`, `acknowledged` by the server's reply, `confirmed` by a read-back from the system of record, or `contradicted` when either reports something else. `verdict_basis` reports, for each invariant, the weakest confidence its verdict rests on, and the `effect_confidence` invariant can require a level (P1b-7, DEC-057, DEC-058).
 
 ## 7. Verifiable reward
 

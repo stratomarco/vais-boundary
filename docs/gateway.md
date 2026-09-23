@@ -33,6 +33,11 @@ It is stricter than the library path: a contract binding is the only route to tr
 also coarse: once a session has read `secret` data through the gateway, every later argument
 counts as `secret` (DEC-051, LIM-061).
 
+Effects are read back where the profile says how (P1b-7). A `confirm` block names a read tool on
+an upstream, ideally the system of record rather than the server that acted; the gateway calls it
+with its own credentials after the effect and records `confirmed` or `contradicted` in the audit.
+A named server or tool that is missing fails startup.
+
 Each action also gets an origin (P1b-6): trusted until the session receives its first tool
 result, untrusted from then on. A tool whose policy sets `untrusted_origin: require_approval`
 therefore needs an operator's approval for any call after the session has read something. That

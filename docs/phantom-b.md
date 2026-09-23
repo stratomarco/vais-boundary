@@ -76,7 +76,7 @@ To VAIS a hallucinated argument and an injected one look the same: model output.
 and exact approvals catch an invented recipient, account or report id. A hallucinated value in
 an argument with no trust requirement is allowed within policy (LIM-048). On the MCP path, VAIS
 verifies that the authorized request was dispatched, not that the resulting state is what the
-model claims (LIM-046). The origin rule gates a tool, whatever made the value up (P1b-6, FIND-057); receipts and effect confidence are planned (P1b-7).
+model claims (LIM-046). The origin rule gates a tool, whatever made the value up (P1b-6, FIND-057); from rc13 an effect a profile reads back is `confirmed` or `contradicted`, and the verifier reports which level each verdict rests on (P1b-7).
 
 ### A — Anthropomorphization
 

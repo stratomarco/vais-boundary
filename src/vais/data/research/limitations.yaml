@@ -161,3 +161,9 @@ limitations:
 
   - id: LIM-064
     limitation: An action's origin is the join of everything visible when it was planned, so in any agent that reads untrusted data before or while acting, every later action has an untrusted origin. untrusted_origin then puts a human in front of the gated tool whenever the session has read anything untrusted; it cannot tell an attacked action from a clean one (FIND-057). An origin that discriminates needs a planner kept away from untrusted content, which labels on a single-model agent cannot provide. The origin is also only as good as the visible context the adapter reports, and the gateway assumes the agent's prompt is trusted (LIM-061).
+
+  - id: LIM-065
+    limitation: An acknowledged effect rests on the executing server's own reply, so a server that repeats the requested values while doing something else is acknowledged, not caught. Only a read-back from an independent system of record confirms an effect; a read-back through the same server, or a system that server controls, only moves the trust, and VAIS cannot check that independence. A read-back soon after the call may see a record not yet written, leaving the effect unconfirmed, or an older record, reporting a contradiction that is not one.
+
+  - id: LIM-066
+    limitation: Effect confidence is established after the effect and reported, not enforced. A contradicted effect has already happened; VAIS records it, the audit names the fields, and VERIFY reports it, but nothing is undone and the decision that allowed it is unchanged. Confidence is raised only on the MCP path and by the sandbox; an application executor used with ProtectedExecutor produces requested effects unless it sets the confidence itself.

@@ -10,4 +10,6 @@ servers:
       send_email:
         canonical_tool: mcp:ops:send_email
         result_confidentiality: internal
-        effect: {kind: email_sent, argument_fields: {recipient: recipient, body: body}}
+        # The demo server's reply repeats the recipient, so the effect is acknowledged; a
+        # confirm block would read it back from a separate system of record (docs/gateway.md).
+        effect: {kind: email_sent, argument_fields: {recipient: recipient, body: body}, acknowledge: {recipient: recipient}}

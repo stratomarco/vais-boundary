@@ -108,6 +108,14 @@ reads content. Measured by a pre-registered replay of RC7, the origin was untrus
 model action in clean and attacked runs alike, so the rule gates a tool behind a human and does
 not detect an injection. It is not a default (FIND-057, LIM-064, DEC-056).
 
+**rc13 note (P1b-7).** Under S8, an MCP effect is no longer only the request. A profile can require
+the reply to repeat the effect and a read-back from the system of record to agree; the effect is
+then `acknowledged`, `confirmed` or, when either disagrees, `contradicted` (DEC-057, DEC-058).
+A server that reports doing something other than it was asked, review gap G1, is now visible in
+the audit and to VERIFY, and `verdict_basis` states what each verdict rests on. A server that
+lies consistently is still only caught by an independent read-back (LIM-065), and confidence is
+reported after the effect, not enforced (LIM-066).
+
 ---
 
 ## 0. Two corrections to the planned surface list
@@ -145,6 +153,7 @@ work is done:
 | `P1b-8` | Freshness, revocation, multi-process approvals, delegation. **Done in rc13**: contract validity windows, grant TTL, `RevocationList`, a file-locked store, `TaskContract.delegate`; LIM-056 to LIM-059 published. |
 | `P1b-5` | Gateway with credential exclusivity. **Done in rc13**: `vais gateway` (MCP over streamable HTTP), labels at the boundary, operator-file contracts and approvals; S17 added, LIM-060 to LIM-063 published. |
 | `P1b-6` | Action provenance. **Done in rc13**: `PlannedAction.origin`, policy v6 `untrusted_origin`, `trusted_origin`; replayed on RC7 (FIND-057): a per-tool human gate, not a detector, so not a default (DEC-056). |
+| `P1b-7` | Receipts and effect confidence. **Done in rc13**: `requested`/`acknowledged`/`confirmed`/`contradicted`, profile `acknowledge` and `confirm`, `effect_confidence`, `verdict_basis`; LIM-065, LIM-066 published. |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated through rc12**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |

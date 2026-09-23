@@ -329,3 +329,15 @@ decisions:
     decision: Do not recommend untrusted_origin as a default. Document it as an explicit per-tool switch that puts a human in front of a high-consequence tool, with its measured cost.
     rationale: The pre-registered decision rule required a control cost of at most 10% and a discrimination of at least 20 percentage points; on RC7 no tool set met it, and discrimination was zero everywhere (FIND-057). As a deliberate human gate on a tool such as a payment, it closes LIM-048 for that tool, including the PHANTOM-B expense case below its threshold, and that is a legitimate choice for an operator to make knowingly.
     evidence: [experiments/p1b6/RESULTS.md, experiments/p1b6/PREREGISTRATION.md]
+
+  - id: DEC-057
+    date: 2026-09-23
+    decision: Give every effect a confidence of requested, acknowledged, confirmed or contradicted, defaulting to requested, with a contradiction recorded by field name only and always winning over any confirmation.
+    rationale: Before this an MCP effect was the request VAIS sent, and nothing distinguished it from an effect known to have happened (LIM-046, review gap G1). Defaulting to the weakest level means no effect claims more than was established. A contradiction means the effect that happened is not the one decided, which matters more than any agreement elsewhere, so it wins. Recording names and not values keeps the audit free of argument values, as DEC-043 requires. The sandbox is its own system of record, so its effects are confirmed.
+    evidence: [tests/test_effect_confidence.py, src/vais/sandbox.py, src/vais/mcp.py]
+
+  - id: DEC-058
+    date: 2026-09-23
+    decision: Establish acknowledgement from reply fields a profile names and confirmation from a read-back reconciler, declarable in the profile and wired by the gateway to its own upstream sessions; add the effect_confidence invariant and verdict_basis, which reports the weakest confidence each verdict rests on.
+    rationale: The reply is free and says what the server claims; a read-back from the system of record is what can confirm. Declaring both in the profile keeps them configuration rather than application code, and the gateway already holds the sessions needed. The read-back is the gateway's own read with its credentials, not an agent action, so the monitor does not decide it. A named server or tool that is missing fails startup rather than silently leaving effects unconfirmed. verdict_basis lets a report say that a verdict of no violation rests on requested effects, which answers the reviewer's request that the verifier state what each verdict rests on.
+    evidence: [tests/test_effect_confidence.py, tests/test_gateway.py, src/vais/invariants.py, src/vais/gateway.py]
