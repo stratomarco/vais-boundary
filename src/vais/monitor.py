@@ -12,15 +12,19 @@ from .models import (
 from .policy import Policy
 from .approvals import ApprovalStore
 from .ledger import LedgerEntry, SessionLedger
+from .revocation import RevocationList
+from typing import Callable
 import math
+import time
 
 
 class ReferenceMonitor:
     """Deterministic authorization point for consequential actions.
 
     Enforcement order is intentionally fail-closed:
-    dynamic task authorization -> static tool policy -> capability scope ->
-    argument integrity/confidentiality -> call limits -> approval requirements.
+    contract validity and revocation -> dynamic task authorization -> static tool
+    policy -> capability scope -> argument integrity/confidentiality -> call limits ->
+    approval requirements.
 
     Without a ``SessionLedger`` the monitor decides one action at a time and keeps
     no state, so limits over several actions are left to VERIFY (LIM-035) and an
@@ -29,8 +33,18 @@ class ReferenceMonitor:
     checking and recording under the ledger's lock.
     """
 
-    def __init__(self, policy: Policy) -> None:
+    def __init__(
+        self,
+        policy: Policy,
+        *,
+        clock: Callable[[], float] | None = None,
+        revocations: RevocationList | None = None,
+    ) -> None:
         self.policy = policy
+        # Read only for contracts that carry a validity window, so decisions on contracts
+        # without one stay deterministic and never depend on the time.
+        self._clock = clock or time.time
+        self.revocations = revocations
 
     def evaluate(self, action: PlannedAction, contract: TaskContract,
                  approval_store: ApprovalStore | None = None,
@@ -55,6 +69,16 @@ class ReferenceMonitor:
                   approval_store: ApprovalStore | None,
                   ledger: SessionLedger | None) -> tuple[Decision, bool]:
         """Return the decision and whether a contract-held approval authorized it."""
+        # Whether the authority still holds comes before what it authorizes (LIM-047).
+        if contract.not_before is not None or contract.not_after is not None:
+            now = self._clock()
+            if contract.not_before is not None and now < contract.not_before:
+                return Decision(DecisionType.DENY, ("contract_not_yet_valid",)), False
+            if contract.not_after is not None and now >= contract.not_after:
+                return Decision(DecisionType.DENY, ("contract_expired",)), False
+        if self.revocations is not None and self.revocations.is_revoked(contract):
+            return Decision(DecisionType.DENY, ("contract_revoked",)), False
+
         reasons: list[str] = []
 
         if action.tool not in contract.allowed_tools:

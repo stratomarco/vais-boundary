@@ -33,8 +33,10 @@ from vais import (
     DecisionType,
     Effect,
     PlannedAction,
+    Policy,
     ReferenceMonitor,
     TaskContract,
+    ToolPolicy,
     TrustedValue,
     AuditTrail,
     load_invariants,
@@ -236,24 +238,25 @@ def test_the_normal_approval_path_is_unchanged(tmp_path):
 
 # --- the cells that have no mechanism to test ---------------------------------
 
-def test_no_decision_in_the_enforcement_path_reads_a_clock(tmp_path):
-    """Why the clock-skew cell is not applicable, asserted from the source.
+def test_the_clock_is_read_only_for_time_bounded_authority(tmp_path):
+    """Why clock skew cannot move a decision that has no time bound.
 
-    Approvals are consume-once and identity-scoped, with no expiry. Skewing a
-    clock cannot change a decision because no decision consults one. The cost of
-    that design is the property below: a grant stays valid indefinitely until it
-    is consumed.
+    Until P1b-8 no decision consulted a clock at all, and this test asserted that from
+    the source; the cost was that a contract or grant stayed valid indefinitely
+    (LIM-047). P1b-8 adds optional validity windows and grant expiry, so the property
+    is now narrower and is asserted by behaviour: with a clock that raises if read, a
+    contract without a window and a grant without a TTL are still decided normally.
+    Only authority that carries a time bound depends on the time.
     """
-    from pathlib import Path as _Path
+    def exploding_clock() -> float:
+        raise AssertionError("the clock was read for authority with no time bound")
 
-    import vais.approvals
-    import vais.monitor
-
-    for module in (vais.monitor, vais.approvals):
-        source = _Path(module.__file__).read_text(encoding="utf-8")
-        for token in ("time.", "datetime", "expires", "ttl", "deadline", "monotonic"):
-            assert token not in source, f"{module.__name__} references {token!r}"
-
-    store = ApprovalStore(tmp_path / "a.json")
+    monitor = ReferenceMonitor(
+        Policy(version=3, default_action="deny",
+               tools={"send_email": ToolPolicy(allow=True, exact_approval_required=True)}),
+        clock=exploding_clock,
+    )
+    store = ApprovalStore(tmp_path / "a.json", clock=exploding_clock)
     store.grant(action(), contract())
-    assert store.consume(action(), contract()) is True
+    assert monitor.evaluate(action(), contract(), store).type.value == "allow"
+    assert store.consume(action(), contract()) is False
