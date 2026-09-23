@@ -146,3 +146,15 @@ limitations:
 
   - id: LIM-059
     limitation: Delegation attenuates only when the application derives a sub-agent's contract with TaskContract.delegate. The monitor does not know that a contract is a delegate and does not check its lineage, so a contract constructed directly with the parent's session and wider authority is accepted as if it were the parent. Delegation also shares the parent's session ledger by design, so a delegate's calls count against the parent's limits and cannot be given a separate budget.
+
+  - id: LIM-060
+    limitation: The gateway makes complete mediation an architectural property only under a deployment VAIS cannot inspect. The agent must be unable to read the gateway's environment, configuration or memory, unable to reach the upstream servers except through the gateway, and unable to write the contracts, approvals and pending directories. If any of these fails, a path around the monitor exists again and LIM-050 applies.
+
+  - id: LIM-061
+    limitation: The gateway labels every argument from the agent at the highest confidentiality the session has received through the gateway, so after one secret result every later argument counts as secret, which can deny legitimate calls. It sees only data that passed through it; confidential content the agent obtained another way, such as from its prompt, is labelled at whatever the session has seen, possibly public.
+
+  - id: LIM-062
+    limitation: The gateway proxies MCP tools only. Resources, prompts, sampling, elicitation and notifications are not offered to the agent, upstream tool descriptions reach the model unchanged, and results are passed on as text or structured data, so other content types from an upstream are flattened.
+
+  - id: LIM-063
+    limitation: Gateway session state, the ledger and the confidentiality level, lives in the gateway's memory, so a restart starts every session fresh (as LIM-055). The contract directory is read and parsed on every request, which bounds how many sessions one gateway can serve. Pending approval requests hold argument values in plaintext, and the session token is a bearer secret that expires only with its contract's window or file.

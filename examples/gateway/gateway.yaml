@@ -1,0 +1,19 @@
+# VAIS gateway example. Run from this directory:  vais gateway --config gateway.yaml
+# Every path is relative to this file. Secrets are referenced, never written here.
+version: 1
+listen: {host: 127.0.0.1, port: 8765}
+policy: policy.yaml
+profile: profile.yaml
+contracts: contracts/          # operator-owned: one file per session, see contract.example.yaml
+approvals: approvals.json      # operator-owned: written by `vais gateway-approve`
+pending: pending/              # operator-owned: approval requests the gateway writes
+audit: audit.jsonl
+reason_disclosure: decision    # the agent is told the outcome only; the audit keeps the reasons
+upstreams:
+  ops:
+    stdio:
+      command: python
+      args: [../mcp_vulnerable_server.py]
+      cwd: .
+      # Resolved from the gateway's environment at startup. The agent never sees it.
+      env: {OPS_API_KEY: "${env:OPS_API_KEY}"}

@@ -127,7 +127,8 @@ decisions and limitations in `research/knowledge/`, with evidence.
 The paper's question list also asks whether the data the LLM can reach, and where it can be
 disclosed, is controlled; VAIS enforces confidentiality ceilings on egress, as good as the
 labelling at entry (LIM-036). Remaining: complete mediation is assumed and checked after the
-fact, not enforced (LIM-050); the gateway that holds the tool credentials is planned (P1b-5).
+fact on the library path (LIM-050). The gateway, which holds the tool credentials, makes it
+architectural for deployments that meet its conditions (P1b-5, `docs/gateway.md`, LIM-060).
 
 ### B — Biases
 
@@ -146,7 +147,7 @@ does not detect biased proposals that are within policy.
 | N | Deterministic, replayable decisions and audit | Reasons as an oracle (IMP-003) | IMP-003 |
 | T | Contained like injection | Out of scope | — |
 | O | Contract fixed before the model runs; delegation only narrows | Approver fatigue unmeasured | Candidate |
-| M | ATTACK-SURFACE, published limitations | Mediation assumed (LIM-050) | P1b-5 |
+| M | ATTACK-SURFACE, published limitations; the gateway holds the credentials | Gateway guarantee depends on the deployment (LIM-060) | — |
 | B | — | Out of scope | — |
 
 What this pass changed: two open items that were not on the roadmap, the anthropomorphic

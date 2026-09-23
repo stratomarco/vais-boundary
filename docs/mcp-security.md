@@ -109,6 +109,8 @@ From 0.12.0rc13 the client also accepts a `ledger` (a `SessionLedger` for this s
 
 Validity windows and revocation need nothing MCP-specific: construct the `ReferenceMonitor` given to the client with a `RevocationList`, and give the contract `not_before`/`not_after`. Several server workers can share one approval store file from 0.12.0rc13, on one machine (LIM-057); a grant made with `ttl_seconds` is refused once it expires.
 
+To take the credentials out of the agent host altogether, run the gateway instead of embedding this client (`vais gateway`, `docs/gateway.md`). It uses this client internally, assigns labels itself rather than accepting them from the agent, and withholds decision reasons from the agent by default.
+
 The client also accepts an optional `audit` trail. Every decision, including denials made before the monitor is consulted, is recorded with the action fingerprint and the contract identity; observed and indeterminate outcomes are recorded as `effect_observed` and `effect_indeterminate`. No argument value and no exception message is recorded.
 
 ## Scope through v0.8
@@ -128,7 +130,7 @@ Implemented:
 
 Not yet implemented:
 
-- transparent forwarding proxy for an unmodified third-party MCP host;
+- transparent forwarding proxy for an unmodified third-party MCP host *(for tools, the 0.12.0rc13 gateway is one: any MCP host that can send a bearer token can use it; resources and prompts are not proxied, LIM-062)*;
 - generic resource/prompt interception at the transport layer;
 - OAuth/token-broker policy enforcement;
 - distributed multi-server trace correlation;

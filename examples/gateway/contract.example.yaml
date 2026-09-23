@@ -1,0 +1,13 @@
+# Copy into contracts/ with the digest from `vais gateway-token`, and give the agent the token.
+# Deleting the copy revokes the session at its next call.
+version: 1
+token_sha256: REPLACE_WITH_THE_DIGEST_FROM_vais_gateway-token
+principal_id: analyst-1
+session_id: incident-INC-1234
+tenant_id: acme
+capability_id: triage
+allowed_tools: [mcp:ops:get_incident, mcp:ops:send_email]
+bound_arguments:
+  mcp:ops:get_incident: {incident_id: INC-1234}
+  mcp:ops:send_email: {recipient: ir-team@acme.example}
+# not_after: 1790200000   # optional: seconds since the epoch

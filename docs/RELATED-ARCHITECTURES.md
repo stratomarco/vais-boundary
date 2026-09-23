@@ -97,7 +97,10 @@ vocabulary where it is strictly clearer.
 - **G-B3 — Effector-exclusive credentialing.** PoE derives "no off-path effect" from a concrete
   discipline (only the enforced effector holds the credential) rather than assuming it. VAIS
   currently *assumes* the tool is unreachable except via `ProtectedExecutor`. Adopting PoE's
-  discipline would upgrade a VAIS assumption into an architectural guarantee.
+  discipline would upgrade a VAIS assumption into an architectural guarantee. *(Adopted in
+  0.12.0rc13, P1b-5: the gateway is the only holder of the upstream credentials, `docs/gateway.md`.
+  The guarantee holds under deployment conditions VAIS cannot inspect (LIM-060), and without
+  PoE's signed trace.)*
 - **G-B4 — Contract validity window + revocation.** PoE contracts carry `[t_nb, t_na]` and a
   revocation reference. `TaskContract` has neither, so there is no built-in notion of an
   approval/contract *expiring* or being *revoked* mid-session — relevant to the TOCTOU/replay

@@ -293,3 +293,27 @@ decisions:
     decision: Add TaskContract.delegate, which derives a sub-agent contract that may only narrow its parent and raises on any widening, and key the SessionLedger by principal, session and tenant rather than by capability.
     rationale: A delegate keeps its parent's session and takes a new capability id. Keying the ledger by session is what makes attenuation hold in practice, since a delegate's calls count against the parent's limits and spending a contract-held approval spends the parent's, and revoking the session revokes every delegate in it. Raising rather than trimming makes a request for more than the parent holds a visible error. Store grants stay keyed by capability, so a delegate cannot consume a grant made for its parent. The monitor_mediated identity check follows the ledger, so ENFORCE and VERIFY agree on what one session is.
     evidence: [tests/test_authority_lifecycle.py, src/vais/models.py, src/vais/ledger.py, src/vais/invariants.py]
+
+  - id: DEC-051
+    date: 2026-09-23
+    decision: At the gateway, label every argument from the agent as derived_untrusted at the session's confidentiality high-water mark, except a value exactly equal to its contract binding, which takes the binding's trusted label.
+    rationale: The gateway exists so that the agent process need not be trusted, so it cannot accept labels the agent sends. This is derive_model_output's rule applied at the boundary, and it turns the re-labelling every integration had to write (LIM-053) into one library function. It is stricter than the library path, since a contract binding becomes the only route to trust, and coarser, since the level only rises within a session (LIM-061).
+    evidence: [tests/test_gateway.py, src/vais/gateway.py, docs/gateway.md]
+
+  - id: DEC-052
+    date: 2026-09-23
+    decision: Give the gateway its contracts and approvals through operator-owned files. Contracts are found by the SHA-256 of the agent's session token, and the gateway writes approval requests but never grants; an operator grants them into the shared ApprovalStore after the request's fingerprint is re-checked.
+    rationale: Files need no new network surface and reuse the store that P1b-8 made safe across processes. Storing only the token digest means reading the directory does not reveal tokens. Re-reading the directory on every request makes deletion an immediate revocation. Two contracts with one digest, or a file that does not parse, grant nothing.
+    evidence: [tests/test_gateway.py, src/vais/gateway.py, src/vais/cli.py]
+
+  - id: DEC-053
+    date: 2026-09-23
+    decision: Withhold decision reasons from the agent by default at the gateway, returning the outcome only, and keep the reasons in the audit trail; reason_disclosure set to reasons restores them.
+    rationale: Reason codes such as bound_argument_changed name the field a contract binds, which helps an adaptive attacker probe the policy (S13). The gateway is a new interface with no callers to keep compatible, so it can default to the safer choice that IMP-003 proposed; the library path is unchanged.
+    evidence: [tests/test_gateway.py, src/vais/gateway.py]
+
+  - id: DEC-054
+    date: 2026-09-23
+    decision: Resolve upstream credentials from the gateway's own environment through ${env:NAME} references, start stdio upstreams with the SDK's minimal environment plus only their configured variables, authorize every tool call from its own request's bearer token, and fail startup on a missing variable or a profile tool its upstream does not offer.
+    rationale: Credentials never appear in configuration files, and the agent never receives them. An upstream does not inherit the gateway's other secrets. Authorizing from each request's token, not from the MCP session it arrives on, means a session identifier cannot carry one agent's authority to another. Failing at startup keeps a misconfiguration from becoming a partially mediated deployment.
+    evidence: [tests/test_gateway_server.py, src/vais/gateway_server.py]

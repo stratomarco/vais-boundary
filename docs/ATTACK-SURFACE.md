@@ -90,6 +90,16 @@ parent's session ledger (DEC-050). What this does not cover is published as LIM-
 revocations live in one process, the lock does not cross machines, time bounds are checked in
 ENFORCE only, and the monitor does not verify a delegate's lineage.
 
+**rc13 note (P1b-5).** The gateway (`docs/gateway.md`) runs the monitor in its own process as an
+MCP server over streamable HTTP, and is the only holder of the upstream credentials. Under S8,
+complete mediation becomes an architectural property for deployments that keep the agent away
+from the gateway's credentials, the upstreams and the operator files (LIM-060), rather than an
+assumption about the host (LIM-050). The gateway accepts nothing from the agent but a bearer
+token and plain arguments: contracts come from operator files by token digest, labels are
+assigned at the boundary (DEC-051), approvals are granted only by an operator (DEC-052), and
+reasons are withheld from the agent by default, IMP-003's proposal applied at the gateway only
+(DEC-053). Its own surface is S17.
+
 ---
 
 ## 0. Two corrections to the planned surface list
@@ -125,6 +135,7 @@ work is done:
 | `P1b-1` | The rc12 review of the monitor's edges. **Done in rc12**: FIND-049 to FIND-055 fixed, LIM-044 to LIM-054 published. |
 | `P1b-3` | Stateful monitor with one ledger shared by ENFORCE and VERIFY. **Done in rc13**: `SessionLedger`, policy v5 `max_calls`, `monitor_mediated`; found and fixed FIND-056. |
 | `P1b-8` | Freshness, revocation, multi-process approvals, delegation. **Done in rc13**: contract validity windows, grant TTL, `RevocationList`, a file-locked store, `TaskContract.delegate`; LIM-056 to LIM-059 published. |
+| `P1b-5` | Gateway with credential exclusivity. **Done in rc13**: `vais gateway` (MCP over streamable HTTP), labels at the boundary, operator-file contracts and approvals; S17 added, LIM-060 to LIM-063 published. |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated through rc12**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |
@@ -136,7 +147,7 @@ work is done:
 | S5 | Data-classification propagation | `taint.py:_max_confidentiality` (join in `derive_value`); enforced at `monitor.py` (l.77-86) and `invariants.py` `confidentiality_ceiling` | secret data → egress effect | Confidentiality is monotone (`join = max`); `secret` cannot silently drop to `public` | as S4, plus the ceiling tests | **P1-3 done; defaults are asymmetric, see LIM-036** |
 | S6 | Approval binding & replay window | `approvals.py:ApprovalStore.grant/consume`; `monitor.py` approval blocks (l.91-127) | approval grant → later execution | Consume-once; identity-scoped `(fingerprint, principal, session, tenant, capability)`; approval for action A never authorizes action B | strong (`test_tcb_hardening`) plus `test_fault_injection` (durability under a failed write), `test_mcp_approval_store`, `test_approval_verify`, `test_authority_lifecycle` (expiry, revocation, processes racing on one file) | **P1-2** (reference-vs-referent TOCTOU); FIND-046 fixed in rc11; FIND-049 to 051 fixed in rc12; FIND-056 fixed in rc13. Consume-once needs a store or a ledger (LIM-044, LIM-055); a store file holds across processes on one machine from rc13 (LIM-057). Freshness is opt-in from rc13: contract windows, grant TTL, revocation (P1b-8; LIM-056, LIM-058) |
 | S7 | Audit hash chain | `audit.py:AuditTrail.record/verify` | recorded history → verifier | Append-only; partial modification detected. Fork, tail truncation and any rebuilt chain are **not** detectable without a signed head (G-B1) | `test_audit_chain_integrity` (23 tests, mutation-checked) plus `test_tcb_hardening`, `test_audit_identity` | **P1-4 done; boundary demonstrated, LIM-037/038**. rc12: events carry the action fingerprint and contract identity (DEC-043) |
-| S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) plus `test_mcp_approval_store`, `test_audit_identity` | P1-1 (see S8 notes). The effect is the dispatched request (LIM-046); a malicious server is out of scope (LIM-049); complete mediation is assumed (LIM-050) |
+| S8 | MCP call mediation | `mcp.py:MCPProtectedClient.execute`, `label_mcp_input`, `extract_mcp_result_data`, `canonical_mcp_tool` | remote MCP server ↔ tool call | Only `ALLOW` reaches `session.call_tool`; remote data is `UNTRUSTED`, never authority | strong (`test_mcp`, 10 tests) plus `test_mcp_approval_store`, `test_audit_identity` | P1-1 (see S8 notes). The effect is the dispatched request (LIM-046); a malicious server is out of scope (LIM-049); complete mediation is assumed on the library path (LIM-050) and architectural behind the gateway under its deployment conditions (P1b-5, LIM-060) |
 | S9 | Invariant evaluation | `invariants.py:DeclarativeInvariantEngine.evaluate`, `_violation_reason` | observed effects → violation verdict | A malformed / unknown invariant must fail **closed**, never silently pass | `test_invariants` (6) plus `test_fault_injection` | **P1-5 done**; an evaluator that raises propagates rather than reading as no-violations. An invariant on an effect kind never produced is inert (LIM-041). rc12: sees store grants (FIND-050), `approval_single_use` (FIND-051); an indeterminate call is not scored as defended (DEC-040) |
 | S10 | Static-policy gap under `default_action: allow` | `monitor.py:ReferenceMonitor.evaluate` (l.48-54) | tool in contract but absent from static policy | Dynamic contract authorizes; bound-arg checks still apply | `test_reference_monitor::test_bound_argument_is_enforced_even_when_static_default_is_allow` | P1-1 (see S10 notes) |
 | S11 | Executor fail-closed seam | `executor.py:ProtectedExecutor.run` (l.51) | authorized decision → real effect | Only `DecisionType.ALLOW` executes; DENY / REQUIRE_APPROVAL emit no effect | `test_protected_executor` (2) | P1-5 |
@@ -145,6 +156,7 @@ work is done:
 | S14 | **Effect-set cardinality (volume composition)** | `monitor.py:ReferenceMonitor.evaluate` (one action); `executor.py:ProtectedExecutor.run` (loop, no accumulator); `invariants.py` aggregate path | many individually authorized actions → one unauthorized aggregate | A bound over a *set* of effects must be expressible and checkable | `test_invariant_cardinality` (13 tests, VERIFY side; the stateless limitation is asserted) plus `test_session_ledger` (ENFORCE with a ledger; ENFORCE and VERIFY agree over 200 seeded traces) | **VERIFY closed in rc11; ENFORCE closed in rc13 when a `SessionLedger` is supplied**; stateless callers keep LIM-035 |
 | S15 | **Model text and reasoning output** | none; outside every enforcement path | model → user, logs, UI | Confidential context must not leave through a channel no decision covers | none | **Unmediated (LIM-051)**; a non-goal in the threat model |
 | S16 | Security mapping immutability | `models.py:FrozenDict` (contract bindings, action arguments, policy tools, effect attributes) | integration code → security state after construction | Authority and fingerprinted state cannot be changed in place after construction | `test_frozen_mapping` (every mutator, including `\|=`) | **FIND-052 fixed in rc12**; deliberate unbound `dict` calls are not preventable in Python and are outside the threat model |
+| S17 | **Gateway front door and operator files** | `gateway_server.py:build_app` (bearer check, `list_tools`, `call_tool`), `gateway.py:ContractRegistry.lookup`, `label_agent_action`, `grant_pending_request` | agent process ↔ gateway; operator files → gateway | Only a registered token reaches MCP; each call is authorized from its own request's token; nothing the agent sends is trusted except a value equal to its binding; only an operator grants | `test_gateway` (14 tests), `test_gateway_server` (real upstream over stdio, real HTTP), 8 mutants killed | **P1b-5, rc13.** Conditional on the deployment (LIM-060); coarse labels (LIM-061); tools only (LIM-062); in-memory state (LIM-063) |
 
 ---
 

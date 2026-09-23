@@ -1,0 +1,13 @@
+version: 5
+default_action: deny
+tools:
+  mcp:ops:get_incident:
+    allow: true
+    arguments:
+      incident_id: {trust_required: trusted}
+  mcp:ops:send_email:
+    allow: true
+    arguments:
+      recipient: {trust_required: trusted}
+      body: {max_confidentiality: internal}
+    max_calls: 3
