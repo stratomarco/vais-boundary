@@ -158,3 +158,6 @@ limitations:
 
   - id: LIM-063
     limitation: Gateway session state, the ledger and the confidentiality level, lives in the gateway's memory, so a restart starts every session fresh (as LIM-055). The contract directory is read and parsed on every request, which bounds how many sessions one gateway can serve. Pending approval requests hold argument values in plaintext, and the session token is a bearer secret that expires only with its contract's window or file.
+
+  - id: LIM-064
+    limitation: An action's origin is the join of everything visible when it was planned, so in any agent that reads untrusted data before or while acting, every later action has an untrusted origin. untrusted_origin then puts a human in front of the gated tool whenever the session has read anything untrusted; it cannot tell an attacked action from a clean one (FIND-057). An origin that discriminates needs a planner kept away from untrusted content, which labels on a single-model agent cannot provide. The origin is also only as good as the visible context the adapter reports, and the gateway assumes the agent's prompt is trusted (LIM-061).

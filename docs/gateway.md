@@ -33,6 +33,11 @@ It is stricter than the library path: a contract binding is the only route to tr
 also coarse: once a session has read `secret` data through the gateway, every later argument
 counts as `secret` (DEC-051, LIM-061).
 
+Each action also gets an origin (P1b-6): trusted until the session receives its first tool
+result, untrusted from then on. A tool whose policy sets `untrusted_origin: require_approval`
+therefore needs an operator's approval for any call after the session has read something. That
+is a deliberate human gate, not attack detection (FIND-057).
+
 ## Quick start
 
 The files are in [`examples/gateway/`](../examples/gateway/); the upstream is the repository's

@@ -317,3 +317,15 @@ decisions:
     decision: Resolve upstream credentials from the gateway's own environment through ${env:NAME} references, start stdio upstreams with the SDK's minimal environment plus only their configured variables, authorize every tool call from its own request's bearer token, and fail startup on a missing variable or a profile tool its upstream does not offer.
     rationale: Credentials never appear in configuration files, and the agent never receives them. An upstream does not inherit the gateway's other secrets. Authorizing from each request's token, not from the MCP session it arrives on, means a session identifier cannot carry one agent's authority to another. Failing at startup keeps a misconfiguration from becoming a partially mediated deployment.
     evidence: [tests/test_gateway_server.py, src/vais/gateway_server.py]
+
+  - id: DEC-055
+    date: 2026-09-23
+    decision: Give actions an optional origin, the join of the labels visible when they were planned, excluded from the fingerprint, and let policy v6 set untrusted_origin per tool to allow, require_approval or deny, counting a missing origin as untrusted. Carry the origin on effects and check it in VERIFY with an opt-in trusted_origin invariant.
+    rationale: LIM-048 exists because authority is judged per argument and nothing records why an action was proposed. The origin answers that from labels alone, keeping the rule that the monitor never reads content. Excluding it from the fingerprint keeps an approval bound to the action rather than to how it was planned. Treating a missing origin as untrusted means a caller cannot defeat the rule by omitting it. require_approval joins the single approval decision after call limits, so FIND-056 and DEC-045 still hold, and VERIFY applies the same rule so ENFORCE and VERIFY agree.
+    evidence: [tests/test_action_origin.py, src/vais/taint.py, src/vais/monitor.py, src/vais/policy.py, src/vais/invariants.py]
+
+  - id: DEC-056
+    date: 2026-09-23
+    decision: Do not recommend untrusted_origin as a default. Document it as an explicit per-tool switch that puts a human in front of a high-consequence tool, with its measured cost.
+    rationale: The pre-registered decision rule required a control cost of at most 10% and a discrimination of at least 20 percentage points; on RC7 no tool set met it, and discrimination was zero everywhere (FIND-057). As a deliberate human gate on a tool such as a payment, it closes LIM-048 for that tool, including the PHANTOM-B expense case below its threshold, and that is a legitimate choice for an operator to make knowingly.
+    evidence: [experiments/p1b6/RESULTS.md, experiments/p1b6/PREREGISTRATION.md]

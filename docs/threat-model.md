@@ -55,7 +55,7 @@ The LLM may follow the attacker's instruction. The framework does not require pr
 Recorded in the research ledger rather than here, so they carry evidence and stay current:
 
 - authority is fresh only when the caller asks for it. From 0.12.0rc13 a contract can carry a validity window, a grant a TTL, and a `RevocationList` withdraws a session or a capability; without them, authority stays valid for as long as it is used (LIM-047). Revocations live in memory in one process (LIM-056), and none of these is evaluated in VERIFY (LIM-058);
-- authority is judged per argument, and a proposed action carries no provenance of its own, so an argument without a trust requirement can come from hostile content while the authority-bearing ones stay trusted (LIM-048);
+- authority is judged per argument, so an argument without a trust requirement can come from hostile content while the authority-bearing ones stay trusted (LIM-048). From 0.12.0rc13 an action can carry its origin, the join of what was visible when it was planned, and policy v6 can put a human in front of a tool whose action has an untrusted origin. Measured on RC7, that origin was untrusted for every model action, attacked or clean, so the rule is a per-tool human gate and not a detector (FIND-057, LIM-064);
 - without an `ApprovalStore` or a `SessionLedger`, a contract-held approval is reusable for the life of the contract; VERIFY reports the reuse and ENFORCE does not prevent it (LIM-044);
 - without a `SessionLedger`, a bound over several actions is checked in VERIFY and not enforced in flight (LIM-035). With one, `max_calls` is enforced in flight, but the ledger lives in one process and a restart starts a fresh one (LIM-055).
 

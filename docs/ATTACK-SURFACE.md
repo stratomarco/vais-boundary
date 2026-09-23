@@ -100,6 +100,14 @@ assigned at the boundary (DEC-051), approvals are granted only by an operator (D
 reasons are withheld from the agent by default, IMP-003's proposal applied at the gateway only
 (DEC-053). Its own surface is S17.
 
+**rc13 note (P1b-6).** An action can carry an origin, the join of the labels visible when it was
+planned, and policy v6's `untrusted_origin` can escalate or deny a tool's actions whose origin is
+not trusted; the `trusted_origin` invariant checks the same in VERIFY (DEC-055). It addresses
+the control-flow half of provenance behind LIM-048 from labels alone, so the monitor still never
+reads content. Measured by a pre-registered replay of RC7, the origin was untrusted for every
+model action in clean and attacked runs alike, so the rule gates a tool behind a human and does
+not detect an injection. It is not a default (FIND-057, LIM-064, DEC-056).
+
 ---
 
 ## 0. Two corrections to the planned surface list
@@ -136,6 +144,7 @@ work is done:
 | `P1b-3` | Stateful monitor with one ledger shared by ENFORCE and VERIFY. **Done in rc13**: `SessionLedger`, policy v5 `max_calls`, `monitor_mediated`; found and fixed FIND-056. |
 | `P1b-8` | Freshness, revocation, multi-process approvals, delegation. **Done in rc13**: contract validity windows, grant TTL, `RevocationList`, a file-locked store, `TaskContract.delegate`; LIM-056 to LIM-059 published. |
 | `P1b-5` | Gateway with credential exclusivity. **Done in rc13**: `vais gateway` (MCP over streamable HTTP), labels at the boundary, operator-file contracts and approvals; S17 added, LIM-060 to LIM-063 published. |
+| `P1b-6` | Action provenance. **Done in rc13**: `PlannedAction.origin`, policy v6 `untrusted_origin`, `trusted_origin`; replayed on RC7 (FIND-057): a per-tool human gate, not a detector, so not a default (DEC-056). |
 | `IMP-003` | Decision-reason disclosure (S13). Proposed, **unmitigated through rc12**. |
 
 | ID | Surface | Entry point (`module:function`) | Trust boundary | Intended property | Existing coverage | Owner |

@@ -62,8 +62,11 @@ not proof (LIM-001).
 Remaining: an argument without a trust requirement can come from hostile content (LIM-048, the
 450 row above); the model's text and reasoning are not mediated (LIM-051); decision reasons
 returned to the agent loop can be used to probe the policy (S13, IMP-003).
-Planned: action provenance, so a high-consequence tool can require that the action itself, not
-only its arguments, has a trusted origin (P1b-6).
+From rc13 a high-consequence tool can require that the action itself, not only its arguments,
+has a trusted origin (P1b-6). With `untrusted_origin: require_approval` the 450 row needs a human.
+Replayed on RC7, though, every model action had an untrusted origin in clean runs as in attacked
+ones, so this is a deliberate human gate on the tool, not a way to spot the injection
+(FIND-057).
 
 ### H — Hallucination
 
@@ -73,7 +76,7 @@ To VAIS a hallucinated argument and an injected one look the same: model output.
 and exact approvals catch an invented recipient, account or report id. A hallucinated value in
 an argument with no trust requirement is allowed within policy (LIM-048). On the MCP path, VAIS
 verifies that the authorized request was dispatched, not that the resulting state is what the
-model claims (LIM-046). Planned: P1b-6, and receipts and effect confidence (P1b-7).
+model claims (LIM-046). The origin rule gates a tool, whatever made the value up (P1b-6, FIND-057); receipts and effect confidence are planned (P1b-7).
 
 ### A — Anthropomorphization
 
@@ -93,8 +96,8 @@ VAIS explains its decisions, not the model's. Every denial carries deterministic
 and the audit chain records which action was decided and for whom, by action fingerprint and
 contract identity, without argument values (DEC-043). Given the same inputs, and the same clock
 for a time-bounded contract, the decision replays exactly, which the model's output does not. Returning those reasons to the model is
-also an oracle for an adaptive attacker (S13); redacting what the model sees while the audit
-keeps full detail is proposed and not implemented (IMP-003).
+also an oracle for an adaptive attacker (S13); the gateway withholds them from the agent by
+default and keeps them in the audit (DEC-053); the library path still returns them (IMP-003).
 
 ### T — Training issues
 
@@ -115,13 +118,15 @@ can widen them. From rc13, a sub-agent's contract can only narrow its parent's (
 
 Remaining: over-reliance moves to the approver. An exact approval is bound to the precise
 action, and from rc13 it can expire (DEC-048), but what the approver is shown is up to the
-application, and nothing in VAIS measures approval fatigue or rubber-stamping. **Open:** a candidate for measurement.
+application, and nothing in VAIS measures approval fatigue or rubber-stamping. **Open:** a candidate for measurement,
+made more pressing by P1b-6: an origin gate on a tool asks for an approval on every call after
+the session has read untrusted content, which on RC7 was 26% to 43% of clean workflows (FIND-057).
 
 ### M — Missing security engineering
 
 *Did we do the other security engineering?*
 
-This asks about VAIS itself. `docs/ATTACK-SURFACE.md` maps sixteen surfaces of the enforcement
+This asks about VAIS itself. `docs/ATTACK-SURFACE.md` maps seventeen surfaces of the enforcement
 code with entry points, trust boundaries and owners, and each release publishes its findings,
 decisions and limitations in `research/knowledge/`, with evidence.
 The paper's question list also asks whether the data the LLM can reach, and where it can be
@@ -141,7 +146,7 @@ does not detect biased proposals that are within policy.
 
 | | VAIS addresses | Remaining | Next |
 |---|---|---|---|
-| P | Authority and effects, whatever the model was told | Untrusted non-authority arguments (LIM-048); text (LIM-051); reason oracle (IMP-003) | P1b-6 |
+| P | Authority and effects, whatever the model was told; an opt-in human gate on untrusted-origin actions | Untrusted non-authority arguments where no gate is set (LIM-048, FIND-057); text (LIM-051); reason oracle (IMP-003) | P1b-6 |
 | H | Invented bound values and approved actions | Hallucinated unbound arguments (LIM-048); dispatched ≠ resulting state (LIM-046) | P1b-6, P1b-7 |
 | A | Enforcement ignores intent | Vocabulary in the documents | Naming decision |
 | N | Deterministic, replayable decisions and audit | Reasons as an oracle (IMP-003) | IMP-003 |
@@ -152,4 +157,5 @@ does not detect biased proposals that are within policy.
 
 What this pass changed: two open items that were not on the roadmap, the anthropomorphic
 vocabulary and approver fatigue, and a second reason to keep P1b-6 ahead of later work, since
-both P and H end at LIM-048.
+both P and H end at LIM-048. P1b-6 has since shipped and been measured: it can gate a tool, but
+a label-level origin cannot separate an injected action from a clean one (FIND-057).
