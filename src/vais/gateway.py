@@ -42,6 +42,7 @@ from .ledger import SessionLedger
 from .mcp import (
     MCPCallState,
     MCPProfile,
+    MCPReadBackReconciler,
     MCPProtectedClient,
     MCPToolBinding,
     MCPToolSession,
@@ -322,6 +323,10 @@ class Gateway:
                 raise PolicyValidationError(f"exposed tool name {name!r} is not unique")
             if binding.server_id not in self.sessions:
                 raise PolicyValidationError(f"no upstream session for server {binding.server_id!r}")
+            confirm = binding.effect.confirm
+            if confirm is not None and confirm.server_id not in self.sessions:
+                raise PolicyValidationError(
+                    f"{name!r} reads its effect back from server {confirm.server_id!r}, which has no upstream session")
             tools[name] = ExposedTool(name, binding)
         self._tools = tools
 
@@ -381,6 +386,7 @@ class Gateway:
             approval_store=self.approval_store,
             audit=self.audit,
             ledger=state.ledger,
+            reconcilers=self._reconcilers(binding),
         )
         record = await client.execute(action, contract)
 
@@ -400,6 +406,18 @@ class Gateway:
             request = self._request_approval(action, contract)
             return self._refusal(GatewayOutcomeKind.APPROVAL_REQUIRED, record.decision.reasons, request)
         return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
+
+    def _reconcilers(self, binding: MCPToolBinding) -> dict[str, MCPReadBackReconciler]:
+        """The read-back for this binding's effect, over the gateway's own upstream session (P1b-7).
+
+        The read is the gateway's, with its credentials, not an agent action, so the monitor
+        does not decide it. Its outcome is recorded in the audit as the effect's confidence.
+        """
+        spec = binding.effect.confirm
+        if spec is None:
+            return {}
+        return {binding.effect.kind: MCPReadBackReconciler(self.sessions[spec.server_id], spec.tool_name,
+                                                           arguments=spec.arguments, expect=spec.expect)}
 
     def _refusal(self, kind: GatewayOutcomeKind, reasons: tuple[str, ...],
                  request: str | None = None) -> GatewayOutcome:

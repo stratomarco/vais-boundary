@@ -286,3 +286,44 @@ def test_what_the_session_has_read_decides_the_origin_of_what_it_plans(world):
     assert after.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
     assert after.reasons == ("approval_required:mcp:ops:send_email:untrusted_origin",)
     assert [name for name, _ in upstream.calls] == ["send_email", "get_incident"]
+
+
+# --- effect confidence at the gateway (P1b-7) --------------------------------------------
+
+class Records:
+    """The system of record, a separate upstream the gateway reads effects back from."""
+
+    def __init__(self, to):
+        self.to, self.calls = to, []
+
+    async def call_tool(self, name, arguments=None):
+        self.calls.append((name, dict(arguments or {})))
+        return {"to": self.to}
+
+
+def _confirming_gateway(tmp_path, records):
+    from vais.mcp import MCPReadBackSpec
+    confirmed = MCPEffectMapping("email_sent", {"recipient": "recipient"},
+                                 confirm=MCPReadBackSpec("records", "get_message", {"recipient": "effect.recipient"},
+                                                         {"recipient": "to"}))
+    profile = MCPProfile(bindings=(MCPToolBinding("ops", "send_email", "mcp:ops:send_email", effect=confirmed),))
+    return Gateway(profile=profile, monitor=ReferenceMonitor(POLICY), registry=ContractRegistry(tmp_path / "contracts"),
+                   sessions={"ops": FakeUpstream(), **({"records": records} if records else {})},
+                   approval_store=ApprovalStore(tmp_path / "approvals.json"), pending_dir=tmp_path / "pending")
+
+
+@pytest.mark.parametrize("to, expected", [("ir-team@acme.test", "confirmed"), ("attacker@evil.test", "contradicted")])
+def test_the_gateway_reads_effects_back_from_the_system_of_record(world, to, expected):
+    _, _, tmp_path = world
+    records = Records(to)
+    gateway = _confirming_gateway(tmp_path, records)
+    run(gateway.call(TOKEN, "ops.send_email", {"recipient": "ir-team@acme.test", "body": "status"}))
+    observed = [e for e in gateway.audit.events if e.event_type == "effect_observed"]
+    assert [e.details["confidence"] for e in observed] == [expected]
+    assert records.calls == [("get_message", {"recipient": "ir-team@acme.test"})]
+
+
+def test_a_read_back_from_an_unknown_server_fails_at_startup(world):
+    _, _, tmp_path = world
+    with pytest.raises(PolicyValidationError, match="records"):
+        _confirming_gateway(tmp_path, None)

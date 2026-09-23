@@ -264,6 +264,11 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
                 if binding.tool_name not in upstream_tools.get(binding.server_id, {}):
                     raise PolicyValidationError(
                         f"profile binds {exposed_name(binding)!r}, which its upstream does not offer")
+                confirm = binding.effect.confirm
+                if confirm is not None and confirm.tool_name not in upstream_tools.get(confirm.server_id, {}):
+                    raise PolicyValidationError(
+                        f"{exposed_name(binding)!r} reads back through {confirm.server_id}.{confirm.tool_name}, "
+                        "which that upstream does not offer")
             state["tools"] = upstream_tools
             state["gateway"] = Gateway(
                 profile=profile, monitor=ReferenceMonitor(policy), registry=registry, sessions=sessions,

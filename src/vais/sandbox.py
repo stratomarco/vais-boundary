@@ -2,10 +2,39 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from collections.abc import Mapping
+from enum import Enum
 from typing import Any
 import unicodedata
 
 from .models import FrozenDict, PlannedAction, Provenance, action_fingerprint, deep_freeze
+
+
+class EffectConfidence(str, Enum):
+    """How much is known about an effect beyond the decision to make it (P1b-7).
+
+    ``requested``: the call was dispatched and returned; this is all the MCP path knew
+    before P1b-7 (LIM-046). ``acknowledged``: the reply names the effect's fields with the
+    values requested; the reply is the server's own claim. ``confirmed``: a read-back from
+    the system of record agrees. ``contradicted``: a reply or read-back reports different
+    values, so the effect that happened is not the one requested.
+    """
+
+    CONTRADICTED = "contradicted"
+    REQUESTED = "requested"
+    ACKNOWLEDGED = "acknowledged"
+    CONFIRMED = "confirmed"
+
+    @property
+    def rank(self) -> int:
+        return _CONFIDENCE_RANK[self]
+
+
+_CONFIDENCE_RANK = {
+    EffectConfidence.CONTRADICTED: 0,
+    EffectConfidence.REQUESTED: 1,
+    EffectConfidence.ACKNOWLEDGED: 2,
+    EffectConfidence.CONFIRMED: 3,
+}
 
 
 @dataclass(frozen=True)
@@ -18,8 +47,18 @@ class Effect:
     # The origin of the action that produced this effect (P1b-6), so VERIFY can apply
     # the same origin rule ENFORCE did. None when the action carried no origin.
     origin: Provenance | None = None
+    # What is known about whether this effect happened as requested (P1b-7). An effect
+    # claims no more than "requested" unless something established more.
+    confidence: EffectConfidence = EffectConfidence.REQUESTED
+    # Names, never values, of the fields a reply or read-back reported differently.
+    contradicted_fields: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        if not isinstance(self.confidence, EffectConfidence):
+            raise ValueError("effect confidence must be an EffectConfidence")
+        object.__setattr__(self, "contradicted_fields", tuple(sorted(self.contradicted_fields)))
+        if (self.confidence is EffectConfidence.CONTRADICTED) != bool(self.contradicted_fields):
+            raise ValueError("an effect is contradicted exactly when it names contradicted fields")
         if self.origin is not None and not isinstance(self.origin, Provenance):
             raise ValueError("effect origin must be Provenance or None")
         if not isinstance(self.kind, str) or not self.kind.strip():
@@ -56,6 +95,7 @@ class SandboxExecutor:
     The executor preserves per-field provenance on the resulting effect. That
     lets the invariant engine verify information-flow properties against what
     actually crossed the execution boundary, rather than model self-report.
+    It performs the effect itself, so its effects are ``confirmed``.
     """
 
     def execute(self, action: PlannedAction) -> Effect:
@@ -74,6 +114,7 @@ class SandboxExecutor:
                 tool=action.tool,
                 action_fingerprint=fingerprint,
                 origin=action.origin,
+                confidence=EffectConfidence.CONFIRMED,
             )
         if action.tool == "read_document":
             return Effect(
@@ -83,6 +124,7 @@ class SandboxExecutor:
                 tool=action.tool,
                 action_fingerprint=fingerprint,
                 origin=action.origin,
+                confidence=EffectConfidence.CONFIRMED,
             )
         if action.tool == "make_payment":
             return Effect(
@@ -92,6 +134,7 @@ class SandboxExecutor:
                 tool=action.tool,
                 action_fingerprint=fingerprint,
                 origin=action.origin,
+                confidence=EffectConfidence.CONFIRMED,
             )
         if action.tool == "shell_exec":
             return Effect(
@@ -101,6 +144,7 @@ class SandboxExecutor:
                 tool=action.tool,
                 action_fingerprint=fingerprint,
                 origin=action.origin,
+                confidence=EffectConfidence.CONFIRMED,
             )
         return Effect(
             "tool_executed",
@@ -109,4 +153,5 @@ class SandboxExecutor:
             tool=action.tool,
             action_fingerprint=fingerprint,
             origin=action.origin,
+            confidence=EffectConfidence.CONFIRMED,
         )

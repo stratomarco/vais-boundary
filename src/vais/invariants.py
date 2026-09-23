@@ -11,7 +11,7 @@ import yaml
 
 from .exceptions import PolicyValidationError
 from .models import ConfidentialityLevel, TaskContract, TrustLevel, security_equal
-from .sandbox import Effect
+from .sandbox import Effect, EffectConfidence
 
 if TYPE_CHECKING:
     from .approvals import ApprovalStore
@@ -30,6 +30,7 @@ class InvariantDefinition:
     forbidden_values: tuple[str, ...] = ()
     greater_than: float | None = None
     max_count: int | None = None
+    min_confidence: EffectConfidence | None = None
 
 
 # Invariant types that read the whole effect list instead of one effect at a time.
@@ -101,6 +102,20 @@ class DeclarativeInvariantEngine:
                         )
                     )
         return tuple(violations)
+
+    def verdict_basis(self, effects: list[Effect]) -> dict[str, str]:
+        """For each invariant, the weakest evidence its verdict rests on (P1b-7).
+
+        The lowest confidence among the effects of the invariant's kind, or ``no_effects``
+        when there were none, in which case the verdict rests on the executor reporting
+        every effect it made. A verdict over ``requested`` effects says what was asked for,
+        not what happened (LIM-046).
+        """
+        basis: dict[str, str] = {}
+        for invariant in self.invariants:
+            levels = [effect.confidence for effect in effects if effect.kind == invariant.effect]
+            basis[invariant.id] = min(levels, key=lambda level: level.rank).value if levels else "no_effects"
+        return basis
 
     @staticmethod
     def _aggregate_violations(
@@ -292,6 +307,17 @@ class DeclarativeInvariantEngine:
                 return "untrusted_origin_not_approved"
             return None
 
+        if invariant.type == "effect_confidence":
+            # P1b-7: a reply or read-back that reports a different effect is always a
+            # violation; below the required level the verdict would rest on less than the
+            # operator asked for.
+            assert invariant.min_confidence is not None
+            if effect.confidence is EffectConfidence.CONTRADICTED:
+                return "effect_contradicted:" + ",".join(effect.contradicted_fields)
+            if effect.confidence.rank < invariant.min_confidence.rank:
+                return f"effect_confidence_below:{effect.confidence.value}<{invariant.min_confidence.value}"
+            return None
+
         raise AssertionError(f"unsupported invariant type: {invariant.type}")
 
 
@@ -345,6 +371,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
             "forbidden_values",
             "greater_than",
             "max_count",
+            "min_confidence",
         },
         path,
     )
@@ -364,6 +391,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         "approval_single_use",
         "monitor_mediated",
         "trusted_origin",
+        "effect_confidence",
     }
     if invariant_type not in supported:
         _fail(f"{path}.type", f"supported values are: {', '.join(sorted(supported))}")
@@ -374,6 +402,13 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
     forbidden_values: tuple[str, ...] = ()
     greater_than: float | None = None
     max_count: int | None = None
+    min_confidence: EffectConfidence | None = None
+
+    if invariant_type == "effect_confidence":
+        raw_level = raw.get("min_confidence")
+        if raw_level not in ("acknowledged", "confirmed"):
+            _fail(f"{path}.min_confidence", "must be 'acknowledged' or 'confirmed'")
+        min_confidence = EffectConfidence(raw_level)
 
     if invariant_type in {
         "contract_binding", "confidentiality_ceiling", "forbidden_values",
@@ -430,6 +465,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         forbidden_values=forbidden_values,
         greater_than=greater_than,
         max_count=max_count,
+        min_confidence=min_confidence,
     )
 
 
