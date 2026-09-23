@@ -269,3 +269,27 @@ decisions:
     decision: Add monitor_mediated as an opt-in invariant that reports effects no recorded ALLOW accounts for, checking in one direction only, and keep it out of the default set.
     rationale: Complete mediation cannot be enforced by a library but can be checked after the fact against the ledger ENFORCE wrote. An allowed call can fail before it takes effect, so an entry without an effect is expected and not reported, while an effect without an entry is exactly an unmediated effect. It stays out of the default set because it requires callers to pass the ledger to VERIFY and would otherwise fail closed for every caller that does not.
     evidence: [tests/test_session_ledger.py, src/vais/invariants.py, docs/security-invariants.md]
+
+  - id: DEC-047
+    date: 2026-09-23
+    decision: Check a contract's validity window and the revocation list before anything else in the monitor, deny outside the window or when revoked, and read the clock only for contracts that carry a window.
+    rationale: Whether authority still holds comes before what it authorizes, so an expired or revoked contract is denied without reaching the ledger or consuming an approval. Reading the clock only for time-bounded contracts keeps every other decision deterministic and independent of the time, which the fault-injection suite asserts with a clock that raises if read. Both mechanisms are optional, so existing callers see no change (LIM-047).
+    evidence: [tests/test_authority_lifecycle.py, tests/test_fault_injection.py, src/vais/monitor.py, src/vais/revocation.py]
+
+  - id: DEC-048
+    date: 2026-09-23
+    decision: Let an approval grant carry an expiry set from a TTL when it is granted, refuse an expired grant without consuming it, and keep grants without a TTL valid until consumed.
+    rationale: A human's yes should stop counting after a bounded time, which answers the second external reviewer's freshness question for approvals. Leaving an expired grant unconsumed keeps the record truthful, since it was never used, and VERIFY does not count an unconsumed grant as approval. The expiry is stored as absolute time, so it survives persistence, and files written before the field existed still load.
+    evidence: [tests/test_authority_lifecycle.py, src/vais/approvals.py]
+
+  - id: DEC-049
+    date: 2026-09-23
+    decision: Make the approval store's file the source of truth, holding an operating-system lock and reloading from disk around every grant, consume and lookup, and raise if the lock cannot be acquired within the timeout.
+    rationale: Each instance used to load the file once and trust its memory, so two workers could consume one grant (LIM-045). Reloading under the lock serializes processes on one machine, and six real processes racing on one file produce exactly one consume; a mutant without the lock failed that test on 5 of 5 runs. Raising on timeout keeps the store fail-closed, because nothing on the enforcement path catches it and so no decision is made without the lock (LIM-057).
+    evidence: [tests/test_authority_lifecycle.py, src/vais/approvals.py]
+
+  - id: DEC-050
+    date: 2026-09-23
+    decision: Add TaskContract.delegate, which derives a sub-agent contract that may only narrow its parent and raises on any widening, and key the SessionLedger by principal, session and tenant rather than by capability.
+    rationale: A delegate keeps its parent's session and takes a new capability id. Keying the ledger by session is what makes attenuation hold in practice, since a delegate's calls count against the parent's limits and spending a contract-held approval spends the parent's, and revoking the session revokes every delegate in it. Raising rather than trimming makes a request for more than the parent holds a visible error. Store grants stay keyed by capability, so a delegate cannot consume a grant made for its parent. The monitor_mediated identity check follows the ledger, so ENFORCE and VERIFY agree on what one session is.
+    evidence: [tests/test_authority_lifecycle.py, src/vais/models.py, src/vais/ledger.py, src/vais/invariants.py]

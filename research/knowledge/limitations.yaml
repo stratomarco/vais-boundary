@@ -134,3 +134,15 @@ limitations:
 
   - id: LIM-055
     limitation: A SessionLedger lives in memory in one process and is not persisted, so a restart or a second worker starts from an empty ledger and the session's call limits and single-use contract approvals begin again. Statefulness is also opt-in. A caller that passes no ledger keeps the stateless behaviour described in LIM-035 and LIM-044, except that a tool declaring max_calls is then denied rather than allowed.
+
+  - id: LIM-056
+    limitation: A RevocationList lives in memory in one process and is not persisted. A restart forgets every revocation, and a second worker never sees one made in the first, so revoked authority holds again in any process that did not record the revocation. Revocation is also opt-in; a monitor constructed without a list checks nothing.
+
+  - id: LIM-057
+    limitation: Cross-process consume-once holds on one machine only. The ApprovalStore takes an operating-system lock on a sibling .lock file and reloads the store before every operation, which coordinates processes on one host with a local disk. It does not coordinate across machines, is not tested on network filesystems, where advisory locks are unreliable, and reads the whole file on every decision, so a large store slows every decision down. A store that cannot be locked within its timeout raises rather than answering unlocked.
+
+  - id: LIM-058
+    limitation: Time-bounded authority is checked in ENFORCE only, when the monitor decides, against the local clock. A contract that expires between the decision and the effect is not re-checked, VERIFY does not evaluate validity windows, grant expiry or revocations, and a wrong or manipulated host clock moves every window by the same amount. Contracts and grants without a time bound never read the clock, so they are unaffected.
+
+  - id: LIM-059
+    limitation: Delegation attenuates only when the application derives a sub-agent's contract with TaskContract.delegate. The monitor does not know that a contract is a delegate and does not check its lineage, so a contract constructed directly with the parent's session and wider authority is accepted as if it were the parent. Delegation also shares the parent's session ledger by design, so a delegate's calls count against the parent's limits and cannot be given a separate budget.

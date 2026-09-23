@@ -107,6 +107,8 @@ When VERIFY runs over MCP effects approved through a store, pass the same store 
 
 From 0.12.0rc13 the client also accepts a `ledger` (a `SessionLedger` for this session). With it the monitor enforces a tool's `max_calls` in flight and makes contract-held approvals single-use; pass the same ledger to VERIFY to check that every MCP effect corresponds to an `ALLOW` (`monitor_mediated`).
 
+Validity windows and revocation need nothing MCP-specific: construct the `ReferenceMonitor` given to the client with a `RevocationList`, and give the contract `not_before`/`not_after`. Several server workers can share one approval store file from 0.12.0rc13, on one machine (LIM-057); a grant made with `ttl_seconds` is refused once it expires.
+
 The client also accepts an optional `audit` trail. Every decision, including denials made before the monitor is consulted, is recorded with the action fingerprint and the contract identity; observed and indeterminate outcomes are recorded as `effect_observed` and `effect_indeterminate`. No argument value and no exception message is recorded.
 
 ## Scope through v0.8

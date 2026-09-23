@@ -101,7 +101,10 @@ vocabulary where it is strictly clearer.
 - **G-B4 — Contract validity window + revocation.** PoE contracts carry `[t_nb, t_na]` and a
   revocation reference. `TaskContract` has neither, so there is no built-in notion of an
   approval/contract *expiring* or being *revoked* mid-session — relevant to the TOCTOU/replay
-  surface that P1-2 will fuzz.
+  surface that P1-2 will fuzz. *(Largely closed in 0.12.0rc13, P1b-8: `TaskContract` can carry
+  `not_before`/`not_after`, grants a TTL, and a `RevocationList` withdraws a session or a
+  capability. Unlike PoE, the contract is not content-addressed and the revocation reference is
+  an in-process list rather than a field of the contract (LIM-056).)*
 - **G-B5 — Formal validator framing.** PoE packages everything into one predicate
   `PoE(C,T,R)=1 ⟺ WF ∧ I₁ ∧ I₂ ∧ I₃ ∧ I₄ ∧ I₅ₐ`, with cryptographic vs deployment assumptions
   separated explicitly (A1–A2 vs A3–A7). VAIS's properties are equally real but stated prose-wise
@@ -157,7 +160,7 @@ These are logged for the project owner; none are executed here.
    missing signature costs.
 2. **G-B4 (validity window + revocation) intersects P1-2's TOCTOU surface.** Approval replay
    across an expired window is unexpressible today because there is no window. Worth noting in the
-   P1-1 attack-surface map.
+   P1-1 attack-surface map. *(Done: noted under S6, and windows added in 0.12.0rc13.)*
 3. **Reach out to the PoE authors** (outreach task P4-3) once vocabulary alignment lands — matching the
    paper's terms is the cheapest route to being *the* implementation the paper's readers cite.
 

@@ -9,7 +9,7 @@
 ## Next bounded work
 
 - externally anchored/append-only audit storage
-- transactional approval persistence with multi-process or distributed coordination
+- distributed approval coordination across machines (multi-process on one machine is done in 0.12.0rc13; LIM-057)
 - application-specific MCP idempotency and effect-reconciliation adapters
 - broader parser differential testing and cross-runtime canonicalization vectors
 - independent security review and multi-version Python CI before public-release claims

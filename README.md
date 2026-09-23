@@ -80,7 +80,8 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 - conservative information-flow propagation;
 - exact-action approvals bound to canonical action fingerprints;
 - an optional per-session ledger that enforces call limits in flight, makes contract-held approvals single-use, and lets VERIFY check that every effect was allowed;
-- principal, session, and tenant binding with consume-once approvals when an `ApprovalStore` is supplied, within one process;
+- principal, session, and tenant binding with consume-once approvals when an `ApprovalStore` is supplied, across processes sharing its file on one machine;
+- optional contract validity windows, approval expiry and session or capability revocation, and sub-agent contracts that can only narrow their parent's authority;
 - protected MCP calls with explicit observed, not-called, and indeterminate outcomes, where an indeterminate outcome is never scored as defended;
 - tamper-evident audit hash chaining;
 - independent effect-level security invariants;

@@ -14,7 +14,7 @@ VAIS produces inspectable policy decisions, traces, benchmark records and indepe
 
 Authority comes from trusted task contracts, capability scopes, policy and explicitly bound approvals—not from model output. The model may interpret, plan and propose, but it cannot enlarge its own permissions or redefine the user's task.
 
-The boundary binds security-relevant decisions to canonical action details and, where applicable, principal, session and tenant identity. Approval is exact-action authority rather than a reusable expression of general trust. It is consume-once when the enforcement path is given an `ApprovalStore`, within that store instance; an approval carried only in the task contract remains valid for the life of the contract (LIM-044, LIM-045). Before 0.12.0rc12 the MCP client could not take a store at all (FIND-049).
+The boundary binds security-relevant decisions to canonical action details and, where applicable, principal, session and tenant identity. Approval is exact-action authority rather than a reusable expression of general trust. It is consume-once when the enforcement path is given an `ApprovalStore`, across processes that share its file on one machine from 0.12.0rc13 and within one store instance before that (LIM-045, LIM-057); an approval carried only in the task contract remains valid for the life of the contract unless a `SessionLedger` makes it single-use (LIM-044). Before 0.12.0rc12 the MCP client could not take a store at all (FIND-049).
 
 ## Invariant
 
