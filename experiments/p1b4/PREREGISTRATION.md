@@ -141,4 +141,12 @@ one is logged below.
 
 ## Deviations
 
-None yet.
+1. **Infrastructure re-run of gemma-4-12b-off, 2026-09-23.** The first attempt passed
+   qualification at 00:51 local and started its full stage. Between then and 02:11 the driver,
+   the benchmark subprocess and the LM Studio background service were all terminated: the
+   driver wrote no closing log line, and `lms` found the service stopped with no model loaded.
+   They had been started from the assistant's tool session, whose process tree was ended when that
+   session paused. The runner writes records only at the end of an arm, so no full-stage episode
+   was recorded and nothing was observed that could bias a re-run. The arm is re-run from its
+   beginning as attempt 2, launched from the owner's own terminal so that it no longer depends on
+   the assistant's session. No code, setting or arm changed.
