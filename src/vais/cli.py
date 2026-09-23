@@ -434,6 +434,16 @@ def _parser() -> argparse.ArgumentParser:
         help="validate the server, complete inventory, quantizations and frozen configuration without loading or evaluating models",
     )
 
+    gateway_parser = subparsers.add_parser("gateway", help="run the VAIS gateway: an MCP server over streamable HTTP that holds the upstream credentials (needs the mcp extra)")
+    gateway_parser.add_argument("--config", required=True, help="gateway configuration YAML")
+
+    gateway_approve = subparsers.add_parser("gateway-approve", help="operator: grant one pending gateway approval request")
+    gateway_approve.add_argument("--config", required=True, help="gateway configuration YAML")
+    gateway_approve.add_argument("request", help="request id, as the gateway reported it")
+    gateway_approve.add_argument("--ttl", type=float, default=None, help="seconds the grant stays usable (default: until used)")
+
+    gateway_token = subparsers.add_parser("gateway-token", help="operator: generate a session token and the digest a contract file stores")
+
     subparsers.add_parser("version", help="print the installed VAIS version")
     return parser
 
@@ -1139,6 +1149,40 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"version={row.get('framework_version')} target={row.get('target_id')} mode={row.get('mode')}")
                 print(row["metrics_json"])
             print()
+        return 0
+
+    if args.command == "gateway":
+        from .gateway_server import serve
+
+        serve(args.config)
+        return 0
+
+    if args.command == "gateway-approve":
+        from .approvals import ApprovalStore
+        from .gateway import ContractRegistry, grant_pending_request
+        from .gateway_server import load_gateway_config
+
+        import re
+
+        config = load_gateway_config(args.config)
+        if not re.fullmatch(r"[0-9a-f]{24}", args.request):
+            # The id becomes a file name, so nothing else may reach the path.
+            print("request must be the 24-character id the gateway reported")
+            return 2
+        fingerprint = grant_pending_request(config.pending / f"{args.request}.json", ContractRegistry(config.contracts),
+                                            ApprovalStore(config.approvals), ttl_seconds=args.ttl)
+        print(f"granted {fingerprint}")
+        return 0
+
+    if args.command == "gateway-token":
+        import secrets
+
+        from .gateway import token_digest
+
+        token = secrets.token_urlsafe(32)
+        print(f"token:        {token}")
+        print(f"token_sha256: {token_digest(token)}")
+        print("Give the token to the agent's runtime; put only the digest in the contract file.")
         return 0
 
     if args.command == "version":
