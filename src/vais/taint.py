@@ -58,3 +58,17 @@ def derive_model_output(data: Any, *visible_inputs: Value) -> Value:
         ),
     )
     return derive_value(data, model_origin, *visible_inputs, source="model_output")
+
+
+def action_origin(*visible_inputs: Value) -> Provenance:
+    """The provenance of an action as a whole: the join of what was visible when it was planned.
+
+    An argument's label says where that value came from. It cannot say that the model
+    chose to act at all because of something it read, so an argument without a trust
+    requirement can carry hostile intent to a trusted destination (LIM-048). The origin
+    answers that question conservatively, from labels alone: an action is trusted only
+    if everything visible to its planner was trusted, and it is as confidential as the
+    most confidential thing visible. With nothing visible it is untrusted, as with
+    ``derive_value``; pass the trusted task among the inputs.
+    """
+    return derive_value(None, *visible_inputs, source="planning_context").provenance

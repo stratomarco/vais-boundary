@@ -207,12 +207,18 @@ def label_agent_action(
     arguments: Mapping[str, Any],
     contract: TaskContract,
     context_level: ConfidentialityLevel,
+    context_trust: TrustLevel = TrustLevel.DERIVED_UNTRUSTED,
 ) -> PlannedAction:
     """Build the ``PlannedAction`` for arguments that arrived from the agent.
 
     Nothing the agent sends is trusted on its say-so. An argument exactly equal to its
     contract binding takes the binding's label, since its value is the one the operator
     wrote; every other argument is model output at the session's confidentiality level.
+
+    The action's origin (P1b-6) is the session's context as the gateway has seen it:
+    trusted until the session receives its first tool result, which VAIS always treats
+    as untrusted, and untrusted from then on. The gateway cannot see the agent's prompt,
+    so that is assumed to be the trusted task (LIM-061).
     """
     values: dict[str, Value] = {}
     for name, data in arguments.items():
@@ -223,7 +229,8 @@ def label_agent_action(
             values[name] = Value(data, Provenance(
                 source="model_output", trust=TrustLevel.DERIVED_UNTRUSTED, confidentiality=context_level,
             ))
-    return PlannedAction(tool, values)
+    origin = Provenance(source="gateway:session_context", trust=context_trust, confidentiality=context_level)
+    return PlannedAction(tool, values, origin=origin)
 
 
 # --- outcomes ------------------------------------------------------------------------
@@ -253,6 +260,7 @@ class GatewayOutcome:
 class _SessionState:
     ledger: SessionLedger
     context_level: ConfidentialityLevel = ConfidentialityLevel.PUBLIC
+    context_trust: TrustLevel = TrustLevel.TRUSTED
 
 
 @dataclass(frozen=True)
@@ -358,7 +366,8 @@ class Gateway:
         binding = exposed.binding
         state = self._state(contract)
         try:
-            action = label_agent_action(binding.canonical_tool, arguments, contract, state.context_level)
+            action = label_agent_action(binding.canonical_tool, arguments, contract,
+                                        state.context_level, state.context_trust)
         except ValueError:
             self.audit.record("gateway_malformed_arguments", tool=binding.canonical_tool,
                               decision=DecisionType.DENY.value, reasons=("malformed_arguments",))
@@ -380,6 +389,9 @@ class Gateway:
             with self._lock:
                 if level.rank > state.context_level.rank:
                     state.context_level = level
+                # MCP results are never authority (label_mcp_input), so once one is in
+                # the agent's context, whatever it plans next has an untrusted origin.
+                state.context_trust = TrustLevel.DERIVED_UNTRUSTED
             return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
         if record.call_state is MCPCallState.INDETERMINATE:
             return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,

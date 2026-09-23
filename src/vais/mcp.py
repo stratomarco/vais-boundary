@@ -485,6 +485,7 @@ def _effect_from_binding(action: PlannedAction, binding: MCPToolBinding) -> Effe
         provenance,
         tool=action.tool,
         action_fingerprint=fingerprint,
+        origin=action.origin,
     )
 
 

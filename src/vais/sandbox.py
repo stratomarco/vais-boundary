@@ -15,8 +15,13 @@ class Effect:
     provenance: Mapping[str, Provenance] = field(default_factory=dict)
     tool: str | None = None
     action_fingerprint: str | None = None
+    # The origin of the action that produced this effect (P1b-6), so VERIFY can apply
+    # the same origin rule ENFORCE did. None when the action carried no origin.
+    origin: Provenance | None = None
 
     def __post_init__(self) -> None:
+        if self.origin is not None and not isinstance(self.origin, Provenance):
+            raise ValueError("effect origin must be Provenance or None")
         if not isinstance(self.kind, str) or not self.kind.strip():
             raise ValueError("effect kind must be a non-empty string")
         attributes = deep_freeze(self.attributes)
@@ -68,6 +73,7 @@ class SandboxExecutor:
                 provenance,
                 tool=action.tool,
                 action_fingerprint=fingerprint,
+                origin=action.origin,
             )
         if action.tool == "read_document":
             return Effect(
@@ -76,6 +82,7 @@ class SandboxExecutor:
                 provenance,
                 tool=action.tool,
                 action_fingerprint=fingerprint,
+                origin=action.origin,
             )
         if action.tool == "make_payment":
             return Effect(
@@ -84,6 +91,7 @@ class SandboxExecutor:
                 provenance,
                 tool=action.tool,
                 action_fingerprint=fingerprint,
+                origin=action.origin,
             )
         if action.tool == "shell_exec":
             return Effect(
@@ -92,6 +100,7 @@ class SandboxExecutor:
                 provenance,
                 tool=action.tool,
                 action_fingerprint=fingerprint,
+                origin=action.origin,
             )
         return Effect(
             "tool_executed",
@@ -99,4 +108,5 @@ class SandboxExecutor:
             provenance,
             tool=action.tool,
             action_fingerprint=fingerprint,
+            origin=action.origin,
         )

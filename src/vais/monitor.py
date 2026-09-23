@@ -23,8 +23,8 @@ class ReferenceMonitor:
 
     Enforcement order is intentionally fail-closed:
     contract validity and revocation -> dynamic task authorization -> static tool
-    policy -> capability scope -> argument integrity/confidentiality -> call limits ->
-    approval requirements.
+    policy -> capability scope -> argument integrity/confidentiality and action origin ->
+    call limits -> approval requirements.
 
     Without a ``SessionLedger`` the monitor decides one action at a time and keeps
     no state, so limits over several actions are left to VERIFY (LIM-035) and an
@@ -137,6 +137,13 @@ class ReferenceMonitor:
                         f"{arg_policy.max_confidentiality.value}"
                     )
 
+        # The action's origin is judged with its arguments: from labels, never content.
+        # A missing origin counts as untrusted, so opting in cannot be defeated by a
+        # caller that does not supply one.
+        origin_untrusted = action.origin is None or action.origin.trust != TrustLevel.TRUSTED
+        if origin_untrusted and tool_policy.untrusted_origin == "deny":
+            reasons.append(f"untrusted_origin:{action.tool}")
+
         if reasons:
             return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons))), False
 
@@ -175,6 +182,9 @@ class ReferenceMonitor:
                 return Decision(DecisionType.DENY, (f"invalid_numeric_field:{approval.field}",)), False
             if exceeds and approval_reason is None:
                 approval_reason = f"approval_required:{action.tool}:{approval.field}"
+
+        if origin_untrusted and tool_policy.untrusted_origin == "require_approval" and approval_reason is None:
+            approval_reason = f"approval_required:{action.tool}:untrusted_origin"
 
         if approval_reason is None:
             return Decision(DecisionType.ALLOW), False

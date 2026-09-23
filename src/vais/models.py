@@ -109,12 +109,23 @@ class TrustedValue(Value):
 
 @dataclass(frozen=True)
 class PlannedAction:
+    """One proposed tool call.
+
+    ``origin`` is the provenance of the action as a whole, the join of what was visible
+    when it was planned (``taint.action_origin``). It is optional, is not part of the
+    action fingerprint, and matters only to a policy that sets ``untrusted_origin``, which
+    treats a missing origin as untrusted.
+    """
+
     tool: str
     arguments: Mapping[str, Value]
+    origin: Provenance | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.tool, str) or not self.tool.strip():
             raise ValueError("tool must be a non-empty string")
+        if self.origin is not None and not isinstance(self.origin, Provenance):
+            raise ValueError("action origin must be Provenance or None")
         values: dict[str, Value] = {}
         for key, value in self.arguments.items():
             if not isinstance(key, str) or not key.strip():

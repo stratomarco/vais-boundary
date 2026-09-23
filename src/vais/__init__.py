@@ -116,7 +116,7 @@ from .revocation import RevocationList
 from .reward import DeclarativeVerifiableReward, SecurityInvariant, VerifiableReward
 from .sandbox import Effect, SandboxExecutor
 from .scenarios import ExpectedEffect, Scenario, default_scenarios
-from .taint import derive_model_output, derive_value
+from .taint import action_origin, derive_model_output, derive_value
 from .targeting import GenerationMetadata, TargetRunResult, TargetStatus
 from .openai_compatible import LMStudioTarget, OpenAICompatibleConfig, OpenAICompatibleTarget
 
@@ -229,6 +229,7 @@ __all__ = [
     "VerifiableReward",
     "derive_value",
     "derive_model_output",
+    "action_origin",
     "canonical_mcp_tool",
     "extract_mcp_result_data",
     "label_mcp_input",

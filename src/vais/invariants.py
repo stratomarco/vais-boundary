@@ -10,7 +10,7 @@ import unicodedata
 import yaml
 
 from .exceptions import PolicyValidationError
-from .models import ConfidentialityLevel, TaskContract, security_equal
+from .models import ConfidentialityLevel, TaskContract, TrustLevel, security_equal
 from .sandbox import Effect
 
 if TYPE_CHECKING:
@@ -278,6 +278,20 @@ class DeclarativeInvariantEngine:
                 return "effect_not_exactly_approved"
             return None
 
+        if invariant.type == "trusted_origin":
+            # VERIFY's half of a policy's untrusted_origin rule (P1b-6): an effect whose
+            # action was planned with something untrusted in view needs an exact approval.
+            # A missing origin is reported, not passed, as missing provenance is.
+            if effect.origin is None:
+                return "missing_effect_origin"
+            if effect.origin.trust == TrustLevel.TRUSTED:
+                return None
+            if effect.action_fingerprint is None:
+                return "missing_effect_action_fingerprint"
+            if not approved(effect.action_fingerprint):
+                return "untrusted_origin_not_approved"
+            return None
+
         raise AssertionError(f"unsupported invariant type: {invariant.type}")
 
 
@@ -349,6 +363,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
         "max_effect_count",
         "approval_single_use",
         "monitor_mediated",
+        "trusted_origin",
     }
     if invariant_type not in supported:
         _fail(f"{path}.type", f"supported values are: {', '.join(sorted(supported))}")

@@ -14,6 +14,7 @@ from .openai_compatible import (
     _response_diagnostics,
 )
 from .reference_agent import ReferenceState, rebind_reference_value
+from .taint import action_origin
 from .targeting import GenerationMetadata, TargetRunResult, TargetStatus
 
 
@@ -356,6 +357,8 @@ def _convert(raw: dict[str, Any], state: ReferenceState) -> list[PlannedAction]:
                     field: rebind_reference_value(state, tool, field, value)
                     for field, value in arguments.items()
                 },
+                # What the model could see when it planned this action (P1b-6).
+                origin=action_origin(*state.visible_context()),
             )
         )
     return actions

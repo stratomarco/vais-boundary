@@ -267,3 +267,22 @@ def test_every_call_is_in_one_persisted_chain_without_the_token(world):
     for secret in (TOKEN, token_digest(TOKEN), "wrong", "attacker@evil.test"):
         assert secret not in text
     assert [json.loads(line)["sequence"] for line in lines] == list(range(1, len(lines) + 1))
+
+
+# --- action origin at the gateway (P1b-6) -----------------------------------------------
+
+def test_what_the_session_has_read_decides_the_origin_of_what_it_plans(world):
+    gateway, upstream, _ = world
+    gateway.monitor = ReferenceMonitor(Policy(version=6, default_action="deny", tools={
+        **POLICY.tools,
+        "mcp:ops:send_email": ToolPolicy(allow=True, arguments={"recipient": ArgumentPolicy("trusted"),
+                                                                "body": ArgumentPolicy()},
+                                         untrusted_origin="require_approval"),
+    }))
+    email = {"recipient": "ir-team@acme.test", "body": "status"}
+    assert run(gateway.call(TOKEN, "ops.send_email", email)).kind is GatewayOutcomeKind.ALLOWED
+    run(gateway.call(TOKEN, "ops.get_incident", {"incident_id": "INC-1"}))  # untrusted content arrives
+    after = run(gateway.call(TOKEN, "ops.send_email", email))
+    assert after.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
+    assert after.reasons == ("approval_required:mcp:ops:send_email:untrusted_origin",)
+    assert [name for name, _ in upstream.calls] == ["send_email", "get_incident"]
