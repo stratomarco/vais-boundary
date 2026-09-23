@@ -96,6 +96,12 @@ Prompt Injection Prevention Cheat Sheet: https://cheatsheetseries.owasp.org/chea
 
 AISVS: https://github.com/OWASP/AISVS
 
+## PHANTOM-B threat modeling
+
+PHANTOM-B is Adam Shostack's STRIDE-analogous mnemonic for the LLM parts of a system: prompt injection, hallucination, anthropomorphization, non-explainability, training issues, over-reliance, missing security engineering and biases. It names threats and deliberately leaves out defenses, so it pairs with VAIS rather than overlapping it: PHANTOM-B asks what can go wrong with the model, and VAIS is one answer for the actions the model proposes. `docs/phantom-b.md` records a PHANTOM-B pass over a VAIS deployment, including the paper's expense example run through the monitor.
+
+White paper: https://shostack.org/files/papers/PHANTOM-B_Whitepaper_Shostack.pdf
+
 ## VAIS hypothesis
 
 The empirical hypothesis remains:
