@@ -1,0 +1,98 @@
+---
+// What VAIS does not do. Each statement paraphrases published limitations and names them;
+// the count is read from the limitations file at build time so it cannot drift.
+import limitations from '../../../research/knowledge/limitations.yaml?raw';
+
+const published = (limitations.match(/^\s*- id: LIM-\d+/gm) ?? []).length;
+const source = 'https://github.com/stratomarco/vais-boundary/blob/main/research/knowledge/limitations.yaml';
+
+const limits = [
+  {
+    title: 'It does not stop the model from being fooled.',
+    text: 'An injection still changes what the model proposes: in the RC7 campaign, 38.9% of attacked episodes showed attack-added security events. VAIS decides what those proposals are allowed to do; it does not detect or prevent the influence.',
+    refs: [],
+  },
+  {
+    title: 'Inside the policy, the model’s judgement stands.',
+    text: 'An argument the policy does not require to be trusted can carry an attacker’s intent to a trusted destination, like an approved expense below its threshold. A policy can put a human in front of such a tool, but measured on RC7 that gate cannot tell an attack from normal work.',
+    refs: ['LIM-048', 'LIM-064'],
+  },
+  {
+    title: 'It does not mediate what the model says.',
+    text: 'VAIS decides tool calls. The agent’s final answer and any reasoning trace are not checked, so an application that shows or logs them must treat them as a separate way out.',
+    refs: ['LIM-051'],
+  },
+  {
+    title: 'It is bypass-proof only when deployed as a boundary.',
+    text: 'As a library, VAIS assumes nothing can reach a tool around it. The gateway makes that hold by keeping the credentials, but only if the deployment keeps the agent away from those credentials, the tool servers and the operator files.',
+    refs: ['LIM-050', 'LIM-060'],
+  },
+  {
+    title: 'An effect is what was asked for, unless it is read back.',
+    text: 'By default an MCP effect is the request VAIS sent. A server’s reply only acknowledges it; confirmation needs a read-back from an independent system of record. A contradiction is reported after the fact, not undone.',
+    refs: ['LIM-046', 'LIM-065', 'LIM-066'],
+  },
+  {
+    title: 'Labels are only as good as the labelling.',
+    text: 'Confidentiality rules act on the labels data carries when it enters. Data labelled lower than it really is cannot be caught, and data from tool servers is public unless the integration says otherwise.',
+    refs: ['LIM-036', 'LIM-061'],
+  },
+  {
+    title: 'A malicious tool server is out of scope.',
+    text: 'A server cannot grant itself authority or redefine a tool, but a server that does something other than what it was asked is not stopped.',
+    refs: ['LIM-049'],
+  },
+  {
+    title: 'The evidence is bounded.',
+    text: 'Zero violations in a recorded campaign is not proof of security in general. The campaigns cover one reference application and local models up to 15 billion parameters, as RC7 recorded them.',
+    refs: ['LIM-001'],
+  },
+];
+
+// A cited limitation must exist in the published file. Until the rc13 release merges,
+// LIM-060 onward are only on the p1b-next branch, so this warns rather than fails.
+const missing = limits.flatMap((l) => l.refs).filter((ref) => !new RegExp(`- id: ${ref}\\b`).test(limitations));
+if (missing.length) console.warn(`[Limits] cited but not in limitations.yaml yet: ${missing.join(', ')}`);
+---
+<section class="limits-section wrap" id="limits" aria-labelledby="limits-heading">
+  <p class="eyebrow">Limits</p>
+  <h2 id="limits-heading">What VAIS does not do.</h2>
+  <p class="intro">The mark is not a padlock, and the project does not claim a system is secure. These are the limits that matter most when deciding whether VAIS fits. All {published} known limitations are <a href={source}>published with their evidence</a>.</p>
+
+  <ol class="limit-list">
+    {limits.map((limit) => (
+      <li>
+        <h3>{limit.title}</h3>
+        <div>
+          <p>{limit.text}</p>
+          {limit.refs.length > 0 && (
+            <p class="refs">{limit.refs.map((ref) => <a href={source}>{ref}</a>)}</p>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .limits-section { padding-block: 64px; border-bottom: 1px solid var(--line); }
+  .limits-section h2 { font-size: 2.25rem; line-height: 1.1; letter-spacing: -.04em; margin-bottom: 20px; }
+  .limits-section > .intro { margin-bottom: 36px; max-width: 760px; }
+
+  .limit-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .limit-list li { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .limit-list h3 { position: relative; padding-left: 20px; font-size: 1.0625rem; line-height: 1.45; letter-spacing: -.015em; margin: 0; }
+  .limit-list h3::before { content: ""; position: absolute; left: 0; top: .72em; width: 7px; height: 1px; background: #B45309; }
+  .limit-list p { color: var(--muted); line-height: 1.65; font-size: .9375rem; margin: 0; }
+  .refs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px !important; }
+  .refs a { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; color: #263B55; background: #E7EDF6; padding: 2px 7px; text-decoration: none; }
+  .refs a:hover { color: #0B192C; text-decoration: underline; }
+
+  @media (max-width: 850px) {
+    .limit-list li { grid-template-columns: 1fr; gap: 10px; }
+  }
+  @media (max-width: 580px) {
+    .limits-section { padding-block: 48px; }
+    .limits-section h2 { font-size: 2rem; }
+  }
+</style>
