@@ -1,0 +1,92 @@
+---
+// Frequently asked questions. Every answer restates something published in the repository
+// (README, docs, research ledger, pre-registered results); nothing here is new evidence.
+// The structured data below is generated from the same text, so the two cannot disagree.
+const repo = 'https://github.com/stratomarco/vais-boundary';
+
+type Part = string | { text: string; href: string };
+const faqs: { q: string; a: Part[] }[] = [
+  {
+    q: 'Is VAIS a prompt-injection detector?',
+    a: ['No. VAIS does not try to spot injections, and it assumes they work. It decides what the model’s proposed actions are allowed to do, from the task’s contract and the policy. In the RC7 campaign, attacks changed the model’s behaviour in 38.9% of episodes, and none produced a protected violation.'],
+  },
+  {
+    q: 'Does an AI model make the decisions?',
+    a: ['No. Decisions are made by deterministic code from labels, the contract and the policy, with no model call. The same inputs give the same decision every time, and every refusal comes with a reason code.'],
+  },
+  {
+    q: 'What do I have to write to use it?',
+    a: ['A policy for each tool (which arguments must come from the task, how confidential data may be, what needs a human), a contract for each task (the tools, scopes and exact values it authorises), and labels on data as it enters. For MCP, a profile maps server tools to your tool names. Used as a library, your integration marks a model’s value as trusted only when it exactly matches the contract; the gateway does that for you. ', { text: 'The HOWTO walks through it.', href: `${repo}/blob/main/HOWTO.md` }],
+  },
+  {
+    q: 'Does it work with MCP?',
+    a: ['Yes, in two ways. As a Python library, VAIS wraps an MCP client session. The gateway is an MCP server over streamable HTTP that any MCP host able to send a bearer token can use, and it holds the upstream servers’ credentials so the agent does not. Only tools are mediated; MCP resources and prompts are not. ', { text: 'Read the gateway guide.', href: `${repo}/blob/main/docs/gateway.md` }],
+  },
+  {
+    q: 'Which models does it work with?',
+    a: ['Any model that proposes tool calls. VAIS never reads the model’s reasoning, so its decisions do not depend on the model. It has been measured against 15 local models from 0.6 to 15 billion parameters, and, in a study now being written up, against reasoning models attacked by another language model.'],
+  },
+  {
+    q: 'What does it cost, in speed and in completed work?',
+    a: ['A decision adds no model call: it is local, deterministic code. Completed work is harder to pin down. In RC7, 65.7% of attacked workflows kept their utility, but a paired analysis found almost as many workflows succeeding only under attack as failing only under attack (28 against 25), so that figure is not the cost of VAIS. Optional rules have measured costs: gating a tool on the action’s origin asked for a human in 23% to 43% of clean workflows, depending on which tools were gated.'],
+  },
+  {
+    q: 'How is it different from guardrails, or from CaMeL?',
+    a: ['Guardrails usually classify content, with a model or with patterns, so their verdicts are probabilistic. VAIS never classifies content: it decides from where values came from and what the task authorised. CaMeL goes further on one axis, with a planner that never sees untrusted data, so untrusted content cannot steer which actions are taken. VAIS does not have that, which is why, inside the policy, the model’s judgement still stands. ', { text: 'Related work', href: `${repo}/blob/main/docs/related-work.md` }, ' credits CaMeL and the other work VAIS builds on.'],
+  },
+  {
+    q: 'Does “verify” mean VAIS confirms what actually happened?',
+    a: ['Partly. An independent verifier checks the effects against declared invariants, separately from the decision that allowed them. On the MCP path an effect is, by default, the request VAIS sent; it is confirmed only when read back from the system of record, and the verifier reports which level each verdict rests on.'],
+  },
+  {
+    q: 'Can I use it in production?',
+    a: ['Not yet. The current releases are release candidates and not production hardened. The code is licensed under Apache-2.0, which permits personal, research and commercial use.'],
+  },
+  {
+    q: 'How do I report a vulnerability or give feedback?',
+    a: ['For security issues, follow the ', { text: 'security policy', href: `${repo}/blob/main/SECURITY.md` }, '. For everything else, use the contact form below or open an issue on GitHub. Critical reviews are especially welcome.'],
+  },
+];
+
+const plain = (parts: Part[]) => parts.map((p) => (typeof p === 'string' ? p : p.text)).join('');
+const structured = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: plain(f.a) } })),
+};
+---
+<section class="faq wrap" id="faq" aria-labelledby="faq-heading">
+  <p class="eyebrow">Questions</p>
+  <h2 id="faq-heading">Frequently asked.</h2>
+
+  <div class="faq-list">
+    {faqs.map((f) => (
+      <details>
+        <summary>{f.q}</summary>
+        <p>{f.a.map((p) => (typeof p === 'string' ? p : <a href={p.href}>{p.text}</a>))}</p>
+      </details>
+    ))}
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(structured)} />
+</section>
+
+<style>
+  .faq { padding-block: 64px; border-bottom: 1px solid var(--line); }
+  .faq h2 { font-size: 2.25rem; line-height: 1.1; letter-spacing: -.04em; margin-bottom: 32px; }
+
+  .faq-list { border-top: 1px solid var(--line); max-width: 900px; }
+  details { border-bottom: 1px solid var(--line); }
+  summary { cursor: pointer; list-style: none; padding: 20px 40px 20px 0; position: relative; font-size: 1.0625rem; font-weight: 600; letter-spacing: -.015em; line-height: 1.45; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; position: absolute; right: 4px; top: 16px; font-family: Consolas, 'Courier New', monospace; font-size: 1.25rem; font-weight: 400; color: #475569; }
+  details[open] summary::after { content: '−'; }
+  summary:hover { color: var(--accent); }
+  details p { margin: 0 0 22px; color: var(--muted); line-height: 1.7; font-size: .9375rem; max-width: 780px; }
+
+  @media (max-width: 580px) {
+    .faq { padding-block: 48px; }
+    .faq h2 { font-size: 2rem; }
+    summary { font-size: 1rem; }
+  }
+</style>

@@ -4,6 +4,7 @@ import HowItWorks from '../components/HowItWorks.astro';
 import UseCases from '../components/UseCases.astro';
 import Limits from '../components/Limits.astro';
 import TryIt from '../components/TryIt.astro';
+import Faq from '../components/Faq.astro';
 const formKey = import.meta.env.PUBLIC_FORM_ACCESS_KEY;
 const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
 ---
@@ -58,6 +59,7 @@ const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
     <p class="small">These three files are byte-identical to the assets published with the release, so their SHA-256 values match the <a href="https://github.com/stratomarco/vais-boundary/releases">release <code>SHA256SUMS</code></a>.</p>
   </section>
   <Limits />
+  <Faq />
   <section class="contact wrap" id="contact" aria-labelledby="contact-heading">
     <div class="contact-copy"><p class="eyebrow">Get in touch</p><h2 id="contact-heading">Working with<br />AI agents?</h2><p>Questions about using VAIS Boundary or integrating it with your tools? Send a message.</p><p class="small">For vulnerability reports, follow the <a href="https://github.com/stratomarco/vais-boundary/blob/main/SECURITY.md">security policy</a>.</p></div>
     <form method="POST" action="https://api.web3forms.com/submit">
