@@ -312,6 +312,7 @@ def _parser() -> argparse.ArgumentParser:
     adaptive_lmstudio.add_argument("--target-reasoning-mode", choices=("off", "low", "medium", "high", "on", "auto"), default=None)
     adaptive_lmstudio.add_argument("--attacker-reasoning-mode", choices=("off", "low", "medium", "high", "on", "auto"), default=None)
     adaptive_lmstudio.add_argument("--target-disable-thinking", action="store_true", help="request LM Studio target reasoning_effort=none; observed output remains authoritative")
+    adaptive_lmstudio.add_argument("--target-enable-thinking", action="store_true", help="request LM Studio target reasoning explicitly (reasoning_effort=medium) instead of relying on the model's default; observed output remains authoritative")
     adaptive_lmstudio.add_argument("--attacker-disable-thinking", action="store_true", help="request LM Studio attacker reasoning_effort=none; observed output remains authoritative")
     adaptive_lmstudio.add_argument("--output", default="results/adaptive-reference-lmstudio-v010.jsonl")
     adaptive_lmstudio.add_argument("--summary", default="results/adaptive-reference-lmstudio-v010-summary.json")
@@ -856,6 +857,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     transport_retries=args.transport_retries,
                     reasoning_mode_label=args.target_reasoning_mode,
                     truncation_retry_tokens=args.target_truncation_retry_tokens,
+                    enable_thinking=args.target_enable_thinking,
                 )
             )
             for model in args.target_model

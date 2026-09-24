@@ -254,3 +254,42 @@ def test_reference_agent_authority_rebinding_is_type_sensitive():
 
     assert output is not bound
     assert output.provenance.trust == TrustLevel.DERIVED_UNTRUSTED
+
+
+def _capture_payload(config):
+    workflow = clean_workflows()[0]
+    state = ReferenceState(workflow=workflow, principal=ReferencePrincipal("human:test", "acme"),
+                           session_id="reasoning-control", contract=workflow.contract)
+    captured = {}
+
+    def transport(url, payload, headers, timeout):
+        del url, headers, timeout
+        captured["payload"] = payload
+        return {"choices": [{"message": {"content": json.dumps({"actions": []})}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 2}}
+
+    target = ReferenceAgentLMStudioTarget(config, transport=transport)
+    assert target.propose(state, turn=1).valid
+    return captured["payload"], target.metadata()
+
+
+def test_reference_agent_enable_thinking_requests_reasoning_explicitly():
+    """P1b-4 Deviation 2: some models do not reason by default, so 'on' can be requested."""
+    payload, metadata = _capture_payload(OpenAICompatibleConfig(model="m", enable_thinking=True, reasoning_mode_label="on"))
+    assert payload["reasoning_effort"] == "medium"
+    assert metadata["enable_thinking_request"] == "true"
+    assert metadata["reasoning_mode_control"] == "reasoning_effort_on_posthoc_verified"
+
+
+def test_reference_agent_without_the_flag_sends_nothing_new():
+    """The arms that already ran relied on the model's default; their requests are unchanged."""
+    payload, metadata = _capture_payload(OpenAICompatibleConfig(model="m", reasoning_mode_label="on"))
+    assert "reasoning_effort" not in payload
+    assert "enable_thinking_request" not in metadata
+    assert metadata["reasoning_mode_control"] == "externally_configured_not_enforced_by_adapter"
+
+
+def test_reasoning_cannot_be_both_disabled_and_enabled():
+    import pytest
+    with pytest.raises(ValueError):
+        OpenAICompatibleConfig(model="m", disable_thinking=True, enable_thinking=True)

@@ -10,6 +10,7 @@ from .openai_compatible import (
     OpenAICompatibleConfig,
     TargetAdapterError,
     _apply_lmstudio_disable_thinking,
+    _apply_lmstudio_enable_thinking,
     _post_json,
     _response_diagnostics,
 )
@@ -130,12 +131,16 @@ class ReferenceAgentLMStudioTarget:
             "max_tokens": str(self.config.max_tokens),
             "disable_thinking_request": str(self.config.disable_thinking).lower(),
         }
+        if self.config.enable_thinking:
+            data["enable_thinking_request"] = "true"
         if self.config.truncation_retry_tokens is not None:
             data["truncation_retry_tokens"] = str(self.config.truncation_retry_tokens)
         if self.config.reasoning_mode_label is not None:
             data["reasoning_mode_label"] = self.config.reasoning_mode_label
             if self.config.disable_thinking:
                 data["reasoning_mode_control"] = "reasoning_effort_none_posthoc_verified"
+            elif self.config.enable_thinking:
+                data["reasoning_mode_control"] = "reasoning_effort_on_posthoc_verified"
             else:
                 data["reasoning_mode_control"] = "externally_configured_not_enforced_by_adapter"
         return data
@@ -188,6 +193,8 @@ class ReferenceAgentLMStudioTarget:
         }
         if self.config.disable_thinking:
             _apply_lmstudio_disable_thinking(payload)
+        elif self.config.enable_thinking:
+            _apply_lmstudio_enable_thinking(payload)
         headers = {"Content-Type": "application/json"}
         if self.config.api_key:
             headers["Authorization"] = f"Bearer {self.config.api_key}"

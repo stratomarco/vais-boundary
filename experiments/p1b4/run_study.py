@@ -130,6 +130,8 @@ def stage_command(study: dict, arm: dict, stage: str, out: Path) -> list[str]:
     ]
     if arm["reasoning"] == "off":
         argv.append("--target-disable-thinking")
+    if arm.get("request_reasoning"):
+        argv.append("--target-enable-thinking")
     if config["scenarios"] != "all_20":
         for scenario in config["scenarios"]:
             argv += ["--scenario", scenario]

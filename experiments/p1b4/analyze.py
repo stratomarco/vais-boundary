@@ -178,9 +178,13 @@ def main() -> int:
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {"arms": {}}
     arms = {arm["id"]: arm_metrics(arm["id"], state) for arm in study["arms"]}
 
+    # A follow-up arm stands in for the gate-failed arm it replaces (Deviation 2).
+    replacements = {arm["replaces"]: arm["id"] for arm in study["arms"] if arm.get("replaces")}
     pairs = {}
-    for model in dict.fromkeys(arm["id"].rsplit("-", 1)[0] for arm in study["arms"]):
+    for model in dict.fromkeys(arm["id"].rsplit("-", 1)[0] for arm in study["arms"] if not arm.get("replaces")):
         off, on = arms.get(f"{model}-off"), arms.get(f"{model}-on")
+        if on is None and f"{model}-on" in replacements:
+            on = arms.get(replacements[f"{model}-on"])
         if off and on:
             pairs[model] = newcombe(on["attack_added"], on["evaluable"], off["attack_added"], off["evaluable"])
 

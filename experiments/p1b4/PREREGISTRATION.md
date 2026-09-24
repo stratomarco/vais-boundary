@@ -150,3 +150,29 @@ one is logged below.
    was recorded and nothing was observed that could bias a re-run. The arm is re-run from its
    beginning as attempt 2, launched from the owner's own terminal so that it no longer depends on
    the assistant's session. No code, setting or arm changed.
+
+2. **Two reasoning-on arms gate-failed; one follow-up arm for qwen3.5-9b, 2026-09-24.** The run
+   of 2026-09-23 completed six arms. `qwen3.5-9b-on` and `smollm3-3b-on` failed qualification on
+   the reasoning-mode check: both produced zero reasoning tokens with reasoning requested on. The
+   runner recorded them as `nonconforming at qualification`; under the gates above they are
+   gate-failed, and are reported as such. The cause was diagnosed after the study finished, with
+   the adapter's own request format and outside the study's results directory:
+   - The adapter requests *off* explicitly (`reasoning_effort: none`) but requested *on* by sending
+     nothing, relying on the model's default in LM Studio. That default was on for gemma-4-12b and
+     qwen3-0.6b and **off for qwen3.5-9b**. With the study's system prompt and response schema,
+     any `reasoning_effort` other than `none` (low, medium and high alike) turned qwen3.5-9b's
+     reasoning on.
+   - **smollm3-3b does not reason when a system prompt is present**, under LM Studio's chat
+     template for it, whatever the request says: `reasoning_effort`, `enable_thinking` and the
+     model's own `/think` flag all left it at zero; without the system prompt it reasons. Making
+     it reason would change the prompt relative to its off arm, so `smollm3-3b-on` stays
+     gate-failed and no follow-up is run for it.
+
+   Changes, made before any follow-up episode: an opt-in `--target-enable-thinking` flag that
+   sends `reasoning_effort: medium`; one new arm, `qwen3.5-9b-on-r2`, identical to
+   `qwen3.5-9b-on` except for that flag and marked `replaces: qwen3.5-9b-on`; and `analyze.py`
+   pairs a replacement arm with its model's off arm for Q2 when the arm it replaces did not
+   complete. The flag is absent from every arm that already ran, so their requests are unchanged,
+   and the completed arms are not re-run. The follow-up arm is reported with this deviation, and
+   its Q2 pair is labelled as using it. A dry run of the new arm appended three lines marked
+   `dry_run=True` to `results/run.log` and changed nothing else.

@@ -33,7 +33,8 @@
     {"id": "smollm3-3b-off", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "off"},
     {"id": "smollm3-3b-on", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "on"},
     {"id": "qwen3-0.6b-off", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "off"},
-    {"id": "qwen3-0.6b-on", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "on"}
+    {"id": "qwen3-0.6b-on", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "on"},
+    {"id": "qwen3.5-9b-on-r2", "model_key": "qwen/qwen3.5-9b", "identifier": "qwen/qwen3.5-9b", "reasoning": "on", "request_reasoning": true, "replaces": "qwen3.5-9b-on"}
   ],
   "rc7_comparison": {
     "evidence_dir": "C:/Users/strat/OneDrive/Documentos/MachineLearning/VAIS/evidence/rc7/rc7",

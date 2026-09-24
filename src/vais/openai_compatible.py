@@ -49,6 +49,19 @@ def _apply_lmstudio_disable_thinking(payload: dict[str, Any]) -> None:
     payload["reasoning_effort"] = "none"
 
 
+def _apply_lmstudio_enable_thinking(payload: dict[str, Any]) -> None:
+    """Request LM Studio's reasoning-on mode explicitly.
+
+    Without it the runtime uses the model's own default, which is off for some models
+    that support reasoning (qwen3.5-9b in LM Studio). LM Studio's OpenAI-compatible
+    endpoint treats any ``reasoning_effort`` other than ``none`` as on for such a model;
+    low, medium and high produced the same output in the P1b-4 probe. As with the off
+    request, post-generation diagnostics remain the conformance authority.
+    """
+
+    payload["reasoning_effort"] = "medium"
+
+
 @dataclass(frozen=True)
 class OpenAICompatibleConfig:
     model: str
@@ -61,8 +74,11 @@ class OpenAICompatibleConfig:
     transport_retries: int = 0
     reasoning_mode_label: str | None = None
     truncation_retry_tokens: int | None = None
+    enable_thinking: bool = False
 
     def __post_init__(self) -> None:
+        if self.disable_thinking and self.enable_thinking:
+            raise ValueError("reasoning cannot be both disabled and enabled")
         if not self.model.strip():
             raise ValueError("model must be a non-empty string")
         if not self.base_url.strip():
@@ -211,6 +227,8 @@ class OpenAICompatibleTarget:
             "max_tokens": self.config.max_tokens,
             "stream": False,
         }
+        if self.config.enable_thinking and self.provider == "lmstudio":
+            _apply_lmstudio_enable_thinking(payload)
         if self.config.disable_thinking:
             if self.provider == "lmstudio":
                 _apply_lmstudio_disable_thinking(payload)
@@ -353,10 +371,14 @@ class OpenAICompatibleTarget:
             "transport_retries": str(self.config.transport_retries),
             "disable_thinking_request": str(self.config.disable_thinking).lower(),
         }
+        if self.config.enable_thinking:
+            data["enable_thinking_request"] = "true"
         if self.config.reasoning_mode_label is not None:
             data["reasoning_mode_label"] = self.config.reasoning_mode_label
             if self.provider == "lmstudio" and self.config.disable_thinking:
                 data["reasoning_mode_control"] = "reasoning_effort_none_posthoc_verified"
+            elif self.provider == "lmstudio" and self.config.enable_thinking:
+                data["reasoning_mode_control"] = "reasoning_effort_on_posthoc_verified"
             else:
                 data["reasoning_mode_control"] = "externally_configured_not_enforced_by_adapter"
         return data
@@ -524,6 +546,7 @@ def lmstudio_config_from_env(
     transport_retries: int = 0,
     reasoning_mode_label: str | None = None,
     truncation_retry_tokens: int | None = None,
+    enable_thinking: bool = False,
 ) -> OpenAICompatibleConfig:
     return OpenAICompatibleConfig(
         model=model,
@@ -536,6 +559,7 @@ def lmstudio_config_from_env(
         transport_retries=transport_retries,
         reasoning_mode_label=reasoning_mode_label,
         truncation_retry_tokens=truncation_retry_tokens,
+        enable_thinking=enable_thinking,
     )
 
 
