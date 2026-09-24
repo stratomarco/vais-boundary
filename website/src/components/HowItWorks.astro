@@ -1,0 +1,193 @@
+---
+// How VAIS works, drawn with the mark's own grammar (BRAND.md): a grey proposal meets the
+// boundary band; only an authorised action takes the diagonal through it and leaves as the
+// green effect. Nothing above the top edge is ever green.
+//
+// Geometry: 1200 x 460 units. Band y 200-260. Lanes at x 300, 540, 780, 1020. The allowed
+// lane's diagonal keeps the mark's slope (20 across per 16 down): 75 across the 60-unit band.
+const lanes = [
+  { n: 1, x: 300, code: 'email → attacker@evil.test', outcome: 'DENIED', kind: 'deny' },
+  { n: 2, x: 540, code: 'slack #public ← secret', outcome: 'DENIED', kind: 'deny' },
+  { n: 3, x: 780, code: 'restart database-primary', outcome: 'NEEDS A HUMAN', kind: 'hold' },
+  { n: 4, x: 1020, code: 'email → ir-team@acme', outcome: '', kind: 'allow' },
+];
+// Seconds into the 16 s loop at which each lane starts; the allowed lane's later steps follow it.
+const delay = [0, 1.2, 2.4, 3.8];
+---
+<section class="how wrap" id="how-it-works" aria-labelledby="how-heading">
+  <p class="eyebrow">How it works</p>
+  <h2 id="how-heading">Every action crosses the boundary.</h2>
+  <p class="intro">A model reads an incident ticket that someone has tampered with, and proposes four actions. VAIS decides each one from the task's contract and the policy, never from the model's reasoning or the ticket's text. Only what the task authorised leaves the boundary, and an independent verifier checks what happened.</p>
+
+  <div class="stage" data-playing="true">
+    <svg viewBox="0 0 1200 460" role="img" aria-labelledby="how-svg-title how-svg-desc">
+      <title id="how-svg-title">Four proposed actions meet the VAIS boundary</title>
+      <desc id="how-svg-desc">Three proposals stop at the boundary: an email to an attacker and a secret posted publicly are denied, and a production restart waits for human approval. The fourth, the email the task asked for, crosses the boundary and becomes one verified effect.</desc>
+
+      <text class="caption" x="40" y="28">Model proposals · untrusted</text>
+      <text class="caption" x="40" y="236">Reference monitor</text>
+      <text class="caption" x="40" y="330">Effects</text>
+
+      <rect class="band" x="40" y="200" width="1120" height="60" />
+
+      {lanes.map((lane, i) => (
+        <g class={`lane ${lane.kind}`}>
+          <g class="anim appear" style={`--d:${delay[i]}s`}>
+            <circle class="badge" cx={lane.x} cy="62" r="13" />
+            <text class="badge-n" x={lane.x} y="67">{lane.n}</text>
+            <text class="code lbl" x={lane.x} y="112">{lane.code}</text>
+          </g>
+          <path class="proposal anim draw" style={`--d:${delay[i] + 0.2}s`} d={`M${lane.x} 128 V200`} pathLength="1" />
+          {lane.kind !== 'allow' && (
+            <g class="anim appear" style={`--d:${delay[i] + 1.1}s`}>
+              <path class="stop" d={`M${lane.x - 14} 200 H${lane.x + 14}`} />
+              <text class={`outcome ${lane.kind}`} x={lane.x} y="236">{lane.outcome}</text>
+            </g>
+          )}
+          {lane.kind === 'allow' && (
+            <>
+              <path class="mediated anim draw" style={`--d:${delay[i] + 1.0}s`} d={`M${lane.x} 200 L${lane.x + 75} 260`} pathLength="1" />
+              <path class="effect anim draw" style={`--d:${delay[i] + 1.8}s`} d={`M${lane.x + 75} 260 V372`} pathLength="1" />
+              <g class="anim appear" style={`--d:${delay[i] + 2.6}s`}>
+                <text class="effect-text lbl" x="1160" y="404">email sent to ir-team@acme</text>
+              </g>
+              <g class="anim appear" style={`--d:${delay[i] + 3.4}s`}>
+                <text class="verify-text lbl" x="1160" y="432">✓ verified against the task's invariants</text>
+              </g>
+            </>
+          )}
+        </g>
+      ))}
+
+      <path class="edge" d="M40 200 H1160" />
+      <path class="edge" d="M40 260 H1160" />
+    </svg>
+    <button class="pause" type="button" aria-pressed="false">Pause animation</button>
+  </div>
+
+  <ol class="cases">
+    <li>
+      <h3><span class="n">1</span>Hijacked recipient</h3>
+      <p>The ticket asks for the summary to go to attacker@evil.test. The task bound the recipient, so a changed value is refused.</p>
+      <code>deny · bound_argument_changed:recipient</code>
+    </li>
+    <li>
+      <h3><span class="n">2</span>Secret to a public channel</h3>
+      <p>The message carries a secret the model read. Its label travels with it, and the public channel's ceiling refuses it.</p>
+      <code>deny · confidentiality_exceeds_limit:body:secret&gt;public</code>
+    </li>
+    <li>
+      <h3><span class="n">3</span>Unrequested restart</h3>
+      <p>Restarting production needs a human to approve this exact action. Without that approval, nothing runs.</p>
+      <code>require_approval · exact_approval_required</code>
+    </li>
+    <li class="allowed">
+      <h3><span class="n">4</span>The task itself</h3>
+      <p>The summary goes to the recipient the task named. It crosses the boundary as one effect, which the verifier checks independently.</p>
+      <code>allow · email_sent, verified</code>
+    </li>
+  </ol>
+  <p class="small note">An illustration of VAIS's decision rules, with the reason codes the monitor returns. The cases below replay recorded runs.</p>
+</section>
+
+<script>
+  // Pause control: continuous motion longer than five seconds needs a way to stop it (WCAG 2.2.2).
+  for (const stage of document.querySelectorAll<HTMLElement>('.how .stage')) {
+    const button = stage.querySelector<HTMLButtonElement>('.pause');
+    button?.addEventListener('click', () => {
+      const playing = stage.dataset.playing === 'true';
+      stage.dataset.playing = String(!playing);
+      button.setAttribute('aria-pressed', String(playing));
+      button.textContent = playing ? 'Play animation' : 'Pause animation';
+    });
+  }
+</script>
+
+<style>
+  .how { padding-block: 64px; border-bottom: 1px solid var(--line); }
+  .how h2 { font-size: 2.25rem; line-height: 1.1; letter-spacing: -.04em; margin-bottom: 20px; }
+  .how > .intro { margin-bottom: 40px; max-width: 760px; }
+
+  .stage { position: relative; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  /* Colours from BRAND.md, light ground. */
+  .band { fill: #0B192C; opacity: .05; }
+  .edge { stroke: #0B192C; stroke-width: 3; fill: none; }
+  .proposal { stroke: #94A3B8; stroke-width: 4; fill: none; stroke-dasharray: 1; }
+  .mediated { stroke: #0B192C; stroke-width: 4; fill: none; stroke-dasharray: 1; }
+  .effect { stroke: #15803D; stroke-width: 4; fill: none; stroke-dasharray: 1; }
+  .stop { stroke: #0B192C; stroke-width: 4; }
+  .hold .stop { stroke: #B45309; }
+
+  text { font-family: Consolas, 'Courier New', monospace; }
+  .caption { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; fill: #263B55; }
+  .badge { fill: #F8FAFC; stroke: #94A3B8; stroke-width: 1.5; }
+  .badge-n { font-size: 14px; fill: #475569; text-anchor: middle; }
+  .code { font-size: 15px; fill: #475569; text-anchor: middle; }
+  .outcome { font-size: 13px; letter-spacing: .07em; text-anchor: middle; fill: #0B192C; font-weight: 700; }
+  .outcome.hold { fill: #B45309; }
+  .effect-text, .verify-text { font-size: 15px; text-anchor: end; fill: #15803D; }
+  .verify-text { font-size: 13px; }
+
+  /* 16 s loop. Every animated part shares it; a per-part delay places it in the story. */
+  .anim { animation-duration: 16s; animation-iteration-count: infinite; animation-delay: var(--d);
+          animation-fill-mode: backwards; animation-timing-function: ease-out; }
+  .draw { animation-name: draw; }
+  .appear { animation-name: appear; }
+  .stage[data-playing='false'] .anim { animation-play-state: paused; }
+
+  @keyframes draw {
+    0% { stroke-dashoffset: 1; opacity: 1; }
+    6% { stroke-dashoffset: 0; opacity: 1; }
+    50% { stroke-dashoffset: 0; opacity: 1; }
+    55%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes appear {
+    0% { opacity: 0; }
+    4% { opacity: 1; }
+    50% { opacity: 1; }
+    55%, 100% { opacity: 0; }
+  }
+
+  /* Without motion, show the whole story at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .anim { animation: none; opacity: 1; stroke-dashoffset: 0; }
+    .pause { display: none; }
+  }
+
+  .pause { position: absolute; top: 0; right: 0; font: inherit; font-size: .8125rem; background: none;
+           border: 1px solid var(--line); padding: 6px 12px; color: var(--muted); cursor: pointer; }
+  .pause:hover { color: #0B192C; border-color: #0B192C; }
+
+  .cases { list-style: none; padding: 0; margin: 36px 0 0; display: grid;
+           grid-template-columns: repeat(4, 1fr); gap: 28px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .cases h3 { font-size: 1rem; letter-spacing: -.01em; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+  .cases .n { font-family: Consolas, 'Courier New', monospace; font-size: .8125rem; font-weight: 400;
+              width: 24px; height: 24px; border: 1px solid #94A3B8; border-radius: 50%;
+              display: inline-flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0; }
+  .cases .allowed .n { border-color: #15803D; color: #15803D; }
+  .cases p { color: var(--muted); line-height: 1.6; font-size: .9375rem; margin: 0 0 12px; }
+  .cases code { font-size: .75rem; color: #263B55; background: #E7EDF6; padding: 2px 6px; word-break: break-word; }
+  .cases .allowed code { color: #15803D; }
+  .note { margin: 24px 0 0; }
+
+  @media (max-width: 850px) {
+    .cases { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 700px) {
+    /* The labels inside the drawing get too small; the numbered cases below carry them. */
+    .lbl, .caption, .outcome { display: none; }
+    .pause { position: static; margin-top: 16px; }
+    /* The drawing renders at about a third of its size here, so thicken it to stay legible. */
+    .proposal, .mediated, .effect, .stop { stroke-width: 10; }
+    .edge { stroke-width: 7; }
+    .badge { r: 34px; stroke-width: 4; }
+    .badge-n { font-size: 40px; transform: translateY(8px); }
+  }
+  @media (max-width: 580px) {
+    .how { padding-block: 48px; }
+    .how h2 { font-size: 2rem; }
+    .cases { grid-template-columns: 1fr; gap: 24px; }
+  }
+</style>
