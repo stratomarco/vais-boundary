@@ -1,0 +1,197 @@
+---
+// "VAIS in action": three recorded runs, rendered from src/data/use-cases.json, which
+// scripts/extract_use_cases.py builds from the records by fixed rules. Only the captions
+// below are written here; every attack text, action, label, decision and result is data.
+import data from '../data/use-cases.json';
+
+const captions: Record<string, { tab: string; title: string; text: string }> = {
+  'forged-receipt': {
+    tab: 'The forged receipt',
+    title: 'A forged approval does not approve anything.',
+    text: 'The ticket carried a fake VAIS receipt claiming the action was already approved. The model believed it and twice proposed sending the update to the attacker. VAIS never reads the receipt: the task bound the recipient, so the changed value was refused both times. On its third turn the model sent the update to the right address.',
+  },
+  'labels-not-content': {
+    tab: 'Labels, not content',
+    title: 'What the model has seen travels with what it writes.',
+    text: 'The task allowed reading a secret. After that, the model tried to post to a public channel. The message was only an artifact id, but it was written with the secret in view, so it carries the secret label, and the public channel refuses anything above public. VAIS decided from the label without reading the message. The update then went out through the approved public path.',
+  },
+  'llm-attacker': {
+    tab: 'An AI attacker',
+    title: 'Another model wrote the attack. The target reasoned. The boundary held.',
+    text: 'In the P1b-4 study the injection was written by an attacker model, aimed at a target that reasons before it acts. The target kept the right recipient but reached for an email tool the task never authorised. VAIS refused the tool, and the task finished through the one it did authorise.',
+  },
+};
+
+const studies: Record<string, { name: string; href: string }> = {
+  RC7: { name: 'RC7 campaign', href: 'https://github.com/stratomarco/vais-boundary/tree/main/benchmarks/rc/report/rc7-full-evidence' },
+  'P1b-4': { name: 'P1b-4 study', href: 'https://github.com/stratomarco/vais-boundary/blob/main/experiments/p1b4/PREREGISTRATION.md' },
+};
+
+const trustLabel: Record<string, string> = { trusted: 'from the task', untrusted: 'untrusted', derived_untrusted: 'from the model' };
+const decisionLabel: Record<string, string> = { allow: 'Allowed', deny: 'Denied', require_approval: 'Needs a human' };
+const phaseLabel = (phase: string) => phase === 'trusted_setup' ? 'Setup' : `Turn ${phase.replace('agent_turn_', '')}`;
+const cases = data.cases;
+---
+<section class="uses wrap" id="in-action" aria-labelledby="uses-heading">
+  <p class="eyebrow">VAIS in action</p>
+  <h2 id="uses-heading">Three recorded runs.</h2>
+  <p class="intro">Replayed from the records, not staged. Each was chosen by a fixed rule, stated below, and in each the attack was refused and the task still finished.</p>
+
+  <div class="tabs" role="tablist" aria-label="Recorded runs">
+    {cases.map((c, i) => (
+      <button role="tab" id={`tab-${c.id}`} aria-controls={`panel-${c.id}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+        <span class="n">{i + 1}</span>{captions[c.id].tab}
+      </button>
+    ))}
+  </div>
+
+  {cases.map((c, i) => (
+    <div class="panel" role="tabpanel" id={`panel-${c.id}`} aria-labelledby={`tab-${c.id}`} hidden={i !== 0} tabindex="0">
+      <p class="meta">
+        <a href={studies[c.study].href}>{studies[c.study].name}</a> · {c.model} · {c.workflow}, episode {c.episode}
+        {c.reasoning_tokens > 0 && <> · reasoned for {c.reasoning_tokens.toLocaleString('en')} tokens</>}
+      </p>
+      <h3>{captions[c.id].title}</h3>
+      <p class="caption-text">{captions[c.id].text}</p>
+
+      <figure class="injection">
+        <figcaption>Injected into the incident ticket{c.study === 'P1b-4' ? ', written by the attacker model' : ''}</figcaption>
+        <pre>{c.attack_text}</pre>
+      </figure>
+
+      <ol class="trace">
+        {c.steps.map((s) => (
+          <li class={`step ${s.decision}`}>
+            <span class="phase">{phaseLabel(s.phase)}</span>
+            <div class="call">
+              <code class="tool">{s.tool}</code>
+              <ul class="args">
+                {Object.entries(s.arguments).map(([name, a]) => (
+                  <li><code>{name} = {a.value}</code> <span class={`trust ${a.trust}`}>{trustLabel[a.trust] ?? a.trust}{a.confidentiality !== 'public' ? ` · ${a.confidentiality}` : ''}</span></li>
+                ))}
+              </ul>
+              {s.reasons.length > 0 && <p class="reasons">{s.reasons.join(' · ')}</p>}
+              {s.effect && <p class="effect">→ {s.effect}</p>}
+            </div>
+            <span class={`decision ${s.decision}`}>{decisionLabel[s.decision] ?? s.decision}</span>
+          </li>
+        ))}
+        <li class="step verdict">
+          <span class="phase">Verifier</span>
+          <div class="call"><p>{c.invariants.filter((x) => x.passed).length} of {c.invariants.length} invariants held · the task finished</p></div>
+        </li>
+      </ol>
+
+      <p class="source">
+        Record: <code>{c.source.file}</code>, line {c.source.line} · SHA-256 <code>{c.source.sha256.slice(0, 16)}…</code>
+        {c.study === 'RC7' ? ', listed in the published evidence manifest.' : '; the P1b-4 results are being written up.'}
+      </p>
+      <button class="replay" type="button">Replay</button>
+    </div>
+  ))}
+
+  <p class="small rule">How these were chosen: the first episode in the records, in file order, where the protected run kept the task working and the model proposed an action VAIS refused, for a recipient hijack (attack-01, the first model alphabetically with such an episode), a secret-labelled post (attack-09, gemma-4-12b) and the language-model attacker against a reasoning target (P1b-4, gemma-4-12b with reasoning on). The rules and the extraction are in <a href="https://github.com/stratomarco/vais-boundary/blob/main/website/scripts/extract_use_cases.py"><code>extract_use_cases.py</code></a>. Result data is never copied, and values read from a secret store are hidden.</p>
+</section>
+
+<script>
+  for (const section of document.querySelectorAll<HTMLElement>('.uses')) {
+    const tabs = [...section.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) section.classList.add('animated');
+
+    const play = (panel: HTMLElement) => {
+      const steps = [...panel.querySelectorAll<HTMLElement>('.step')];
+      if (reduce) { steps.forEach((s) => s.classList.add('shown')); return; }
+      steps.forEach((s) => s.classList.remove('shown'));
+      steps.forEach((s, i) => window.setTimeout(() => s.classList.add('shown'), 250 + i * 650));
+    };
+
+    const select = (tab: HTMLButtonElement) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = section.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`)!;
+        panel.hidden = !on;
+        if (on) play(panel);
+      }
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const next = e.key === 'ArrowRight' ? tabs[(i + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(i - 1 + tabs.length) % tabs.length] : null;
+        if (next) { e.preventDefault(); next.focus(); select(next); }
+      });
+    });
+    section.querySelectorAll<HTMLButtonElement>('.replay').forEach((b) => b.addEventListener('click', () => play(b.closest('.panel')!)));
+
+    // Start the first replay when the section scrolls into view.
+    const first = section.querySelector<HTMLElement>('.panel:not([hidden])');
+    if (first) {
+      new IntersectionObserver((entries, observer) => {
+        if (entries.some((e) => e.isIntersecting)) { play(first); observer.disconnect(); }
+      }, { threshold: 0.25 }).observe(first);
+    }
+  }
+</script>
+
+<style>
+  .uses { padding-block: 64px; border-bottom: 1px solid var(--line); }
+  .uses h2 { font-size: 2.25rem; line-height: 1.1; letter-spacing: -.04em; margin-bottom: 20px; }
+  .uses > .intro { margin-bottom: 36px; max-width: 760px; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  [role='tab'] { font: inherit; font-size: .9375rem; background: none; border: 0; border-bottom: 2px solid transparent;
+                 padding: 14px 20px 12px 0; margin-right: 28px; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 10px; }
+  [role='tab'][aria-selected='true'] { color: #0B192C; border-bottom-color: #0B192C; font-weight: 600; }
+  [role='tab'] .n { font-family: Consolas, 'Courier New', monospace; font-size: .8125rem; width: 22px; height: 22px; border: 1px solid #94A3B8;
+                    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 400; }
+
+  .panel { padding-top: 28px; }
+  .meta { font-family: Consolas, 'Courier New', monospace; font-size: .8125rem; color: var(--muted); margin-bottom: 16px; }
+  .panel h3 { font-size: 1.5rem; letter-spacing: -.03em; line-height: 1.25; margin: 0 0 12px; }
+  .caption-text { color: var(--muted); line-height: 1.7; max-width: 820px; margin-bottom: 28px; }
+
+  .injection { margin: 0 0 28px; border-left: 2px solid #94A3B8; padding-left: 16px; }
+  .injection figcaption { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .07em; text-transform: uppercase; color: #475569; margin-bottom: 8px; }
+  .injection pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: .875rem; line-height: 1.6; color: #0B192C; }
+
+  .trace { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .step { display: grid; grid-template-columns: 90px 1fr auto; gap: 20px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line);
+          opacity: 1; transition: opacity .35s ease, transform .35s ease; }
+  /* Hidden only once the script runs, so the trace is readable without JavaScript. */
+  .uses.animated .step:not(.shown) { opacity: 0; transform: translateY(4px); }
+  .phase { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: #475569; padding-top: 3px; }
+  .tool { font-size: .9375rem; font-weight: 600; color: #0B192C; }
+  .args { list-style: none; margin: 6px 0 0; padding: 0; }
+  .args li { font-size: .8125rem; line-height: 1.7; }
+  .args code { color: #263B55; word-break: break-word; }
+  .trust { color: #94A3B8; font-size: .75rem; margin-left: 6px; }
+  .trust.trusted { color: #475569; }
+  .reasons { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; color: #0B192C; margin: 8px 0 0; word-break: break-word; }
+  .effect { font-family: Consolas, 'Courier New', monospace; font-size: .8125rem; color: #15803D; margin: 8px 0 0; }
+  .decision { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; white-space: nowrap; }
+  .decision.allow { border: 1px solid #94A3B8; color: #475569; }
+  .decision.deny { background: #0B192C; color: #fff; }
+  .decision.require_approval { border: 1px solid #B45309; color: #B45309; }
+  .verdict .call p { margin: 0; font-size: .9375rem; color: #15803D; font-weight: 600; }
+
+  .source { font-size: .8125rem; color: var(--muted); margin: 20px 0 0; line-height: 1.6; }
+  .source code { font-size: .75rem; background: #E7EDF6; padding: 1px 5px; }
+  .replay { font: inherit; font-size: .8125rem; background: none; border: 1px solid var(--line); padding: 6px 12px; color: var(--muted); cursor: pointer; margin-top: 16px; }
+  .replay:hover { color: #0B192C; border-color: #0B192C; }
+  .rule { margin: 36px 0 0; max-width: 900px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .step { transition: none; }
+    .replay { display: none; }
+  }
+  @media (max-width: 580px) {
+    .uses { padding-block: 48px; }
+    .uses h2 { font-size: 2rem; }
+    [role='tab'] { margin-right: 18px; font-size: .875rem; }
+    .step { grid-template-columns: 1fr auto; gap: 8px 12px; }
+    .phase { grid-column: 1 / -1; }
+  }
+</style>
