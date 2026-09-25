@@ -85,3 +85,33 @@ def test_signature_locates_a_fault_raised_inside_vais():
 def test_each_target_passes_its_own_selftest(target):
     """A campaign result is only meaningful if the harness can detect a fault."""
     assert selftest(target) == []
+
+
+def test_the_campaigns_declared_rules_cover_what_the_loaders_accept(tmp_path):
+    """A loader that gains a version or type the campaign does not declare makes the campaign
+    report a correct load as a violated rule. Policy v6 and two invariant types did exactly
+    that until the rc13 release campaign found it; this keeps the declared sets current."""
+    import re
+    from campaigns.targets import INVARIANT_TYPES, POLICY_VERSIONS
+    from vais.exceptions import PolicyValidationError
+    from vais.invariants import load_invariants
+    from vais.policy import load_policy
+
+    accepted = set()
+    for version in range(1, 12):
+        path = tmp_path / f"p{version}.yaml"
+        path.write_text(f"version: {version}\ndefault_action: deny\ntools: {{}}\n", encoding="utf-8")
+        try:
+            load_policy(path)
+            accepted.add(version)
+        except PolicyValidationError:
+            pass
+    assert accepted == POLICY_VERSIONS
+
+    path = tmp_path / "i.yaml"
+    path.write_text("invariants:\n  - id: x\n    type: no-such-type\n    effect: e\n", encoding="utf-8")
+    try:
+        load_invariants(path)
+    except PolicyValidationError as exc:
+        supported = set(re.search(r"supported values are: (.*)", str(exc)).group(1).split(", "))
+    assert supported == INVARIANT_TYPES

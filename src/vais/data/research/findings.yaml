@@ -360,3 +360,9 @@ findings:
     version: "0.12.0rc13"
     type: methodology
     evidence: [experiments/p1b4/PREREGISTRATION.md, tests/test_reference_agent_lmstudio.py, src/vais/openai_compatible.py]
+
+  - id: FIND-060
+    finding: The continuous campaign's declared rules went stale when rc13 extended the loaders. Its policy postcondition still allowed versions 1 to 5 after P1b-6 added policy v6, and its invariant-type set lacked trusted_origin and effect_confidence, so a correct load of a v6 policy was classified as a real fault. CI's campaigns never generated a v6 policy and stayed green; the rc13 release campaign did, with seed 13. The loaders were correct. The declared sets now include the new version and types, and a test fails whenever a loader accepts a version or type the campaign does not declare.
+    version: "0.12.0rc13"
+    type: campaign_harness_defect
+    evidence: [campaigns/targets.py, tests/test_campaign_triage.py]

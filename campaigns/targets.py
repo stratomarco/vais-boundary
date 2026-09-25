@@ -33,11 +33,15 @@ from vais.models import PlannedAction, Provenance, TrustLevel, Value, action_fin
 ACCEPTED_LOADER = (PolicyValidationError, yaml.YAMLError, UnicodeDecodeError)
 ACCEPTED_VALUE = (ValueError,)
 
-POLICY_VERSIONS = {1, 2, 3, 4, 5}
+# Declared here, independently of the loaders, so the campaign checks the loaders against a
+# stated rule rather than against themselves. tests/test_campaign_triage.py fails when a
+# loader starts accepting a version or type these sets do not declare, so they cannot go
+# stale silently: policy v6 and two invariant types did, until the rc13 release campaign.
+POLICY_VERSIONS = {1, 2, 3, 4, 5, 6}
 INVARIANT_TYPES = {
     "forbidden_effect", "contract_binding", "confidentiality_ceiling",
     "forbidden_values", "exact_action_approval", "max_effect_count",
-    "approval_single_use", "monitor_mediated",
+    "approval_single_use", "monitor_mediated", "trusted_origin", "effect_confidence",
 }
 
 
@@ -108,7 +112,7 @@ def _postconditions_policy(policy) -> list[str]:
     if policy.default_action not in {"allow", "deny"}:
         broken.append("default_action must be allow or deny")
     if policy.version not in POLICY_VERSIONS:
-        broken.append("version must be one of 1,2,3,4,5")
+        broken.append("version must be one of " + ",".join(map(str, sorted(POLICY_VERSIONS))))
     if policy.version >= 4 and policy.default_action != "deny":
         broken.append("policy v4 must be fail-closed deny")
     for name, tool in policy.tools.items():
