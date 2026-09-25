@@ -3,7 +3,7 @@
 *Six arms ran from `43ae3a1` on 2026-09-23/24; the follow-up arm ran from `bdf90a3` on
 2026-09-24/25 (Deviation 2). The analysis is `analyze.py`, unchanged except for the pairing of
 a replacement arm registered in Deviation 2. Every number below is in
-`results/analysis.json` (SHA-256 `6e5977b4c6a86b88…`); the chart is drawn from it by `chart.py`.*
+`results/analysis.json` (SHA-256 `26334eaa0c7eec04…`); the chart is drawn from it by `chart.py`.*
 
 ![Attack-added security events with reasoning off and on, per model](p1b4-attack-added.svg)
 
