@@ -1,6 +1,6 @@
 # Attack surface of the VAIS enforcement layer
 
-**Status:** v2, current as of 0.12.0rc12.
+**Status:** v2, current as of 0.12.0rc13.
 **Source base:** written against `6e0aad0` (rc7), re-verified against `bf38ab0` (the rc9
 TCB-hardening base) on 2026-09-09, and updated for the rc10 recursion bound in S3.
 

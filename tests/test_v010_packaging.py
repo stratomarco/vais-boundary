@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_v010_version_preserves_frozen_reference_baseline():
-    assert __version__ == "0.12.0rc12"
+    assert __version__ == "0.12.0rc13"
     assert REFERENCE_BASELINE_VERSION == "0.9.3"
     assert (ROOT / "src" / "vais" / "adaptive_reference.py").exists()
     assert (ROOT / "docs" / "v0.10-adaptive-verification.md").exists()
