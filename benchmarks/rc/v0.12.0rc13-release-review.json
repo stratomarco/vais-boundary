@@ -1,0 +1,196 @@
+{
+  "schema": "vais-release-review-v1",
+  "release_version": "0.12.0rc13",
+  "date": "2026-09-25",
+  "project_identity": {
+    "name": "VAIS Boundary",
+    "expansion": "Verifiable Authority & Invariant Security",
+    "repository": "https://github.com/stratomarco/vais-boundary",
+    "distribution": "verifiable-ai-security",
+    "command": "vais",
+    "author": "Marco Constantino",
+    "contact": "stratomarco@proton.me",
+    "license": "Apache-2.0"
+  },
+  "bounded_status": "RC13 acts on what RC12 published: the monitor becomes stateful, authority can expire and be withdrawn, a gateway takes the tools' credentials out of the agent's reach, and effects say how much is known about them. Every new mechanism is opt-in, and with none configured decisions are unchanged, as the regenerated snapshots show. Two defects were found and fixed, one in the monitor and one in the campaign harness, and thirteen limitations were published. The P1b-4 study adds bounded new evidence; the frozen RC7 evidence is carried unchanged.",
+  "material_findings": [
+    {
+      "id": "FIND-056",
+      "status": "fixed_and_regression_tested",
+      "summary": "A tool requiring both an exact and a threshold approval consumed the store grant in the first check and found it spent in the second, so it could never be allowed. Approval is now decided once and consumed at most once."
+    },
+    {
+      "id": "FIND-060",
+      "status": "fixed_and_regression_tested",
+      "summary": "The continuous campaign's declared rules did not know policy v6 or the two new invariant types, so a correct load counted as a real fault. The sets are current and a test fails when a loader accepts what the campaign does not declare."
+    }
+  ],
+  "new_mechanisms": [
+    {
+      "id": "P1b-3",
+      "name": "SessionLedger",
+      "default": "off; a declared max_calls without a ledger is denied",
+      "decisions": [
+        "DEC-044",
+        "DEC-045",
+        "DEC-046"
+      ]
+    },
+    {
+      "id": "P1b-8",
+      "name": "authority lifecycle",
+      "default": "off",
+      "decisions": [
+        "DEC-047",
+        "DEC-048",
+        "DEC-049",
+        "DEC-050"
+      ]
+    },
+    {
+      "id": "P1b-5",
+      "name": "gateway",
+      "default": "separate process",
+      "decisions": [
+        "DEC-051",
+        "DEC-052",
+        "DEC-053",
+        "DEC-054"
+      ]
+    },
+    {
+      "id": "P1b-6",
+      "name": "action origin",
+      "default": "off; not recommended as a default",
+      "decisions": [
+        "DEC-055",
+        "DEC-056"
+      ]
+    },
+    {
+      "id": "P1b-7",
+      "name": "effect confidence",
+      "default": "effects are requested unless something establishes more",
+      "decisions": [
+        "DEC-057",
+        "DEC-058"
+      ]
+    }
+  ],
+  "scoring_changes": [],
+  "limitations_published": [
+    "LIM-055",
+    "LIM-056",
+    "LIM-057",
+    "LIM-058",
+    "LIM-059",
+    "LIM-060",
+    "LIM-061",
+    "LIM-062",
+    "LIM-063",
+    "LIM-064",
+    "LIM-065",
+    "LIM-066",
+    "LIM-067"
+  ],
+  "open_surfaces": [
+    {
+      "id": "S13",
+      "status": "mitigated_at_gateway_only",
+      "summary": "Reasons are withheld from the agent by default at the gateway; the library path returns them unchanged."
+    },
+    {
+      "id": "LIM-035/LIM-044",
+      "status": "unmitigated_for_stateless_callers",
+      "summary": "Without a SessionLedger, limits over several actions and single use of a contract-held approval remain VERIFY-only."
+    },
+    {
+      "id": "S15",
+      "status": "unmitigated_in_rc13",
+      "summary": "Model text and reasoning output are not mediated (LIM-051)."
+    },
+    {
+      "id": "LIM-048",
+      "status": "unmitigated_in_rc13",
+      "summary": "Arguments without a trust requirement carry the model's judgement inside the policy; the origin rule is a human gate, not a fix (LIM-064)."
+    }
+  ],
+  "review": {
+    "approvals": "changed; single-use with a ledger, grant TTL, store holds across processes on one machine, FIND-056 fixed",
+    "reference_monitor_decision_function": "extended; validity, revocation and origin checks when configured; unchanged when none is, per the snapshots",
+    "invariants": "extended; monitor_mediated, trusted_origin, effect_confidence, none in the default set, which stays at seven",
+    "config_loading": "changed; policy v5 and v6, profile acknowledge and confirm, strict gateway contract and configuration loaders",
+    "complete_mediation": "changed; architectural behind the gateway under its deployment conditions (LIM-060), assumed on the library path",
+    "decision_reason_channel": "mitigated at the gateway only",
+    "effects": "changed; confidence levels, contradictions visible to VERIFY and in the audit",
+    "audit_chain": "changed; one gateway trail for every session; still not externally anchored",
+    "campaign_harness": "fixed; FIND-060",
+    "provenance_lattice": "unchanged from RC12",
+    "canonicalization": "unchanged from RC12",
+    "benchmark_scoring": "unchanged from RC12",
+    "website_and_campaigns": "outside_review_scope, excluded from both distributions"
+  },
+  "validation": {
+    "source_tests": "737 passed with the mcp extra; 732 passed and 1 skipped without it",
+    "fresh_source_zip_tests": "732 passed, 1 skipped (mcp extra absent)",
+    "mutation_check": "49 mutants across every rc13 fix and mechanism, 49 killed (P1b-3 14, P1b-8 16, P1b-5 8, P1b-6 5, P1b-7 5, FIND-060 1)",
+    "policy_validation": "schema 4, 4 tools",
+    "invariant_validation": "7 invariants",
+    "protected_smoke_default": "20/20 valid security episodes, 0% target failure rate",
+    "protected_smoke_mcp": "500/500 valid security episodes, 0% target failure rate",
+    "isolated_wheel_install": "passed with pip check clean; probes for FIND-056, the ledger, validity windows, delegation, the origin gate, contradicted effects, gateway labelling and the packaged ledger all behave",
+    "source_zip_reproducible": true,
+    "wheel_reproducible": true,
+    "sdist_reproducible": false,
+    "campaign_selftest": "passed on all three targets",
+    "campaign_real_verdicts": 0,
+    "campaign_note": "the first release campaign reported one real verdict on the policy target, traced to FIND-060 and fixed; the same seed then produced none",
+    "experiments_website_campaigns_excluded": true,
+    "secret_scan": "no credential patterns and no personal contact data in tracked files",
+    "privacy_note": "experiments/p1b4/study.json names a local evidence path containing the maintainer's Windows username; public since the P1b-4 pre-registration",
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_portable_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "32 issues with the same 23 unexpected unresolved references as a clean RC9 tree, so RC13 adds none."
+  },
+  "frozen_benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "report_evidence_manifest_sha256": "0e2b82e74428d7f472b79996c700292322c4f89f431b4862a1a183e2bedf7e1d",
+    "carried_byte_identical_from_rc9": true,
+    "interpretation": "Zero observed violations is bounded evidence for the recorded campaign, not proof of universal security. SmolLM3 remains visibly gate-failed and its two target failures remain unevaluated. RC13 does not extend this evidence, the README utility aggregate is not an enforcement-cost figure, and the campaign's attacker was a deterministic mutation search rather than a language model.",
+    "carrier_before_rc12": "0.12.0rc11"
+  },
+  "lab_experiment_evidence": {
+    "location": "experiments/tier_a",
+    "packaged": false,
+    "pre_registrations": 2,
+    "raw_episode_records": 6351,
+    "runs": 7,
+    "pre_registered_primaries_validated": 0,
+    "injection_payloads_shipped": 120,
+    "interpretation": "Both pre-registered primary outcomes failed to validate and are reported as not evaluable. A content detector matched the enforced arm's catch rate on the exploratory family, so the separation observed is cost rather than catch rate. Results describe one application, one tool and two agent models."
+  },
+  "new_experiment_evidence": {
+    "p1b4": {
+      "location": "experiments/p1b4",
+      "pre_registered": true,
+      "evaluable_episodes": 1670,
+      "arms_completed": 7,
+      "arms_gate_failed": 2,
+      "protected_violations": 0,
+      "interpretation": "Zero protected violations with a language-model attacker and reasoning targets, for four local models up to 12B; no detectable effect of reasoning in three pairs. Bounded evidence for this setup (LIM-067)."
+    },
+    "p1b6": {
+      "location": "experiments/p1b6",
+      "pre_registered": true,
+      "model_steps_replayed": 29430,
+      "interpretation": "An action-origin rule computed from everything visible had an untrusted origin for every model action in clean and attacked RC7 runs, so it gates a tool and does not detect an attack (FIND-057)."
+    }
+  }
+}
