@@ -45,7 +45,7 @@ const root = import.meta.env.BASE_URL.replace(/\/$/, '') + '/';
         <ul>
           <li>Not proof of universal security. One campaign, recorded model builds, one local runtime.</li>
           <li><b>65.7% is not the cost of enforcement.</b> In the paired control, discordant pairs split almost evenly: 25 success-to-failure against 28 failure-to-success.</li>
-          <li>Known enforcement gaps ship <b>unmitigated</b>: the decision reason returned to the caller can disclose which argument a contract binds, and limits that span several actions, such as a count or a single use of an approval, are checked after the fact but not yet blocked. Every known limitation is published with the release.</li>
+          <li>Two enforcement gaps are closed <b>only for deployments that opt in</b>: decision reasons are withheld from the agent at the gateway but still returned on the library path, and limits that span several actions, such as a count or a single use of an approval, are blocked in flight only when a session ledger is supplied. Every known limitation is published with the release.</li>
           <li>In a separate lab experiment both pre-registered primary outcomes <b>failed to validate</b>, and a content-filter guardrail matched the enforced arm's catch rate. The difference showed up as cost, not catch.</li>
           <li>Release candidate software. Not production hardened.</li>
         </ul>
