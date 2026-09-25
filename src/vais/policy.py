@@ -25,6 +25,9 @@ class ApprovalPolicy:
     greater_than: float
 
 
+_ORIGIN_RULES = ("allow", "require_approval", "deny")
+
+
 @dataclass(frozen=True)
 class ToolPolicy:
     allow: bool = False
@@ -37,9 +40,15 @@ class ToolPolicy:
     # reference monitor is given a SessionLedger; without one, a tool that declares a
     # limit is denied rather than allowed without it.
     max_calls: int | None = None
+    # What to do when the action's origin is not trusted, meaning something untrusted
+    # was visible when it was planned (P1b-6, LIM-048). "allow" keeps the behaviour of
+    # policies before v6; "require_approval" asks a human; "deny" refuses.
+    untrusted_origin: str = "allow"
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "arguments", FrozenDict(self.arguments))
+        if self.untrusted_origin not in _ORIGIN_RULES:
+            raise ValueError("untrusted_origin must be 'allow', 'require_approval' or 'deny'")
         if self.max_calls is not None and (
             isinstance(self.max_calls, bool) or not isinstance(self.max_calls, int) or self.max_calls < 0
         ):
@@ -152,6 +161,8 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
         allowed_fields.add("reject_undeclared_arguments")
     if version >= 5:
         allowed_fields.add("max_calls")
+    if version >= 6:
+        allowed_fields.add("untrusted_origin")
     _known_keys(raw, allowed_fields, path)
 
     allow = _strict_bool(raw.get("allow", False), f"{path}.allow")
@@ -207,6 +218,12 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
         if max_calls < 0:
             _fail(f"{path}.max_calls", "must not be negative")
 
+    untrusted_origin = "allow"
+    if version >= 6 and "untrusted_origin" in raw:
+        untrusted_origin = raw["untrusted_origin"]
+        if not isinstance(untrusted_origin, str) or untrusted_origin not in _ORIGIN_RULES:
+            _fail(f"{path}.untrusted_origin", "must be 'allow', 'require_approval' or 'deny'")
+
     return ToolPolicy(
         allow=allow,
         arguments=arguments,
@@ -215,6 +232,7 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
         exact_approval_required=exact_approval_required,
         reject_undeclared_arguments=reject_undeclared_arguments,
         max_calls=max_calls,
+        untrusted_origin=untrusted_origin,
     )
 
 
@@ -226,8 +244,8 @@ def load_policy(path: str | Path) -> Policy:
     _known_keys(raw, {"version", "default_action", "tools"}, "policy")
 
     version = raw.get("version", 1)
-    if isinstance(version, bool) or not isinstance(version, int) or version not in {1, 2, 3, 4, 5}:
-        _fail("policy.version", "supported versions are 1, 2, 3, 4 and 5")
+    if isinstance(version, bool) or not isinstance(version, int) or version not in {1, 2, 3, 4, 5, 6}:
+        _fail("policy.version", "supported versions are 1 to 6")
 
     default_action = raw.get("default_action", "deny")
     # The isinstance guard is load-bearing, not decoration. Set membership raises

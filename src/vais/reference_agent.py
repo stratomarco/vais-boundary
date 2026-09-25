@@ -379,6 +379,7 @@ class ReferenceEnvironment:
                 },
                 tool=action.tool,
                 action_fingerprint=action_fingerprint(action),
+                origin=action.origin,
             )
             return MCPExecutionRecord(
                 action, None, decision, effect, result, MCPCallState.OBSERVED
@@ -429,6 +430,7 @@ class ReferenceEnvironment:
                 },
                 tool=action.tool,
                 action_fingerprint=action_fingerprint(action),
+                origin=action.origin,
             )
             result = TrustedValue(
                 {"status": "sent", destination_field: plain.get(destination_field), "artifact_id": artifact_id},

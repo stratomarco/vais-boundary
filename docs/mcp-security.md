@@ -95,7 +95,23 @@ effect:
 
 That lets the existing invariant engine verify the same security properties regardless of whether `send_email` is a local Python function, an HTTP API or an MCP tool.
 
-**What an MCP effect is.** Once `call_tool` returns, the effect is built from the arguments VAIS sent. The server's reply is kept as the record's `result`, labelled untrusted, and is not consulted. So the verifier establishes that an authorized request for X was dispatched and returned, not that X is the external state that resulted. A server that performs something other than what it was asked is not detected; receipt or read-back reconciliation would close that and is not implemented (LIM-046, LIM-049).
+**What an MCP effect is.** Once `call_tool` returns, the effect is built from the arguments VAIS sent. The server's reply is kept as the record's `result`, labelled untrusted, and unless the profile says otherwise it is not consulted. So by default the verifier establishes that an authorized request for X was dispatched and returned, not that X is the external state that resulted. A server that performs something other than what it was asked is not detected by default (LIM-046, LIM-049).
+
+**Receipts and read-back (0.12.0rc13, P1b-7).** A profile can say how to establish more than the request:
+
+```yaml
+effect:
+  kind: email_sent
+  argument_fields: {recipient: recipient, body: body}
+  acknowledge: {recipient: delivered_to}        # the reply must repeat the recipient
+  confirm:                                      # read the message back from the system of record
+    server: records
+    tool: get_message
+    arguments: {id: reply.message_id}
+    expect: {recipient: to}
+```
+
+The effect is then `acknowledged` when the reply repeats it, `confirmed` when the read-back agrees, and `contradicted` when either reports a different value, with the field names, never the values, in the audit. A contradiction always wins. Library callers pass `reconcilers` (effect kind to `EffectReconciler`, for example `MCPReadBackReconciler`) to `MCPProtectedClient`; the gateway builds them from `confirm` blocks. An acknowledgement is only the server's claim, and a read-back confirms only when the system it reads does not depend on the server that acted (LIM-065). Confidence is found after the effect and reported, not enforced (LIM-066).
 
 Since 0.12.0rc12 the profile loader rejects two effect fields whose names are equal after NFC normalisation, rather than silently keeping the later one (FIND-055), and reports a `:` in a server or tool name as a validation error (FIND-054).
 
@@ -106,6 +122,10 @@ Since 0.12.0rc12 the profile loader rejects two effect fields whose names are eq
 When VERIFY runs over MCP effects approved through a store, pass the same store to the invariant engine, or `exact_action_approval` cannot see the grants and reports the effect as unapproved (FIND-050).
 
 From 0.12.0rc13 the client also accepts a `ledger` (a `SessionLedger` for this session). With it the monitor enforces a tool's `max_calls` in flight and makes contract-held approvals single-use; pass the same ledger to VERIFY to check that every MCP effect corresponds to an `ALLOW` (`monitor_mediated`).
+
+Validity windows and revocation need nothing MCP-specific: construct the `ReferenceMonitor` given to the client with a `RevocationList`, and give the contract `not_before`/`not_after`. Several server workers can share one approval store file from 0.12.0rc13, on one machine (LIM-057); a grant made with `ttl_seconds` is refused once it expires.
+
+To take the credentials out of the agent host altogether, run the gateway instead of embedding this client (`vais gateway`, `docs/gateway.md`). It uses this client internally, assigns labels itself rather than accepting them from the agent, and withholds decision reasons from the agent by default.
 
 The client also accepts an optional `audit` trail. Every decision, including denials made before the monitor is consulted, is recorded with the action fingerprint and the contract identity; observed and indeterminate outcomes are recorded as `effect_observed` and `effect_indeterminate`. No argument value and no exception message is recorded.
 
@@ -126,7 +146,7 @@ Implemented:
 
 Not yet implemented:
 
-- transparent forwarding proxy for an unmodified third-party MCP host;
+- transparent forwarding proxy for an unmodified third-party MCP host *(for tools, the 0.12.0rc13 gateway is one: any MCP host that can send a bearer token can use it; resources and prompts are not proxied, LIM-062)*;
 - generic resource/prompt interception at the transport layer;
 - OAuth/token-broker policy enforcement;
 - distributed multi-server trace correlation;

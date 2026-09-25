@@ -134,3 +134,36 @@ limitations:
 
   - id: LIM-055
     limitation: A SessionLedger lives in memory in one process and is not persisted, so a restart or a second worker starts from an empty ledger and the session's call limits and single-use contract approvals begin again. Statefulness is also opt-in. A caller that passes no ledger keeps the stateless behaviour described in LIM-035 and LIM-044, except that a tool declaring max_calls is then denied rather than allowed.
+
+  - id: LIM-056
+    limitation: A RevocationList lives in memory in one process and is not persisted. A restart forgets every revocation, and a second worker never sees one made in the first, so revoked authority holds again in any process that did not record the revocation. Revocation is also opt-in; a monitor constructed without a list checks nothing.
+
+  - id: LIM-057
+    limitation: Cross-process consume-once holds on one machine only. The ApprovalStore takes an operating-system lock on a sibling .lock file and reloads the store before every operation, which coordinates processes on one host with a local disk. It does not coordinate across machines, is not tested on network filesystems, where advisory locks are unreliable, and reads the whole file on every decision, so a large store slows every decision down. A store that cannot be locked within its timeout raises rather than answering unlocked.
+
+  - id: LIM-058
+    limitation: Time-bounded authority is checked in ENFORCE only, when the monitor decides, against the local clock. A contract that expires between the decision and the effect is not re-checked, VERIFY does not evaluate validity windows, grant expiry or revocations, and a wrong or manipulated host clock moves every window by the same amount. Contracts and grants without a time bound never read the clock, so they are unaffected.
+
+  - id: LIM-059
+    limitation: Delegation attenuates only when the application derives a sub-agent's contract with TaskContract.delegate. The monitor does not know that a contract is a delegate and does not check its lineage, so a contract constructed directly with the parent's session and wider authority is accepted as if it were the parent. Delegation also shares the parent's session ledger by design, so a delegate's calls count against the parent's limits and cannot be given a separate budget.
+
+  - id: LIM-060
+    limitation: The gateway makes complete mediation an architectural property only under a deployment VAIS cannot inspect. The agent must be unable to read the gateway's environment, configuration or memory, unable to reach the upstream servers except through the gateway, and unable to write the contracts, approvals and pending directories. If any of these fails, a path around the monitor exists again and LIM-050 applies.
+
+  - id: LIM-061
+    limitation: The gateway labels every argument from the agent at the highest confidentiality the session has received through the gateway, so after one secret result every later argument counts as secret, which can deny legitimate calls. It sees only data that passed through it; confidential content the agent obtained another way, such as from its prompt, is labelled at whatever the session has seen, possibly public.
+
+  - id: LIM-062
+    limitation: The gateway proxies MCP tools only. Resources, prompts, sampling, elicitation and notifications are not offered to the agent, upstream tool descriptions reach the model unchanged, and results are passed on as text or structured data, so other content types from an upstream are flattened.
+
+  - id: LIM-063
+    limitation: Gateway session state, the ledger and the confidentiality level, lives in the gateway's memory, so a restart starts every session fresh (as LIM-055). The contract directory is read and parsed on every request, which bounds how many sessions one gateway can serve. Pending approval requests hold argument values in plaintext, and the session token is a bearer secret that expires only with its contract's window or file.
+
+  - id: LIM-064
+    limitation: An action's origin is the join of everything visible when it was planned, so in any agent that reads untrusted data before or while acting, every later action has an untrusted origin. untrusted_origin then puts a human in front of the gated tool whenever the session has read anything untrusted; it cannot tell an attacked action from a clean one (FIND-057). An origin that discriminates needs a planner kept away from untrusted content, which labels on a single-model agent cannot provide. The origin is also only as good as the visible context the adapter reports, and the gateway assumes the agent's prompt is trusted (LIM-061).
+
+  - id: LIM-065
+    limitation: An acknowledged effect rests on the executing server's own reply, so a server that repeats the requested values while doing something else is acknowledged, not caught. Only a read-back from an independent system of record confirms an effect; a read-back through the same server, or a system that server controls, only moves the trust, and VAIS cannot check that independence. A read-back soon after the call may see a record not yet written, leaving the effect unconfirmed, or an older record, reporting a contradiction that is not one.
+
+  - id: LIM-066
+    limitation: Effect confidence is established after the effect and reported, not enforced. A contradicted effect has already happened; VAIS records it, the audit names the fields, and VERIFY reports it, but nothing is undone and the decision that allowed it is unchanged. Confidence is raised only on the MCP path and by the sandbox; an application executor used with ProtectedExecutor produces requested effects unless it sets the confidence itself.

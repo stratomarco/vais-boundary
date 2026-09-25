@@ -42,18 +42,20 @@ The LLM may follow the attacker's instruction. The framework does not require pr
 ## Assumptions
 
 - policy, invariant files and enforcement code are loaded from an integrity-protected environment;
-- the real tool cannot be reached through an alternate path that bypasses the enforcement boundary, meaning `ProtectedExecutor` or `MCPProtectedClient`. The library cannot enforce this because the application holds the tool credentials (LIM-050). From 0.12.0rc13 it can be checked after the fact: the `monitor_mediated` invariant reports any effect that no recorded `ALLOW` in the session ledger accounts for;
+- the real tool cannot be reached through an alternate path that bypasses the enforcement boundary, meaning `ProtectedExecutor` or `MCPProtectedClient`. The library cannot enforce this because the application holds the tool credentials (LIM-050). From 0.12.0rc13 it can be checked after the fact: the `monitor_mediated` invariant reports any effect that no recorded `ALLOW` in the session ledger accounts for. Behind the gateway (`docs/gateway.md`), which is the only holder of the upstream credentials, it becomes an architectural property, provided the deployment keeps the agent away from those credentials, the upstreams and the operator files (LIM-060);
 - adapters correctly label external sources and preserve labels across transformations, including re-labelling a model-produced value as trusted only when it exactly equals a contract binding (LIM-053);
 - trusted upstream components are not already compromised, which includes the MCP servers VAIS dispatches to (LIM-049);
-- an effect adapter accurately represents whether a consequential action occurred. On the MCP path the effect is the request VAIS dispatched, not state read back from the system of record, so this assumption is what lets the verifier treat a returned call as the effect it asked for (LIM-046);
-- one `ApprovalStore` instance serves each approval file. Consume-once holds within an instance and not across processes sharing a file (LIM-045).
+- an effect adapter accurately represents whether a consequential action occurred. On the MCP path the effect is the request VAIS dispatched, not state read back from the system of record, so this assumption is what lets the verifier treat a returned call as the effect it asked for (LIM-046). From 0.12.0rc13 an effect carries a confidence: a profile can require the reply to repeat the effect (acknowledged) and a read-back from the system of record to agree (confirmed), and a reply or read-back that disagrees marks it contradicted. Acknowledgement is still the server's own claim, and a read-back confirms only if the system it reads is independent of the server (LIM-065);
+- processes sharing one `ApprovalStore` file run on one machine with a local disk. From 0.12.0rc13 consume-once holds across them, under an operating-system lock; it does not hold across machines or on network filesystems (LIM-057). Before rc13 it held only within one store instance (LIM-045);
+- the host clock is correct, for contracts and grants that carry a time bound. They are checked against it when the monitor decides and not again when the effect happens (LIM-058);
+- a sub-agent's contract is derived with `TaskContract.delegate`. The monitor does not check a delegate's lineage, so a contract built directly is taken at face value (LIM-059).
 
 ## Known gaps
 
 Recorded in the research ledger rather than here, so they carry evidence and stay current:
 
-- authority has no freshness: no contract validity window, revision or revocation, and approvals never expire (LIM-047);
-- authority is judged per argument, and a proposed action carries no provenance of its own, so an argument without a trust requirement can come from hostile content while the authority-bearing ones stay trusted (LIM-048);
+- authority is fresh only when the caller asks for it. From 0.12.0rc13 a contract can carry a validity window, a grant a TTL, and a `RevocationList` withdraws a session or a capability; without them, authority stays valid for as long as it is used (LIM-047). Revocations live in memory in one process (LIM-056), and none of these is evaluated in VERIFY (LIM-058);
+- authority is judged per argument, so an argument without a trust requirement can come from hostile content while the authority-bearing ones stay trusted (LIM-048). From 0.12.0rc13 an action can carry its origin, the join of what was visible when it was planned, and policy v6 can put a human in front of a tool whose action has an untrusted origin. Measured on RC7, that origin was untrusted for every model action, attacked or clean, so the rule is a per-tool human gate and not a detector (FIND-057, LIM-064);
 - without an `ApprovalStore` or a `SessionLedger`, a contract-held approval is reusable for the life of the contract; VERIFY reports the reuse and ENFORCE does not prevent it (LIM-044);
 - without a `SessionLedger`, a bound over several actions is checked in VERIFY and not enforced in flight (LIM-035). With one, `max_calls` is enforced in flight, but the ledger lives in one process and a restart starts a fresh one (LIM-055).
 

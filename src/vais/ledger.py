@@ -31,8 +31,11 @@ class SessionLedger:
 
     The same ledger can be handed to the invariant engine, so VERIFY reads the record
     ENFORCE wrote rather than a separate account of it. A ledger belongs to one
-    contract identity, and the monitor denies any action evaluated against a
-    contract with a different one.
+    session, identified by principal, session and tenant, and the monitor denies any
+    action evaluated against a contract from a different session. The capability id is
+    deliberately left out: a delegate made with ``TaskContract.delegate`` shares its
+    parent's session, so its calls count against the same limits and it cannot reset
+    them by delegating.
 
     It lives in memory, in one process. Like the approval store (LIM-045), it does not
     coordinate between processes (LIM-055).
@@ -68,5 +71,5 @@ class SessionLedger:
             self._entries.append(entry)
 
 
-def _identity(contract: TaskContract) -> tuple[str, str, str, str]:
-    return (contract.principal_id, contract.session_id, contract.tenant_id, contract.capability_id)
+def _identity(contract: TaskContract) -> tuple[str, str, str]:
+    return (contract.principal_id, contract.session_id, contract.tenant_id)

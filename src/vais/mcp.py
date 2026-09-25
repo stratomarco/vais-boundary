@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Mapping, Protocol
 import unicodedata
 
 import yaml
@@ -20,12 +20,14 @@ from .models import (
     Value,
     FrozenDict,
     action_fingerprint,
+    deep_freeze,
+    security_equal,
 )
 from .approvals import ApprovalStore
 from .audit import AuditTrail, action_audit_details
 from .ledger import SessionLedger
 from .monitor import ReferenceMonitor
-from .sandbox import Effect
+from .sandbox import Effect, EffectConfidence
 
 
 class MCPToolSession(Protocol):
@@ -53,6 +55,28 @@ class MCPResultPolicy:
 
 
 @dataclass(frozen=True)
+class MCPReadBackSpec:
+    """Where to read an effect back from (P1b-7): a tool on a server, what to pass, what to compare."""
+
+    server_id: str
+    tool_name: str
+    arguments: dict[str, str] = field(default_factory=dict)
+    expect: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for label, value in {"server_id": self.server_id, "tool_name": self.tool_name}.items():
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"confirm.{label} must be a non-empty string")
+        if not self.expect:
+            raise ValueError("confirm.expect must name at least one field")
+        for name, source in self.arguments.items():
+            if not isinstance(source, str) or not source.startswith(("effect.", "reply.")):
+                raise ValueError(f"confirm.arguments.{name} must be effect.<field> or reply.<field>")
+        object.__setattr__(self, "arguments", FrozenDict(dict(self.arguments)))
+        object.__setattr__(self, "expect", FrozenDict(dict(self.expect)))
+
+
+@dataclass(frozen=True)
 class MCPEffectMapping:
     """Map an executed MCP tool to an observable VAIS effect.
 
@@ -62,6 +86,11 @@ class MCPEffectMapping:
 
     kind: str = "mcp_tool_called"
     argument_fields: dict[str, str] = field(default_factory=dict)
+    # effect field -> top-level field of the server's structured reply that must repeat it
+    # for the effect to count as acknowledged (P1b-7). A reply that reports a different
+    # value contradicts the effect.
+    acknowledge: dict[str, str] = field(default_factory=dict)
+    confirm: MCPReadBackSpec | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.kind, str) or not self.kind.strip():
@@ -76,8 +105,17 @@ class MCPEffectMapping:
             if normalized_field in fields:
                 raise ValueError("Unicode normalization produced a duplicate effect field")
             fields[normalized_field] = unicodedata.normalize("NFC", argument_name)
+        acknowledge: dict[str, str] = {}
+        for effect_field, reply_field in self.acknowledge.items():
+            if not isinstance(effect_field, str) or not effect_field.strip() or not isinstance(reply_field, str) or not reply_field.strip():
+                raise ValueError("acknowledge maps non-empty effect field names to non-empty reply field names")
+            normalized = unicodedata.normalize("NFC", effect_field)
+            if fields and normalized not in fields:
+                raise ValueError(f"acknowledge names {normalized!r}, which is not an effect field")
+            acknowledge[normalized] = unicodedata.normalize("NFC", reply_field)
         object.__setattr__(self, "kind", unicodedata.normalize("NFC", self.kind))
         object.__setattr__(self, "argument_fields", FrozenDict(fields))
+        object.__setattr__(self, "acknowledge", FrozenDict(acknowledge))
 
 
 @dataclass(frozen=True)
@@ -147,6 +185,114 @@ class MCPProfile:
             if item.canonical_tool in contract.allowed_tools
             and (server_id is None or item.server_id == server_id)
         )
+
+
+@dataclass(frozen=True)
+class Reconciliation:
+    """What a read-back from the system of record established about one effect (P1b-7).
+
+    ``confidence`` is ``confirmed`` when every checked field agrees, ``contradicted`` when
+    any disagrees, and ``requested`` when the read-back could not tell.
+    """
+
+    confidence: EffectConfidence
+    contradicted_fields: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.confidence is EffectConfidence.ACKNOWLEDGED:
+            raise ValueError("a read-back confirms, contradicts or cannot tell; it does not acknowledge")
+
+
+class EffectReconciler(Protocol):
+    """Reads an effect back from its system of record, by a path the executing server does not control."""
+
+    async def reconcile(self, effect: Effect, reply: Any) -> Reconciliation: ...
+
+
+def acknowledge_effect(effect: Effect, acknowledge: Mapping[str, str], reply: Any) -> Effect:
+    """Raise an effect to ``acknowledged``, or mark it ``contradicted``, from the server's reply.
+
+    Each effect field in ``acknowledge`` must appear in the structured reply under its
+    mapped name with the value requested. A reply that names a field with another value
+    contradicts the effect. A reply that omits one leaves the effect ``requested``. The reply
+    is the server's own claim: a server that lies consistently is not caught here (LIM-065).
+    """
+    if not acknowledge or not isinstance(reply, dict):
+        return effect
+    contradicted, missing = [], False
+    for effect_field, reply_field in acknowledge.items():
+        if reply_field not in reply:
+            missing = True
+        elif not security_equal(deep_freeze(reply[reply_field]), effect.attributes.get(effect_field)):
+            contradicted.append(effect_field)
+    if contradicted:
+        return replace(effect, confidence=EffectConfidence.CONTRADICTED, contradicted_fields=tuple(contradicted))
+    if missing:
+        return effect
+    return replace(effect, confidence=EffectConfidence.ACKNOWLEDGED)
+
+
+def apply_reconciliation(effect: Effect, outcome: Reconciliation) -> Effect:
+    """Combine a read-back with what the effect already carries. A contradiction always wins."""
+    if outcome.confidence is EffectConfidence.CONTRADICTED or effect.confidence is EffectConfidence.CONTRADICTED:
+        fields = tuple(set(effect.contradicted_fields) | set(outcome.contradicted_fields))
+        return replace(effect, confidence=EffectConfidence.CONTRADICTED, contradicted_fields=fields)
+    if outcome.confidence is EffectConfidence.CONFIRMED:
+        return replace(effect, confidence=EffectConfidence.CONFIRMED)
+    return effect
+
+
+class MCPReadBackReconciler:
+    """Confirm an effect by calling a read tool, preferably on the system of record's own server.
+
+    ``arguments`` maps each read-back argument to ``effect.<field>`` or ``reply.<field>``; an id
+    the executing server returned may be used to find the record, since what is compared is
+    the record, not the reply. ``expect`` maps effect fields to fields of the read-back result.
+    Reading back through the same server that executed the effect only moves the trust to
+    that server (LIM-065).
+    """
+
+    def __init__(self, session: MCPToolSession, tool_name: str, *,
+                 arguments: Mapping[str, str], expect: Mapping[str, str]) -> None:
+        if not expect:
+            raise ValueError("a read-back needs at least one expected field")
+        for name, source in arguments.items():
+            if not isinstance(source, str) or not source.startswith(("effect.", "reply.")):
+                raise ValueError(f"read-back argument {name!r} must come from effect.<field> or reply.<field>")
+        self.session = session
+        self.tool_name = tool_name
+        self.arguments = dict(arguments)
+        self.expect = dict(expect)
+
+    async def reconcile(self, effect: Effect, reply: Any) -> Reconciliation:
+        unknown = Reconciliation(EffectConfidence.REQUESTED)
+        call: dict[str, Any] = {}
+        for name, source in self.arguments.items():
+            scope, _, key = source.partition(".")
+            holder = effect.attributes if scope == "effect" else (reply if isinstance(reply, dict) else {})
+            if key not in holder:
+                return unknown
+            call[name] = _thaw(holder[key])
+        record = extract_mcp_result_data(await self.session.call_tool(self.tool_name, call))
+        if not isinstance(record, dict):
+            return unknown
+        contradicted, missing = [], False
+        for effect_field, record_field in self.expect.items():
+            if record_field not in record:
+                missing = True
+            elif not security_equal(deep_freeze(record[record_field]), effect.attributes.get(effect_field)):
+                contradicted.append(effect_field)
+        if contradicted:
+            return Reconciliation(EffectConfidence.CONTRADICTED, tuple(contradicted))
+        return unknown if missing else Reconciliation(EffectConfidence.CONFIRMED)
+
+
+def _thaw(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw(item) for item in value]
+    return value
 
 
 class MCPCallState(str, Enum):
@@ -241,6 +387,7 @@ class MCPProtectedClient:
         approval_store: ApprovalStore | None = None,
         audit: AuditTrail | None = None,
         ledger: SessionLedger | None = None,
+        reconcilers: Mapping[str, EffectReconciler] | None = None,
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
@@ -251,6 +398,8 @@ class MCPProtectedClient:
         self.approval_store = approval_store
         self.audit = audit
         self.ledger = ledger
+        # effect kind -> reconciler that reads it back from the system of record (P1b-7)
+        self.reconcilers = dict(reconcilers or {})
 
     def _audit_decision(
         self, action: PlannedAction, contract: TaskContract, decision: Decision
@@ -325,7 +474,17 @@ class MCPProtectedClient:
                 retry_safe=False,
             )
 
-        effect = _effect_from_binding(action, binding)
+        result_data = extract_mcp_result_data(raw_result)
+        effect = acknowledge_effect(_effect_from_binding(action, binding), binding.effect.acknowledge, result_data)
+        reconciler = self.reconcilers.get(effect.kind)
+        if reconciler is not None:
+            try:
+                effect = apply_reconciliation(effect, await reconciler.reconcile(effect, result_data))
+            except Exception as exc:
+                # The effect happened; only what is known about it is unchanged.
+                if self.audit:
+                    self.audit.record("reconciliation_failed", tool=action.tool,
+                                      details={"error": type(exc).__name__, "action_fingerprint": request_id})
         if self.audit:
             self.audit.record(
                 "effect_observed",
@@ -334,9 +493,10 @@ class MCPProtectedClient:
                     "effect": effect.kind,
                     "fields": sorted(effect.attributes),
                     "action_fingerprint": effect.action_fingerprint,
+                    "confidence": effect.confidence.value,
+                    "contradicted_fields": list(effect.contradicted_fields),
                 },
             )
-        result_data = extract_mcp_result_data(raw_result)
         result = label_mcp_input(
             result_data,
             server_id=binding.server_id,
@@ -485,6 +645,7 @@ def _effect_from_binding(action: PlannedAction, binding: MCPToolBinding) -> Effe
         provenance,
         tool=action.tool,
         action_fingerprint=fingerprint,
+        origin=action.origin,
     )
 
 
@@ -577,7 +738,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             )
 
             effect_raw = _mapping(tool_raw.get("effect", {}), f"{tool_path}.effect")
-            _known_keys(effect_raw, {"kind", "argument_fields"}, f"{tool_path}.effect")
+            _known_keys(effect_raw, {"kind", "argument_fields", "acknowledge", "confirm"}, f"{tool_path}.effect")
             effect_kind = _string(
                 effect_raw.get("kind", "mcp_tool_called"), f"{tool_path}.effect.kind"
             )
@@ -600,13 +761,37 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                     f"{tool_path}.effect.argument_fields.{effect_field}",
                 )
 
+            acknowledge = {
+                _string(k, f"{tool_path}.effect.acknowledge.<effect_field>"):
+                _string(v, f"{tool_path}.effect.acknowledge.{k}")
+                for k, v in _mapping(effect_raw.get("acknowledge", {}), f"{tool_path}.effect.acknowledge").items()
+            }
+            confirm = None
+            if "confirm" in effect_raw:
+                confirm_path = f"{tool_path}.effect.confirm"
+                confirm_raw = _mapping(effect_raw["confirm"], confirm_path)
+                _known_keys(confirm_raw, {"server", "tool", "arguments", "expect"}, confirm_path)
+
+                def names(key: str) -> dict[str, str]:
+                    return {_string(k, f"{confirm_path}.{key}.<name>"): _string(v, f"{confirm_path}.{key}.{k}")
+                            for k, v in _mapping(confirm_raw.get(key, {}), f"{confirm_path}.{key}").items()}
+
+                try:
+                    confirm = MCPReadBackSpec(_string(confirm_raw.get("server"), f"{confirm_path}.server"),
+                                              _string(confirm_raw.get("tool"), f"{confirm_path}.tool"),
+                                              names("arguments"), names("expect"))
+                except ValueError as exc:
+                    if isinstance(exc, PolicyValidationError):
+                        raise
+                    _fail(confirm_path, str(exc))
+
             try:
                 binding = MCPToolBinding(
                     server_id=server_id,
                     tool_name=tool_name,
                     canonical_tool=canonical,
                     result_policy=MCPResultPolicy(result_conf),
-                    effect=MCPEffectMapping(effect_kind, fields),
+                    effect=MCPEffectMapping(effect_kind, fields, acknowledge, confirm),
                 )
             except ValueError as exc:
                 _fail(tool_path, str(exc))

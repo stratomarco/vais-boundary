@@ -109,12 +109,23 @@ class TrustedValue(Value):
 
 @dataclass(frozen=True)
 class PlannedAction:
+    """One proposed tool call.
+
+    ``origin`` is the provenance of the action as a whole, the join of what was visible
+    when it was planned (``taint.action_origin``). It is optional, is not part of the
+    action fingerprint, and matters only to a policy that sets ``untrusted_origin``, which
+    treats a missing origin as untrusted.
+    """
+
     tool: str
     arguments: Mapping[str, Value]
+    origin: Provenance | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.tool, str) or not self.tool.strip():
             raise ValueError("tool must be a non-empty string")
+        if self.origin is not None and not isinstance(self.origin, Provenance):
+            raise ValueError("action origin must be Provenance or None")
         values: dict[str, Value] = {}
         for key, value in self.arguments.items():
             if not isinstance(key, str) or not key.strip():
@@ -220,6 +231,11 @@ class TaskContract:
     ``{"email:send", "documents:read"}``. Approval binds to an exact action
     fingerprint, not a tool name. None of these can be expanded by model output
     or untrusted data.
+
+    ``not_before`` and ``not_after`` bound when the contract's authority holds, as
+    seconds since the epoch; the reference monitor denies outside the window. A
+    contract without them is valid for as long as it is used (LIM-047). ``delegate``
+    derives a narrower contract for a sub-agent and cannot widen anything.
     """
 
     allowed_tools: frozenset[str] | set[str]
@@ -230,6 +246,8 @@ class TaskContract:
     session_id: str = "legacy"
     tenant_id: str = "legacy"
     capability_id: str = "legacy"
+    not_before: float | None = None
+    not_after: float | None = None
 
     def __post_init__(self) -> None:
         raw_tools = tuple(self.allowed_tools)
@@ -254,6 +272,15 @@ class TaskContract:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{label} must be a non-empty string")
             object.__setattr__(self, label, unicodedata.normalize("NFC", value))
+
+        for label in ("not_before", "not_after"):
+            value = getattr(self, label)
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+            ):
+                raise ValueError(f"{label} must be a finite number of seconds or None")
+        if self.not_before is not None and self.not_after is not None and self.not_before >= self.not_after:
+            raise ValueError("not_before must be earlier than not_after")
 
         for key, value in self.bound_arguments.items():
             if (
@@ -280,6 +307,56 @@ class TaskContract:
             self,
             approved_action_fingerprints=self.approved_action_fingerprints | {fingerprint},
         )
+
+    def delegate(
+        self,
+        *,
+        capability_id: str,
+        allowed_tools: frozenset[str] | set[str] | None = None,
+        granted_scopes: frozenset[str] | set[str] | None = None,
+        approved_action_fingerprints: frozenset[str] | set[str] | None = None,
+        not_after: float | None = None,
+    ) -> "TaskContract":
+        """Derive the contract for a sub-agent, which may only narrow this one.
+
+        Tools, scopes and approvals must each be a subset of this contract's, bindings
+        are inherited unchanged for the tools kept, and the validity window can only
+        shrink. Anything wider raises ``ValueError`` rather than being trimmed, so a
+        delegation that asks for more than the parent holds is a visible error.
+
+        The delegate keeps this contract's principal, session and tenant and takes a new
+        capability id. Keeping the session is what makes delegation attenuating in
+        practice: a ``SessionLedger`` is keyed by session, so a delegate's calls count
+        against the parent's limits and its use of a contract-held approval spends the
+        parent's, and revoking the session revokes every delegate in it.
+        """
+        child = TaskContract(
+            allowed_tools=self.allowed_tools if allowed_tools is None else allowed_tools,
+            bound_arguments={},
+            approved_action_fingerprints=(
+                self.approved_action_fingerprints if approved_action_fingerprints is None
+                else approved_action_fingerprints
+            ),
+            granted_scopes=self.granted_scopes if granted_scopes is None else granted_scopes,
+            principal_id=self.principal_id,
+            session_id=self.session_id,
+            tenant_id=self.tenant_id,
+            capability_id=capability_id,
+            not_before=self.not_before,
+            not_after=self.not_after if not_after is None else not_after,
+        )
+        if child.capability_id == self.capability_id:
+            raise ValueError("a delegate needs its own capability_id")
+        if not child.allowed_tools <= self.allowed_tools:
+            raise ValueError("delegation cannot add tools")
+        if not child.granted_scopes <= self.granted_scopes:
+            raise ValueError("delegation cannot add scopes")
+        if not child.approved_action_fingerprints <= self.approved_action_fingerprints:
+            raise ValueError("delegation cannot add approvals")
+        if self.not_after is not None and child.not_after > self.not_after:
+            raise ValueError("delegation cannot extend the validity window")
+        bindings = {key: value for key, value in self.bound_arguments.items() if key[0] in child.allowed_tools}
+        return replace(child, bound_arguments=bindings)
 
 
 class DecisionType(str, Enum):

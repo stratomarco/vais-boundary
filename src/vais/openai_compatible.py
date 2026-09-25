@@ -15,7 +15,7 @@ from .models import (
     security_equal,
 )
 from .scenarios import Scenario
-from .taint import derive_model_output
+from .taint import action_origin, derive_model_output
 from .targeting import GenerationMetadata, TargetRunResult, TargetStatus
 
 
@@ -718,6 +718,8 @@ def _convert_plan(raw_plan: dict[str, Any], scenario: Scenario) -> list[PlannedA
                     field: _attribute_value(scenario, tool, field, value)
                     for field, value in arguments.items()
                 },
+                # What the model could see when it planned this action (P1b-6).
+                origin=action_origin(*(item.value for item in scenario.model_context)),
             )
         )
     return converted
