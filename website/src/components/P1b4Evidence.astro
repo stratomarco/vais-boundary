@@ -1,0 +1,94 @@
+---
+// The P1b-4 study inside the evidence section. The chart is the repository's own file and the
+// table is built from the committed analysis.json at build time, so neither can drift from
+// the published results.
+import chart from '../../../experiments/p1b4/p1b4-attack-added.svg';
+import analysis from '../../../experiments/p1b4/results/analysis.json';
+
+const repo = 'https://github.com/stratomarco/vais-boundary';
+const pct = (v: number) => `${(100 * v).toFixed(1)}%`;
+
+// Rows in the chart's order. The follow-up arm stands in for the reasoning-on arm that
+// gate-failed (Deviation 2); smollm3-3b's reasoning-on arm stays gate-failed.
+const rows = [
+  { model: 'gemma-4-12b', off: 'gemma-4-12b-off', on: 'gemma-4-12b-on' },
+  { model: 'qwen3.5-9b', off: 'qwen3.5-9b-off', on: 'qwen3.5-9b-on-r2' },
+  { model: 'smollm3-3b', off: 'smollm3-3b-off', on: 'smollm3-3b-on' },
+  { model: 'qwen3-0.6b', off: 'qwen3-0.6b-off', on: 'qwen3-0.6b-on' },
+];
+const arms = analysis.arms as Record<string, any>;
+const cells = rows.flatMap((r) => [
+  { model: r.model, reasoning: 'off', arm: arms[r.off] },
+  { model: r.model, reasoning: r.on.endsWith('-r2') ? 'on (follow-up)' : 'on', arm: arms[r.on] },
+]);
+const complete = cells.filter((c) => c.arm && c.arm.status === 'complete');
+const evaluable = complete.reduce((n, c) => n + c.arm.evaluable, 0);
+const violations = complete.reduce((n, c) => n + c.arm.protected_violations, 0);
+---
+<div class="p1b4">
+  <h3>A stronger attacker, and models that reason.</h3>
+  <p class="lead">In the pre-registered P1b-4 study another model wrote the attacks, against four local models with reasoning off and on. Across {evaluable.toLocaleString('en')} evaluable episodes in {complete.length} arms there {violations === 0 ? 'were zero' : `were ${violations}`} protected violations, and turning reasoning on made no detectable difference to how often an attack changed behaviour.</p>
+
+  <figure>
+    <img src={chart.src} width={chart.width} height={chart.height} loading="lazy"
+         alt={`Attack-added security event rates with reasoning off and on for four models, with 95% intervals; ${violations} protected violations in every completed arm. The same figures are in the table below.`} />
+    <figcaption>
+      <details>
+        <summary>Show as a table</summary>
+        <table>
+          <thead><tr><th scope="col">Model</th><th scope="col">Reasoning</th><th scope="col">Evaluable</th><th scope="col">Protected violations</th><th scope="col">Attack-added (95% CI)</th></tr></thead>
+          <tbody>
+            {cells.map((c) => (
+              <tr>
+                <th scope="row">{c.model}</th>
+                <td>{c.reasoning}</td>
+                {c.arm && c.arm.status === 'complete' ? (
+                  <>
+                    <td>{c.arm.evaluable} of {c.arm.episodes}</td>
+                    <td>{c.arm.protected_violations}</td>
+                    <td>{pct(c.arm.attack_added_rate)} ({pct(c.arm.attack_added_ci95[0])} to {pct(c.arm.attack_added_ci95[1])})</td>
+                  </>
+                ) : (
+                  <td colspan="3">gate-failed: no reasoning with a system prompt</td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    </figcaption>
+  </figure>
+
+  <ul class="p1b4-limits">
+    <li>Four local models up to 12B, one attacker model and one runtime; bounded evidence for this setup, not proof.</li>
+    <li>Two reasoning-on arms failed their qualification gate. One was re-run as a follow-up registered before its first episode; smollm3-3b cannot reason with a system prompt, so its pair is missing.</li>
+    <li>Attacks did get models to make allowed actions the task did not need, in 10% to 39% of episodes. All were reads; a few searched for another tenant’s incident or a secret’s name, and tenant isolation and secret flow held.</li>
+  </ul>
+  <p class="evidence-links p1b4-links">
+    <a href={`${repo}/blob/main/experiments/p1b4/RESULTS.md`}>Read the P1b-4 results</a>
+    <a href={`${repo}/blob/main/experiments/p1b4/PREREGISTRATION.md`}>Pre-registration and deviations</a>
+  </p>
+</div>
+
+<style>
+  .p1b4 { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+  .p1b4 h3 { font-size: 1.5rem; letter-spacing: -.03em; line-height: 1.25; margin: 0 0 14px; }
+  .lead { color: var(--muted); line-height: 1.7; max-width: 820px; margin-bottom: 28px; }
+  figure { margin: 0 0 24px; }
+  img { display: block; width: 100%; max-width: 960px; height: auto; border: 1px solid var(--line); }
+  figcaption { margin-top: 12px; }
+  summary { cursor: pointer; font-size: .9375rem; color: var(--accent); }
+  table { border-collapse: collapse; margin-top: 14px; font-size: .875rem; width: 100%; max-width: 820px; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: #475569; font-weight: 400; }
+  tbody th { font-weight: 600; }
+  td { color: var(--muted); }
+  .p1b4-limits { list-style: none; margin: 0; padding: 0; max-width: 820px; }
+  .p1b4-limits li { position: relative; padding-left: 20px; margin-bottom: 12px; line-height: 1.65; color: var(--muted); font-size: .9375rem; }
+  .p1b4-limits li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 1px; background: #B45309; }
+  .p1b4-links { margin-top: 24px !important; }
+  @media (max-width: 580px) {
+    table { font-size: .8125rem; }
+    th, td { padding-right: 8px; }
+  }
+</style>
