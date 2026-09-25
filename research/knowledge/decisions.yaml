@@ -341,3 +341,9 @@ decisions:
     decision: Establish acknowledgement from reply fields a profile names and confirmation from a read-back reconciler, declarable in the profile and wired by the gateway to its own upstream sessions; add the effect_confidence invariant and verdict_basis, which reports the weakest confidence each verdict rests on.
     rationale: The reply is free and says what the server claims; a read-back from the system of record is what can confirm. Declaring both in the profile keeps them configuration rather than application code, and the gateway already holds the sessions needed. The read-back is the gateway's own read with its credentials, not an agent action, so the monitor does not decide it. A named server or tool that is missing fails startup rather than silently leaving effects unconfirmed. verdict_basis lets a report say that a verdict of no violation rests on requested effects, which answers the reviewer's request that the verifier state what each verdict rests on.
     evidence: [tests/test_effect_confidence.py, tests/test_gateway.py, src/vais/invariants.py, src/vais/gateway.py]
+
+  - id: DEC-059
+    date: 2026-09-24
+    decision: Request target reasoning explicitly with an opt-in adapter flag (reasoning_effort medium in LM Studio) rather than relying on the runtime default, and add it to P1b-4 only as a registered replacement arm for the arm that gate-failed.
+    rationale: A condition labelled reasoning on must actually be on, and the default varied by model (FIND-059). Keeping the flag opt-in leaves every arm that already ran unchanged, and running it as a replacement arm registered before its first episode keeps the pre-registration honest; the observed output, not the request, remains the conformance authority.
+    evidence: [experiments/p1b4/PREREGISTRATION.md, tests/test_reference_agent_lmstudio.py, experiments/p1b4/study.json]

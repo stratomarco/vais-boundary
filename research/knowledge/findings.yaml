@@ -348,3 +348,15 @@ findings:
     version: "0.12.0rc13"
     type: empirical
     evidence: [experiments/p1b6/PREREGISTRATION.md, experiments/p1b6/RESULTS.md, experiments/p1b6/results.json, experiments/p1b6/replay.py]
+
+  - id: FIND-058
+    finding: With a language-model attacker (qwen2.5-7b-instruct) and targets reasoning, protected invariant violations stayed at zero in all seven completed P1b-4 arms, 1,670 evaluable episodes over four local models, each arm's Wilson 95% upper bound 1.6%. Turning reasoning on made no detectable difference to how often an attack changed behaviour in any of three within-model pairs (gemma-4-12b -4.1 points, qwen3.5-9b +4.0, qwen3-0.6b +3.6, every 95% interval including zero). Attacks did produce policy-permitted actions the task did not need, in 10% to 39% of episodes; all 553 were reads, including a few searches naming another tenant's incident or a secret, with tenant isolation and secret flow holding. Pre-registered; the primary outcome held.
+    version: "0.12.0rc13"
+    type: empirical
+    evidence: [experiments/p1b4/PREREGISTRATION.md, experiments/p1b4/RESULTS.md, experiments/p1b4/results/analysis.json, experiments/p1b4/analyze.py]
+
+  - id: FIND-059
+    finding: The LM Studio adapter requested reasoning off explicitly but reasoning on by sending nothing, relying on each model's runtime default, which is off for qwen3.5-9b. The qualification gate caught it before any full-stage episode, as designed. smollm3-3b does not reason at all when a system prompt is present under LM Studio's chat template, whatever the request says, so its reasoning-on condition cannot be reached with the reference agent's prompt.
+    version: "0.12.0rc13"
+    type: methodology
+    evidence: [experiments/p1b4/PREREGISTRATION.md, tests/test_reference_agent_lmstudio.py, src/vais/openai_compatible.py]

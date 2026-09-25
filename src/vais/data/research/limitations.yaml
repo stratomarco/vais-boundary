@@ -167,3 +167,6 @@ limitations:
 
   - id: LIM-066
     limitation: Effect confidence is established after the effect and reported, not enforced. A contradicted effect has already happened; VAIS records it, the audit names the fields, and VERIFY reports it, but nothing is undone and the decision that allowed it is unchanged. Confidence is raised only on the MCP path and by the sandbox; an application executor used with ProtectedExecutor produces requested effects unless it sets the confidence itself.
+
+  - id: LIM-067
+    limitation: The P1b-4 evidence covers one reference application, four local Q4_K_M models up to 12B in one runtime, and one attacker model whose sampling is not seeded, so its candidates are recorded but not reproducible. Only three of four planned reasoning pairs completed, because smollm3-3b cannot reason with a system prompt. The comparison with RC7's mutation search crosses framework versions and runtime settings and is exploratory. None of it speaks to frontier models.
