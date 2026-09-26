@@ -149,4 +149,13 @@ attacker's.
 
 ## Deviations
 
-None yet.
+None in procedure. One erratum in the text above, found in review on 2026-09-27 while the
+campaign was running and changing nothing about it:
+
+- **Erratum.** The Design section says the `reasons` arm's configuration is "byte-identical to
+  P1b-4's". It is not: its configuration hash differs, because the framework version is
+  0.12.0rc13 rather than P1b-4's 0.12.0rc12 and the attacker is loaded under the identifier
+  `rc13-attacker` rather than `p1b4-attacker` (the same model, qwen2.5-7b-instruct). Every other
+  attacker metadata field is identical, and none carries `attacker_feedback`. What the sentence
+  was meant to establish, that the `reasons` arm sends the attacker exactly what P1b-4 sent, is
+  shown by `tests/test_attacker_feedback.py`, not by the hash.
