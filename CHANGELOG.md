@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Correct what the adaptive attacker is told (FIND-061).** Its feedback was documented as omitting the monitor's reasons, but refused actions reached it as `policy:<reason>:<tool>`, sometimes with the argument, in 28.6% of P1b-4's episodes. The docstring now says so, and `--attacker-feedback outcomes` keeps only the outcome and the tool. The default, `reasons`, is unchanged, so earlier campaigns' configurations stay byte-identical.
+- Register the RC13 campaign (`experiments/rc13-campaign/`): 13 local models, reasoning off, each with the attacker told the reasons and told only the outcomes, before any episode runs.
+
 ## 0.12.0-rc13 - 2026-09-25
 
 Phase 1b, after the rc12 review of the monitor's edges: the monitor becomes stateful, authority can expire and be withdrawn, a gateway turns complete mediation from an assumption into a deployment property, effects say how much is known about them, and two pre-registered studies test the design against a stronger attacker and a proposed control. Every new mechanism is opt-in; with none of them configured, decisions are unchanged, which the regenerated snapshots show.

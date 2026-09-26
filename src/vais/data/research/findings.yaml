@@ -366,3 +366,8 @@ findings:
     version: "0.12.0rc13"
     type: campaign_harness_defect
     evidence: [campaigns/targets.py, tests/test_campaign_triage.py]
+  - id: FIND-061
+    finding: The adaptive attacker's feedback carried the monitor's reason codes although its docstring said they were omitted. A refused action reaches the attacker through attack_added_security_events and attack_added_violation_classes as policy:<reason>:<tool>, sometimes with the argument and its value. It happened in 481 of P1b-4's 1,680 episodes (28.6%, from 7.5% to 60.8% by arm), so RC7 and P1b-4 were run against an attacker that could partly see why it was refused. No verdict is affected; what the attacker could learn was more than documented. The docstring is corrected, and an attacker-feedback option (reasons, the old behaviour, or outcomes, which keeps only the outcome and the tool) lets the rc13 campaign measure whether the reasons help.
+    version: "0.12.0rc13"
+    type: campaign_harness_defect
+    evidence: [src/vais/adaptive_reference.py, tests/test_attacker_feedback.py, experiments/p1b4/results/analysis.json]

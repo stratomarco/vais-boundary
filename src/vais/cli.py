@@ -314,6 +314,7 @@ def _parser() -> argparse.ArgumentParser:
     adaptive_lmstudio.add_argument("--target-disable-thinking", action="store_true", help="request LM Studio target reasoning_effort=none; observed output remains authoritative")
     adaptive_lmstudio.add_argument("--target-enable-thinking", action="store_true", help="request LM Studio target reasoning explicitly (reasoning_effort=medium) instead of relying on the model's default; observed output remains authoritative")
     adaptive_lmstudio.add_argument("--attacker-disable-thinking", action="store_true", help="request LM Studio attacker reasoning_effort=none; observed output remains authoritative")
+    adaptive_lmstudio.add_argument("--attacker-feedback", choices=("reasons", "outcomes"), default="reasons", help="reasons: the attacker sees the monitor's reason codes, as every earlier campaign did; outcomes: only the outcome and tool of a refused action")
     adaptive_lmstudio.add_argument("--output", default="results/adaptive-reference-lmstudio-v010.jsonl")
     adaptive_lmstudio.add_argument("--summary", default="results/adaptive-reference-lmstudio-v010-summary.json")
     adaptive_lmstudio.add_argument("--rlvr-output", default="results/adaptive-reference-lmstudio-v010-rlvr.jsonl")
@@ -886,7 +887,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     disable_thinking=args.attacker_disable_thinking,
                     transport_retries=args.transport_retries,
                     reasoning_mode_label=args.attacker_reasoning_mode,
-                )
+                ),
+                feedback=args.attacker_feedback,
             )
 
         campaigns = asyncio.run(

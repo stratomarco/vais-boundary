@@ -1,0 +1,69 @@
+{
+  "schema": "vais-rc13-campaign-study-v1",
+  "title": "RC13 campaign: does telling the attacker why it was refused help it?",
+  "preregistration": "experiments/rc13-campaign/PREREGISTRATION.md",
+  "framework_version": "0.12.0rc13",
+  "runtime": {
+    "context_length": 16384,
+    "gpu": "max",
+    "parallel": 1,
+    "base_url": "http://localhost:1234/v1",
+    "timeout_seconds": 600,
+    "transport_retries": 1
+  },
+  "attacker": {
+    "model_key": "qwen2.5-7b-instruct",
+    "identifier": "rc13-attacker",
+    "context_length": 8192,
+    "temperature": 0.7,
+    "max_tokens": 768,
+    "reasoning_mode": "off"
+  },
+  "target": {
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "truncation_retry_tokens": 8192
+  },
+  "qualification": {
+    "scenarios": [
+      "attack-01"
+    ],
+    "episodes": 2
+  },
+  "full": {
+    "scenarios": "all_20",
+    "episodes": 12
+  },
+  "bootstrap": {
+    "replicates": 10000,
+    "seed": 13
+  },
+  "arms": [
+    {"id": "gemma-3-1b-it-reasons", "model": "gemma-3-1b-it", "model_key": "gemma-3-1b-it", "identifier": "google/gemma-3-1b-it", "reasoning": "off", "feedback": "reasons"},
+    {"id": "gemma-3-1b-it-outcomes", "model": "gemma-3-1b-it", "model_key": "gemma-3-1b-it", "identifier": "google/gemma-3-1b-it", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "gemma-4-12b-outcomes", "model": "gemma-4-12b", "model_key": "google/gemma-4-12b", "identifier": "google/gemma-4-12b", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "gemma-4-12b-reasons", "model": "gemma-4-12b", "model_key": "google/gemma-4-12b", "identifier": "google/gemma-4-12b", "reasoning": "off", "feedback": "reasons"},
+    {"id": "granite-4.1-8b-reasons", "model": "granite-4.1-8b", "model_key": "granite-4.1-8b", "identifier": "ibm-granite/granite-4.1-8b", "reasoning": "off", "feedback": "reasons"},
+    {"id": "granite-4.1-8b-outcomes", "model": "granite-4.1-8b", "model_key": "granite-4.1-8b", "identifier": "ibm-granite/granite-4.1-8b", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "lfm2.5-1.2b-instruct-outcomes", "model": "lfm2.5-1.2b-instruct", "model_key": "lfm2.5-1.2b-instruct", "identifier": "liquidai/lfm2.5-1.2b-instruct", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "lfm2.5-1.2b-instruct-reasons", "model": "lfm2.5-1.2b-instruct", "model_key": "lfm2.5-1.2b-instruct", "identifier": "liquidai/lfm2.5-1.2b-instruct", "reasoning": "off", "feedback": "reasons"},
+    {"id": "llama-3.1-8b-instruct-reasons", "model": "llama-3.1-8b-instruct", "model_key": "meta-llama-3.1-8b-instruct", "identifier": "meta-llama/llama-3.1-8b-instruct", "reasoning": "off", "feedback": "reasons"},
+    {"id": "llama-3.1-8b-instruct-outcomes", "model": "llama-3.1-8b-instruct", "model_key": "meta-llama-3.1-8b-instruct", "identifier": "meta-llama/llama-3.1-8b-instruct", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "llama-3.2-1b-instruct-outcomes", "model": "llama-3.2-1b-instruct", "model_key": "llama-3.2-1b-instruct", "identifier": "meta-llama/llama-3.2-1b-instruct", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "llama-3.2-1b-instruct-reasons", "model": "llama-3.2-1b-instruct", "model_key": "llama-3.2-1b-instruct", "identifier": "meta-llama/llama-3.2-1b-instruct", "reasoning": "off", "feedback": "reasons"},
+    {"id": "mistral-7b-instruct-reasons", "model": "mistral-7b-instruct", "model_key": "mistral-7b-instruct-v0.3", "identifier": "mistralai/mistral-7b-instruct-v0.3", "reasoning": "off", "feedback": "reasons"},
+    {"id": "mistral-7b-instruct-outcomes", "model": "mistral-7b-instruct", "model_key": "mistral-7b-instruct-v0.3", "identifier": "mistralai/mistral-7b-instruct-v0.3", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "phi-4-outcomes", "model": "phi-4", "model_key": "phi-4", "identifier": "microsoft/phi-4", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "phi-4-reasons", "model": "phi-4", "model_key": "phi-4", "identifier": "microsoft/phi-4", "reasoning": "off", "feedback": "reasons"},
+    {"id": "phi-4-mini-instruct-reasons", "model": "phi-4-mini-instruct", "model_key": "phi-4-mini-instruct", "identifier": "microsoft/phi-4-mini-instruct", "reasoning": "off", "feedback": "reasons"},
+    {"id": "phi-4-mini-instruct-outcomes", "model": "phi-4-mini-instruct", "model_key": "phi-4-mini-instruct", "identifier": "microsoft/phi-4-mini-instruct", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "qwen3-0.6b-outcomes", "model": "qwen3-0.6b", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "qwen3-0.6b-reasons", "model": "qwen3-0.6b", "model_key": "qwen3-0.6b", "identifier": "qwen/qwen3-0.6b", "reasoning": "off", "feedback": "reasons"},
+    {"id": "qwen3-4b-instruct-reasons", "model": "qwen3-4b-instruct", "model_key": "qwen/qwen3-4b-2507", "identifier": "qwen/qwen3-4b-instruct-2507", "reasoning": "off", "feedback": "reasons"},
+    {"id": "qwen3-4b-instruct-outcomes", "model": "qwen3-4b-instruct", "model_key": "qwen/qwen3-4b-2507", "identifier": "qwen/qwen3-4b-instruct-2507", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "qwen3.5-9b-outcomes", "model": "qwen3.5-9b", "model_key": "qwen/qwen3.5-9b", "identifier": "qwen/qwen3.5-9b", "reasoning": "off", "feedback": "outcomes"},
+    {"id": "qwen3.5-9b-reasons", "model": "qwen3.5-9b", "model_key": "qwen/qwen3.5-9b", "identifier": "qwen/qwen3.5-9b", "reasoning": "off", "feedback": "reasons"},
+    {"id": "smollm3-3b-reasons", "model": "smollm3-3b", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "off", "feedback": "reasons"},
+    {"id": "smollm3-3b-outcomes", "model": "smollm3-3b", "model_key": "smollm3-3b", "identifier": "huggingfacetb/smollm3-3b", "reasoning": "off", "feedback": "outcomes"}
+  ]
+}
