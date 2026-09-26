@@ -194,13 +194,20 @@ class ReferenceMonitor:
         except ValueError:
             return Decision(DecisionType.DENY, ("action_not_fingerprintable",)), False
 
-        if approval_store is not None:
-            if approval_store.consume(action, contract):
-                return Decision(DecisionType.ALLOW), False
-            return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False
+        if approval_store is not None and approval_store.consume(action, contract):
+            return Decision(DecisionType.ALLOW), False
 
-        if fingerprint in contract.approved_action_fingerprints and (
-            ledger is None or not ledger.contract_approval_used(fingerprint)
-        ):
-            return Decision(DecisionType.ALLOW), True
+        # An approval held in the contract. Without a store it counts as before: reusable
+        # for the life of the contract (LIM-044) unless a ledger makes it single-use. With a
+        # store it counts only through a ledger, so adding a store never makes a contract
+        # approval reusable. Before this, a store hid contract approvals entirely, and the
+        # gateway, which always has one, ignored every approval in its contract files
+        # (FIND-062). The store is tried first, so a decision that consumed a grant before
+        # still does, and only a missing grant can now be met by the contract.
+        if fingerprint in contract.approved_action_fingerprints:
+            if ledger is not None:
+                if not ledger.contract_approval_used(fingerprint):
+                    return Decision(DecisionType.ALLOW), True
+            elif approval_store is None:
+                return Decision(DecisionType.ALLOW), True
         return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False

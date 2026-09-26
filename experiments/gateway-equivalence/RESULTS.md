@@ -41,29 +41,52 @@ an allow on the library side, and the replayed upstream refuses it the same way.
 
 ## Results
 
+The replay ran twice: on the gateway as released in 0.12.0rc13, where it found FIND-062, and
+after that fix. Each divergent step is attributed to a known cause or counted as unexplained,
+and every looser step is unexplained by definition.
+
+**As released (0.12.0rc13):**
+
 | Source | Traces | Identical | Steps compared | Stricter decisions | Looser decisions | Stricter labels | Looser labels |
 |---|---|---|---|---|---|---|---|
 | P1b-4, 7 arms | 3,360 | 2,684 (79.9%) | 14,168 | 676 | **0** | 1,928 | **0** |
 | RC7, 15 models | 7,200 | 6,208 (86.2%) | 40,502 | 992 | **0** | 4,183 | **0** |
 | Total | 10,560 | 8,892 (84.2%) | 54,670 | 1,668 | **0** | 6,111 | **0** |
 
-1,642 steps came after a trace's first divergence and were not compared.
+**After the FIND-062 fix:**
 
-**Behind the gateway, no recorded agent would have been allowed anything the library refused.**
-Every stricter decision has one of two causes:
+| Source | Traces | Identical | Steps compared | Stricter decisions | Looser decisions | Stricter labels | Looser labels |
+|---|---|---|---|---|---|---|---|
+| P1b-4, 7 arms | 3,360 | 2,916 (86.8%) | 14,425 | 444 | **0** | 1,928 | **0** |
+| RC7, 15 models | 7,200 | 6,441 (89.5%) | 41,236 | 759 | **0** | 4,183 | **0** |
+| Total | 10,560 | 9,357 (88.6%) | 55,661 | 1,203 | **0** | 6,111 | **0** |
 
-| Cause | Tool | Library → gateway | P1b-4 | RC7 |
-|---|---|---|---|---|
-| Approval store hides contract approvals (FIND-062) | `production.restart_service` | allow → require approval | 328 | 552 |
-| Authority minted during the session (LIM-068) | `email.send_public_update` | allow → deny | 193 | 302 |
-| | `slack.send_public_update` | allow → deny | 155 | 138 |
+Steps after a trace's first divergence were not compared: 1,642 as released, 651 after the fix.
 
-**FIND-062.** Given an approval store, the monitor checks it and never falls back to the
-contract's `approved_action_fingerprints`. The gateway always has a store, so an approval held in
-a contract file authorizes nothing, and a restart the workflow's contract pre-approved needs an
-operator. VERIFY's `exact_action_approval` accepts either source, so the two layers disagree.
-It fails closed. No test combined a store with contract approvals; the replay found it on its
-first run.
+**In both runs, behind the gateway no recorded agent would have been allowed anything the library
+refused.** The stricter decisions by cause:
+
+| Cause | Tool | Library → gateway | P1b-4 as released | RC7 as released | P1b-4 fixed | RC7 fixed |
+|---|---|---|---|---|---|---|
+| Unexplained: the approval store hid the contract's approval (FIND-062) | `production.restart_service` | allow → require approval | 328 | 552 | 0 | 0 |
+| A contract approval used again, which the gateway's ledger allows once | `production.restart_service` | allow → require approval | | | 96 | 319 |
+| Authority minted during the session (LIM-068) | `email.send_public_update` | allow → deny | 193 | 302 | 193 | 302 |
+| | `slack.send_public_update` | allow → deny | 155 | 138 | 155 | 138 |
+
+**FIND-062, now fixed.** Given an approval store, the monitor checked it and never fell back to
+the contract's `approved_action_fingerprints`. The gateway always has a store, so an approval held
+in a contract file authorized nothing, and a restart the workflow's contract pre-approved needed
+an operator. VERIFY's `exact_action_approval` accepts either source, so the two layers disagreed.
+It failed closed. No test combined a store with contract approvals; the replay found it on its
+first run, as divergences no known cause explained. The fix (DEC-060) tries the store, then the
+contract, and with a store counts the contract's approval only through a ledger, once. A caller
+with a store and no ledger is exactly as strict as before, since nothing could make the approval
+single-use.
+
+**Single use.** After the fix, every remaining restart divergence repeats an identical restart
+already allowed earlier in the same trace. The reference harness has no ledger, so on the library
+path a contract approval authorizes the same action as often as the agent proposes it (LIM-044);
+the gateway's ledger allows it once. This is the stricter behaviour the ledger exists for.
 
 **LIM-068.** After the declassifier runs, the reference application binds the public artifact id
 it minted into the contract, and the send tools require that argument trusted. A gateway
@@ -79,9 +102,10 @@ after it, and arguments planned in the same turn as a more confidential read, wh
 counts and the harness, labelling the whole plan at once, does not. None changed a decision.
 
 **Can the check fail?** `tests/test_gateway_replay.py` replaces the gateway's labelling with one
-that trusts every argument, and the replay then reports looser decisions and labels. The same
-test pins the two stricter causes on the deterministic reference targets, so a new cause, or a
-looser step, fails the suite.
+that trusts every argument, and the replay then reports looser, unexplained decisions and looser
+labels. The same tests pin the only cause on the deterministic reference targets and check that a
+reused contract approval is named, so a new cause, or a looser step, fails the suite. Against the
+unfixed monitor, the FIND-062 tests and the replay test fail.
 
 ## What this does not show
 
@@ -93,9 +117,9 @@ looser step, fails the suite.
   (`gateway_server`) are not exercised; the replay calls `Gateway.call` directly.
 - One reference application. Another application's contracts may lean on minted authority more
   or less.
-- RC7's traces were recorded with 0.12.0rc7 and replayed with 0.12.0rc13's gateway and monitor,
-  so a monitor change between the two versions would appear here as a divergence. None appeared
-  beyond the two causes above.
+- RC7's traces were recorded with 0.12.0rc7 and replayed with a later gateway and monitor, so a
+  monitor change between the versions would appear here as an unexplained divergence. After the
+  fix there are none.
 
 ## Reproduce
 
@@ -106,5 +130,5 @@ python experiments/gateway-equivalence/replay.py p1b4 experiments/p1b4/results/*
 python experiments/gateway-equivalence/replay.py rc7 <rc7 evidence>/*-full.jsonl --out experiments/gateway-equivalence/summary-rc7.json
 ```
 
-P1b-4 takes about a minute, RC7 under three. `summary-p1b4.json` and `summary-rc7.json` are the
-outputs these tables are read from.
+P1b-4 takes about a minute, RC7 about three. `summary-p1b4.json` and `summary-rc7.json` are the
+fixed run; `summary-*-as-found.json` are the same replay with the monitor as released in 0.12.0rc13.

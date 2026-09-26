@@ -33,7 +33,7 @@ import yaml
 from .approvals import ApprovalStore
 from .gateway import ContractRegistry, Gateway, GatewayOutcomeKind, exposed_name, label_agent_action, token_digest
 from .mcp import MCPEffectMapping, MCPProfile, MCPResultPolicy, MCPToolBinding
-from .models import ConfidentialityLevel, TaskContract, TrustLevel
+from .models import ConfidentialityLevel, TaskContract, TrustLevel, action_fingerprint
 from .monitor import ReferenceMonitor
 from .reference_agent import (
     REFERENCE_POLICY,
@@ -68,6 +68,20 @@ _OUTCOME_DECISION = {
 # Refusals the harness makes after the monitor allowed the call: the application's own
 # checks, which a real upstream would make after the gateway forwarded it.
 _APPLICATION_REFUSALS = ("unknown_public_artifact:",)
+
+
+# The known reasons the gateway can be stricter than the library. Anything else, and every
+# looser decision, is "unexplained".
+MINTED_AUTHORITY = "minted_authority"  # LIM-068
+CONTRACT_APPROVAL_SINGLE_USE = "contract_approval_single_use"  # the ledger; LIM-044 on the library path
+_MINTED_ARGUMENTS = {("email.send_public_update", "artifact_id"), ("slack.send_public_update", "artifact_id")}
+
+
+def _fingerprint(action) -> str | None:
+    try:
+        return action_fingerprint(action)
+    except ValueError:
+        return None
 
 
 class UpstreamRefused(Exception):
@@ -123,6 +137,7 @@ class StepComparison:
     library_reasons: tuple[str, ...] = ()
     gateway_reasons: tuple[str, ...] = ()
     trust_lost: tuple[str, ...] = ()  # arguments the library trusted and the gateway did not
+    cause: str | None = None  # for a divergent decision: why, or "unexplained"
 
 
 @dataclass
@@ -190,6 +205,7 @@ async def replay_trace(workflow: ReferenceWorkflow, trace: list[Mapping[str, Any
     )
     agent_contract = registry.lookup(agent_token)
     comparison = TraceComparison(workflow.id)
+    allowed_fingerprints: set[str] = set()
 
     for step in trace:
         action = step.get("action")
@@ -234,9 +250,23 @@ async def replay_trace(workflow: ReferenceWorkflow, trace: list[Mapping[str, Any
             gateway_decision = _OUTCOME_DECISION.get(outcome.kind, "deny")
         rank = _DECISION_RANK[gateway_decision] - _DECISION_RANK[library_decision]
         verdict = "same" if rank == 0 else ("gateway_stricter" if rank > 0 else "gateway_looser")
+        fingerprint = _fingerprint(planned)
+        cause = None
+        if verdict == "gateway_stricter":
+            if any((tool, a) in _MINTED_ARGUMENTS for a in trust_lost):
+                cause = MINTED_AUTHORITY
+            elif (gateway_decision == "require_approval" and fingerprint in contract.approved_action_fingerprints
+                  and fingerprint in allowed_fingerprints):
+                cause = CONTRACT_APPROVAL_SINGLE_USE
+            else:
+                cause = "unexplained"
+        elif verdict == "gateway_looser":
+            cause = "unexplained"
+        if gateway_decision == "allow" and fingerprint is not None:
+            allowed_fingerprints.add(fingerprint)
         comparison.steps.append(StepComparison(
             step["index"], step["phase"], tool, library_decision, gateway_decision, verdict, labels,
-            library_reasons, tuple(outcome.reasons), tuple(trust_lost),
+            library_reasons, tuple(outcome.reasons), tuple(trust_lost), cause,
         ))
     return comparison
 
@@ -270,6 +300,7 @@ def summarize(comparisons: Iterable[TraceComparison]) -> dict[str, Any]:
     stricter_arguments: Counter = Counter()
     trust_lost: Counter = Counter()
     divergences: Counter = Counter()
+    causes: Counter = Counter()
     looser_examples: list[dict[str, Any]] = []
     for comparison in comparisons:
         traces += 1
@@ -284,6 +315,7 @@ def summarize(comparisons: Iterable[TraceComparison]) -> dict[str, Any]:
                 changed = sorted(a for a, v in step.labels.items() if v != "same")
                 divergences[(step.decision, step.tool, step.library_decision, step.gateway_decision,
                              ",".join(changed))] += 1
+                causes[step.cause] += 1
                 if step.decision == "gateway_looser" and len(looser_examples) < 20:
                     looser_examples.append({"workflow": comparison.workflow_id, "step": step.index, "tool": step.tool,
                                             "library": [step.library_decision, *step.library_reasons],
@@ -297,6 +329,7 @@ def summarize(comparisons: Iterable[TraceComparison]) -> dict[str, Any]:
         "argument_labels": dict(labels),
         "stricter_labels_by_argument": dict(stricter_arguments.most_common()),
         "trust_lost_by_argument": dict(trust_lost.most_common()),
+        "divergence_causes": dict(causes.most_common()),
         "divergences": [
             {"verdict": k[0], "tool": k[1], "library": k[2], "gateway": k[3], "labels_changed": k[4], "steps": n}
             for k, n in divergences.most_common()

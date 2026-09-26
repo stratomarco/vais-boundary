@@ -51,12 +51,13 @@ recorded traces through a real `Gateway`, with upstreams that return the recorde
 compares each step up to the first decision that differs
 ([results](../experiments/gateway-equivalence/RESULTS.md)). Over 10,560 protected traces from
 P1b-4 and RC7, **no gateway decision and no label was more permissive than the library's**, and
-84.2% of traces were identical (FIND-063). The gateway was stricter for two reasons:
+88.6% of traces were identical (FIND-063). The gateway is stricter for two reasons:
 
-- **Contract approvals are ignored.** The monitor consults an approval store instead of the
-  contract's `approved_action_fingerprints` whenever it is given one, and the gateway always is,
-  so pre-approving an action in a contract file has no effect: grant it with `vais
-  gateway-approve` (FIND-062).
+- **A contract approval counts once.** An action listed in a contract file's
+  `approved_action_fingerprints` is allowed the first time and then needs an operator, because
+  the gateway's session ledger makes it single-use. The library path without a ledger lets it
+  authorize the same action again (LIM-044). Before DEC-060 the gateway ignored these approvals
+  entirely, because an approval store hid them (FIND-062); the replay found that.
 - **Authority minted during a session is lost.** A trusted application transform, such as the
   reference application's declassifier, can create a value the library binds into the contract.
   A gateway contract is a fixed operator file, so the value comes back from the agent as model
@@ -141,7 +142,6 @@ account, the agent in another with network access to the gateway's port and noth
   passed on as text or structured data (LIM-062).
 - Ledgers and the confidentiality level live in the gateway's memory; a restart starts fresh
   (LIM-055, LIM-063). The contract directory is read on every request.
-- `approved_action_fingerprints` in a contract file has no effect; approvals come from the store
-  (FIND-062).
+- An approval in a contract file authorizes its exact action once per session (DEC-060).
 - A value an application creates during the session cannot become authority at the gateway
   (LIM-068).

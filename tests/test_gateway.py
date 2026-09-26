@@ -28,7 +28,7 @@ from vais.gateway import (
     token_digest,
 )
 from vais.mcp import MCPEffectMapping, MCPProfile, MCPResultPolicy, MCPToolBinding
-from vais.models import TrustLevel
+from vais.models import PlannedAction, TrustLevel, TrustedValue, action_fingerprint
 
 TOKEN = "agent-token-7f3c"
 OTHER = "agent-token-other"
@@ -327,3 +327,23 @@ def test_a_read_back_from_an_unknown_server_fails_at_startup(world):
     _, _, tmp_path = world
     with pytest.raises(PolicyValidationError, match="records"):
         _confirming_gateway(tmp_path, None)
+
+
+# --- an approval in the contract file (FIND-062) -------------------------------------
+
+def test_an_approval_in_the_contract_file_is_honoured_once(world):
+    gateway, upstream, tmp_path = world
+    approved = PlannedAction("mcp:ops:pay", {"payee": TrustedValue("vendor-9", source="operator"),
+                                             "amount": TrustedValue(500, source="operator")})
+    path = tmp_path / "contracts" / "alice.yaml"
+    path.write_text(path.read_text(encoding="utf-8")
+                    + f"approved_action_fingerprints: [{action_fingerprint(approved)}]\n", encoding="utf-8")
+
+    first = run(gateway.call(TOKEN, "ops.pay", {"payee": "vendor-9", "amount": 500}))
+    again = run(gateway.call(TOKEN, "ops.pay", {"payee": "vendor-9", "amount": 500}))
+    other = run(gateway.call(TOKEN, "ops.pay", {"payee": "vendor-9", "amount": 501}))
+
+    assert first.kind is GatewayOutcomeKind.ALLOWED
+    assert again.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
+    assert other.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
+    assert [name for name, _ in upstream.calls] == ["pay"]

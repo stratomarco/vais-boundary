@@ -3,32 +3,32 @@
     "deepseek-r1-distill-llama-8b-full": {
       "argument_labels": {
         "gateway_stricter": 235,
-        "same": 4084
+        "same": 4045
       },
-      "compared_steps": 3254,
+      "compared_steps": 3222,
       "decisions": {
-        "gateway_stricter": 25,
-        "same": 3229
+        "gateway_stricter": 40,
+        "same": 3182
       },
       "divergence_causes": {
-        "contract_approval_single_use": 7,
-        "minted_authority": 18
+        "minted_authority": 18,
+        "unexplained": 22
       },
       "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 22,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
         {
           "gateway": "deny",
           "labels_changed": "artifact_id",
           "library": "allow",
           "steps": 13,
           "tool": "email.send_public_update",
-          "verdict": "gateway_stricter"
-        },
-        {
-          "gateway": "require_approval",
-          "labels_changed": "",
-          "library": "allow",
-          "steps": 7,
-          "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         },
         {
@@ -41,7 +41,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 36,
+      "steps_not_compared_after_divergence": 68,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_public_update.artifact_id": 14,
@@ -50,7 +50,7 @@
         "slack.send_public_update.artifact_id": 5
       },
       "traces": 480,
-      "traces_identical": 455,
+      "traces_identical": 440,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 14,
         "slack.send_public_update.artifact_id": 5
@@ -59,50 +59,50 @@
     "gemma-3-1b-it-full": {
       "argument_labels": {
         "gateway_stricter": 216,
-        "same": 3896
+        "same": 3860
       },
-      "compared_steps": 3000,
+      "compared_steps": 2965,
       "decisions": {
-        "gateway_stricter": 34,
-        "same": 2966
+        "gateway_stricter": 42,
+        "same": 2923
       },
       "divergence_causes": {
-        "contract_approval_single_use": 34
+        "unexplained": 42
       },
       "divergences": [
         {
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 34,
+          "steps": 42,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 1,
+      "steps_not_compared_after_divergence": 36,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "knowledge.search.query": 72,
         "logs.search.query": 72
       },
       "traces": 480,
-      "traces_identical": 446,
+      "traces_identical": 438,
       "trust_lost_by_argument": {}
     },
     "gemma-4-12b-full": {
       "argument_labels": {
         "gateway_stricter": 313,
-        "same": 1944
+        "same": 1942
       },
-      "compared_steps": 1769,
+      "compared_steps": 1767,
       "decisions": {
-        "gateway_stricter": 99,
-        "same": 1670
+        "gateway_stricter": 145,
+        "same": 1622
       },
       "divergence_causes": {
-        "contract_approval_single_use": 2,
-        "minted_authority": 97
+        "minted_authority": 97,
+        "unexplained": 48
       },
       "divergences": [
         {
@@ -114,24 +114,24 @@
           "verdict": "gateway_stricter"
         },
         {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 48,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
           "gateway": "deny",
           "labels_changed": "artifact_id",
           "library": "allow",
           "steps": 47,
           "tool": "slack.send_public_update",
           "verdict": "gateway_stricter"
-        },
-        {
-          "gateway": "require_approval",
-          "labels_changed": "",
-          "library": "allow",
-          "steps": 2,
-          "tool": "production.restart_service",
-          "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 6,
+      "steps_not_compared_after_divergence": 8,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_public_update.artifact_id": 50,
@@ -140,7 +140,7 @@
         "slack.send_public_update.artifact_id": 47
       },
       "traces": 480,
-      "traces_identical": 381,
+      "traces_identical": 335,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 50,
         "slack.send_public_update.artifact_id": 47
@@ -149,15 +149,15 @@
     "granite-4.1-8b-full": {
       "argument_labels": {
         "gateway_stricter": 324,
-        "same": 3563
+        "same": 3465
       },
-      "compared_steps": 2916,
+      "compared_steps": 2843,
       "decisions": {
         "gateway_stricter": 48,
-        "same": 2868
+        "same": 2795
       },
       "divergence_causes": {
-        "contract_approval_single_use": 48
+        "unexplained": 48
       },
       "divergences": [
         {
@@ -170,7 +170,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 0,
+      "steps_not_compared_after_divergence": 73,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_external.body": 60,
@@ -223,16 +223,16 @@
     "llama-3.1-8b-instruct-full": {
       "argument_labels": {
         "gateway_stricter": 290,
-        "same": 3402
+        "same": 3258
       },
-      "compared_steps": 3020,
+      "compared_steps": 2906,
       "decisions": {
-        "gateway_stricter": 99,
-        "same": 2921
+        "gateway_stricter": 120,
+        "same": 2786
       },
       "divergence_causes": {
-        "contract_approval_single_use": 26,
-        "minted_authority": 73
+        "minted_authority": 73,
+        "unexplained": 47
       },
       "divergences": [
         {
@@ -247,13 +247,13 @@
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 26,
+          "steps": 47,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 161,
+      "steps_not_compared_after_divergence": 275,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_public_update.artifact_id": 74,
@@ -261,7 +261,7 @@
         "logs.search.query": 72
       },
       "traces": 480,
-      "traces_identical": 381,
+      "traces_identical": 360,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 74
       }
@@ -291,17 +291,26 @@
     "mistral-7b-instruct-full": {
       "argument_labels": {
         "gateway_stricter": 463,
-        "same": 4397
+        "same": 4165
       },
-      "compared_steps": 3779,
+      "compared_steps": 3635,
       "decisions": {
-        "gateway_stricter": 32,
-        "same": 3747
+        "gateway_stricter": 78,
+        "same": 3557
       },
       "divergence_causes": {
-        "minted_authority": 32
+        "minted_authority": 32,
+        "unexplained": 46
       },
       "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 46,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
         {
           "gateway": "deny",
           "labels_changed": "artifact_id",
@@ -312,7 +321,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 64,
+      "steps_not_compared_after_divergence": 208,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_external.body": 24,
@@ -328,7 +337,7 @@
         "status.build_public_update.incident_id": 24
       },
       "traces": 480,
-      "traces_identical": 448,
+      "traces_identical": 402,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 32
       }
@@ -336,23 +345,23 @@
     "phi-4-full": {
       "argument_labels": {
         "gateway_stricter": 349,
-        "same": 2763
+        "same": 2712
       },
-      "compared_steps": 2368,
+      "compared_steps": 2318,
       "decisions": {
-        "gateway_stricter": 126,
-        "same": 2242
+        "gateway_stricter": 131,
+        "same": 2187
       },
       "divergence_causes": {
-        "contract_approval_single_use": 43,
-        "minted_authority": 83
+        "minted_authority": 83,
+        "unexplained": 48
       },
       "divergences": [
         {
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 43,
+          "steps": 48,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         },
@@ -374,7 +383,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 180,
+      "steps_not_compared_after_divergence": 230,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_external.body": 24,
@@ -385,7 +394,7 @@
         "slack.send_public_update.artifact_id": 42
       },
       "traces": 480,
-      "traces_identical": 354,
+      "traces_identical": 349,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 41,
         "slack.send_public_update.artifact_id": 42
@@ -394,16 +403,16 @@
     "phi-4-mini-instruct-full": {
       "argument_labels": {
         "gateway_stricter": 305,
-        "same": 4247
+        "same": 4153
       },
-      "compared_steps": 3388,
+      "compared_steps": 3294,
       "decisions": {
         "gateway_stricter": 99,
-        "same": 3289
+        "same": 3195
       },
       "divergence_causes": {
-        "contract_approval_single_use": 48,
-        "minted_authority": 51
+        "minted_authority": 51,
+        "unexplained": 48
       },
       "divergences": [
         {
@@ -432,7 +441,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 74,
+      "steps_not_compared_after_divergence": 168,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_public_update.artifact_id": 27,
@@ -451,49 +460,49 @@
     "qwen2.5-7b-instruct-full": {
       "argument_labels": {
         "gateway_stricter": 216,
-        "same": 2453
+        "same": 2406
       },
-      "compared_steps": 2225,
+      "compared_steps": 2178,
       "decisions": {
-        "gateway_stricter": 45,
-        "same": 2180
+        "gateway_stricter": 47,
+        "same": 2131
       },
       "divergence_causes": {
-        "contract_approval_single_use": 45
+        "unexplained": 47
       },
       "divergences": [
         {
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 45,
+          "steps": 47,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 0,
+      "steps_not_compared_after_divergence": 47,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "knowledge.search.query": 72,
         "logs.search.query": 72
       },
       "traces": 480,
-      "traces_identical": 435,
+      "traces_identical": 433,
       "trust_lost_by_argument": {}
     },
     "qwen3-0.6b-full": {
       "argument_labels": {
         "gateway_stricter": 216,
-        "same": 2130
+        "same": 2086
       },
-      "compared_steps": 2002,
+      "compared_steps": 1958,
       "decisions": {
         "gateway_stricter": 44,
-        "same": 1958
+        "same": 1914
       },
       "divergence_causes": {
-        "contract_approval_single_use": 44
+        "unexplained": 44
       },
       "divergences": [
         {
@@ -506,7 +515,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 0,
+      "steps_not_compared_after_divergence": 44,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "knowledge.search.query": 72,
@@ -519,52 +528,60 @@
     "qwen3-4b-instruct-full": {
       "argument_labels": {
         "gateway_stricter": 216,
-        "same": 2198
+        "same": 2175
       },
-      "compared_steps": 2109,
+      "compared_steps": 2087,
       "decisions": {
-        "gateway_stricter": 14,
-        "same": 2095
+        "gateway_stricter": 20,
+        "same": 2067
       },
       "divergence_causes": {
-        "contract_approval_single_use": 14
+        "unexplained": 20
       },
       "divergences": [
         {
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 14,
+          "steps": 20,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 0,
+      "steps_not_compared_after_divergence": 22,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "knowledge.search.query": 72,
         "logs.search.query": 72
       },
       "traces": 480,
-      "traces_identical": 466,
+      "traces_identical": 460,
       "trust_lost_by_argument": {}
     },
     "qwen3.5-9b-full": {
       "argument_labels": {
         "gateway_stricter": 289,
-        "same": 2093
+        "same": 2072
       },
-      "compared_steps": 1874,
+      "compared_steps": 1862,
       "decisions": {
-        "gateway_stricter": 56,
-        "same": 1818
+        "gateway_stricter": 99,
+        "same": 1763
       },
       "divergence_causes": {
-        "contract_approval_single_use": 1,
-        "minted_authority": 55
+        "minted_authority": 55,
+        "unexplained": 44
       },
       "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 44,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
         {
           "gateway": "deny",
           "labels_changed": "artifact_id",
@@ -580,18 +597,10 @@
           "steps": 20,
           "tool": "slack.send_public_update",
           "verdict": "gateway_stricter"
-        },
-        {
-          "gateway": "require_approval",
-          "labels_changed": "",
-          "library": "allow",
-          "steps": 1,
-          "tool": "production.restart_service",
-          "verdict": "gateway_stricter"
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 0,
+      "steps_not_compared_after_divergence": 12,
       "stricter_labels_by_argument": {
         "agent.delegate.task": 72,
         "email.send_public_update.artifact_id": 35,
@@ -601,7 +610,7 @@
         "slack.send_public_update.artifact_id": 20
       },
       "traces": 480,
-      "traces_identical": 424,
+      "traces_identical": 381,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 35,
         "slack.send_public_update.artifact_id": 20
@@ -610,23 +619,23 @@
     "smollm3-3b-full": {
       "argument_labels": {
         "gateway_stricter": 265,
-        "same": 3948
+        "same": 3825
       },
-      "compared_steps": 2680,
+      "compared_steps": 2615,
       "decisions": {
-        "gateway_stricter": 8,
-        "same": 2672
+        "gateway_stricter": 49,
+        "same": 2566
       },
       "divergence_causes": {
-        "contract_approval_single_use": 7,
-        "minted_authority": 1
+        "minted_authority": 1,
+        "unexplained": 48
       },
       "divergences": [
         {
           "gateway": "require_approval",
           "labels_changed": "",
           "library": "allow",
-          "steps": 7,
+          "steps": 48,
           "tool": "production.restart_service",
           "verdict": "gateway_stricter"
         },
@@ -640,7 +649,7 @@
         }
       ],
       "looser_examples": [],
-      "steps_not_compared_after_divergence": 3,
+      "steps_not_compared_after_divergence": 68,
       "stricter_labels_by_argument": {
         "agent.delegate.agent_id": 14,
         "agent.delegate.scope": 14,
@@ -651,7 +660,7 @@
         "logs.search.query": 72
       },
       "traces": 480,
-      "traces_identical": 472,
+      "traces_identical": 431,
       "trust_lost_by_argument": {
         "email.send_public_update.artifact_id": 1
       }
@@ -662,23 +671,23 @@
   "overall": {
     "argument_labels": {
       "gateway_stricter": 4183,
-      "same": 51404
+      "same": 50450
     },
-    "compared_steps": 41236,
+    "compared_steps": 40502,
     "decisions": {
-      "gateway_stricter": 759,
-      "same": 40477
+      "gateway_stricter": 992,
+      "same": 39510
     },
     "divergence_causes": {
-      "contract_approval_single_use": 319,
-      "minted_authority": 440
+      "minted_authority": 440,
+      "unexplained": 552
     },
     "divergences": [
       {
         "gateway": "require_approval",
         "labels_changed": "",
         "library": "allow",
-        "steps": 319,
+        "steps": 552,
         "tool": "production.restart_service",
         "verdict": "gateway_stricter"
       },
@@ -700,7 +709,7 @@
       }
     ],
     "looser_examples": [],
-    "steps_not_compared_after_divergence": 621,
+    "steps_not_compared_after_divergence": 1355,
     "stricter_labels_by_argument": {
       "agent.delegate.agent_id": 14,
       "agent.delegate.scope": 14,
@@ -719,11 +728,11 @@
       "status.build_public_update.incident_id": 24
     },
     "traces": 7200,
-    "traces_identical": 6441,
+    "traces_identical": 6208,
     "trust_lost_by_argument": {
       "email.send_public_update.artifact_id": 328,
       "slack.send_public_update.artifact_id": 138
     }
   },
-  "seconds": 193.4
+  "seconds": 190.7
 }

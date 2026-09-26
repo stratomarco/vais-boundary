@@ -347,3 +347,9 @@ decisions:
     decision: Request target reasoning explicitly with an opt-in adapter flag (reasoning_effort medium in LM Studio) rather than relying on the runtime default, and add it to P1b-4 only as a registered replacement arm for the arm that gate-failed.
     rationale: A condition labelled reasoning on must actually be on, and the default varied by model (FIND-059). Keeping the flag opt-in leaves every arm that already ran unchanged, and running it as a replacement arm registered before its first episode keeps the pre-registration honest; the observed output, not the request, remains the conformance authority.
     evidence: [experiments/p1b4/PREREGISTRATION.md, tests/test_reference_agent_lmstudio.py, experiments/p1b4/study.json]
+
+  - id: DEC-060
+    date: 2026-09-26
+    decision: With an approval store, try the store first and then the contract's approved_action_fingerprints, and count the contract's approval only through a SessionLedger, once. Without a ledger it does not count beside a store; without a store, contract approvals behave as before.
+    rationale: Contract approvals were hidden whenever a store was present (FIND-062), so the gateway ignored its own contract files and ENFORCE disagreed with VERIFY. Trying the store first means a decision that consumed a grant before still does, and only a missing grant can now be met by the contract. Requiring a ledger means adding a store never makes a contract approval reusable; the gateway always has one, so its contract files now work as documented. Rejecting approvals in gateway contract files was the simpler alternative, but it would have left library callers with a store in the same state and kept ENFORCE and VERIFY apart.
+    evidence: [src/vais/monitor.py, tests/test_contract_approval_with_store.py, tests/test_gateway.py, experiments/gateway-equivalence/RESULTS.md]
