@@ -43,6 +43,25 @@ result, untrusted from then on. A tool whose policy sets `untrusted_origin: requ
 therefore needs an operator's approval for any call after the session has read something. That
 is a deliberate human gate, not attack detection (FIND-057).
 
+## How its decisions compare with the library's
+
+Every VAIS study runs on the library path, where the harness labels the model's arguments. To
+check what the gateway would have decided for the same agents, `vais.gateway_replay` sends
+recorded traces through a real `Gateway`, with upstreams that return the recorded results, and
+compares each step up to the first decision that differs
+([results](../experiments/gateway-equivalence/RESULTS.md)). Over 10,560 protected traces from
+P1b-4 and RC7, **no gateway decision and no label was more permissive than the library's**, and
+84.2% of traces were identical (FIND-063). The gateway was stricter for two reasons:
+
+- **Contract approvals are ignored.** The monitor consults an approval store instead of the
+  contract's `approved_action_fingerprints` whenever it is given one, and the gateway always is,
+  so pre-approving an action in a contract file has no effect: grant it with `vais
+  gateway-approve` (FIND-062).
+- **Authority minted during a session is lost.** A trusted application transform, such as the
+  reference application's declassifier, can create a value the library binds into the contract.
+  A gateway contract is a fixed operator file, so the value comes back from the agent as model
+  output and a tool requiring it trusted denies it (LIM-068).
+
 ## Quick start
 
 The files are in [`examples/gateway/`](../examples/gateway/); the upstream is the repository's
@@ -122,3 +141,7 @@ account, the agent in another with network access to the gateway's port and noth
   passed on as text or structured data (LIM-062).
 - Ledgers and the confidentiality level live in the gateway's memory; a restart starts fresh
   (LIM-055, LIM-063). The contract directory is read on every request.
+- `approved_action_fingerprints` in a contract file has no effect; approvals come from the store
+  (FIND-062).
+- A value an application creates during the session cannot become authority at the gateway
+  (LIM-068).

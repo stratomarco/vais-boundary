@@ -371,3 +371,15 @@ findings:
     version: "0.12.0rc13"
     type: campaign_harness_defect
     evidence: [src/vais/adaptive_reference.py, tests/test_attacker_feedback.py, experiments/p1b4/results/analysis.json]
+
+  - id: FIND-062
+    finding: When the monitor is given an ApprovalStore it never consults the contract's own approvals. The store is checked, and if it holds no grant the action needs approval, so an exact approval in approved_action_fingerprints authorizes nothing. The gateway always passes a store, so the approved_action_fingerprints its contract files accept have no effect, and a library caller that adds a store loses the approvals its contracts carry. VERIFY's exact_action_approval accepts either source, so the two layers disagree. It fails closed, a utility defect rather than a way around the monitor, and no test combined the two. Replaying recorded traces through the gateway found it, in 328 P1b-4 and 552 RC7 restart calls the library allowed on a contract approval needed an operator at the gateway.
+    version: "0.12.0rc13"
+    type: tcb_fail_closed_defect
+    evidence: [src/vais/monitor.py, tests/test_gateway_replay.py, experiments/gateway-equivalence/RESULTS.md]
+
+  - id: FIND-063
+    finding: Behind the gateway, the recorded agents of P1b-4 and RC7 would never have been allowed anything the library path refused. Replaying 10,560 recorded protected traces (3,360 from P1b-4, 7,200 from RC7's fifteen models) through a real Gateway, with upstreams returning the recorded results, 54,670 action steps were compared up to each trace's first divergent decision, and 1,642 later steps were not. No gateway decision and no argument label was looser than the library's; 84.2% of traces were identical. Every stricter decision had one of two causes, the approval store hiding contract approvals (FIND-062) and the declassifier's artifact id, which the library mints into the contract as a trusted binding and an operator file cannot (LIM-068). The only argument that ever lost trust was that artifact id; every other stricter label was more confidential at the same trust, because the gateway counts results received earlier in the same plan. A mutant gateway that trusted the agent's arguments is caught.
+    version: "0.12.0rc13"
+    type: architecture
+    evidence: [src/vais/gateway_replay.py, tests/test_gateway_replay.py, experiments/gateway-equivalence/RESULTS.md, experiments/gateway-equivalence/summary-p1b4.json, experiments/gateway-equivalence/summary-rc7.json]

@@ -4,6 +4,7 @@
 
 - **Correct what the adaptive attacker is told (FIND-061).** Its feedback was documented as omitting the monitor's reasons, but refused actions reached it as `policy:<reason>:<tool>`, sometimes with the argument, in 28.6% of P1b-4's episodes. The docstring now says so, and `--attacker-feedback outcomes` keeps only the outcome and the tool. The default, `reasons`, is unchanged, so earlier campaigns' configurations stay byte-identical.
 - Register the RC13 campaign (`experiments/rc13-campaign/`): 13 local models, reasoning off, each with the attacker told the reasons and told only the outcomes, before any episode runs.
+- **Replay recorded traces through the gateway.** `vais.gateway_replay` sends library-path traces through a real `Gateway` and compares every decision and label. Over 10,560 traces from P1b-4 and RC7 the gateway was never more permissive than the library, and 84.2% of traces were identical (FIND-063). It was stricter for two reasons, both documented in `docs/gateway.md`: an approval store hides the contract's own approvals, so `approved_action_fingerprints` in a gateway contract has no effect (FIND-062), and authority an application mints during a session cannot reach a fixed contract file (LIM-068). Results in `experiments/gateway-equivalence/`.
 
 ## 0.12.0-rc13 - 2026-09-25
 

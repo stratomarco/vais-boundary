@@ -1,0 +1,110 @@
+# Gateway and library: do they decide the same?
+
+Every VAIS study so far ran the reference agent on the **library path**: the harness labels the
+model's arguments and calls `MCPProtectedClient` itself. A deployment behind `vais gateway`
+decides with the same monitor and policy, but the gateway labels every argument itself, from the
+operator's contract file and from what the session has received through it. This asks whether
+the evidence gathered on the library path carries over to the gateway.
+
+No GPU and no model are involved. It was planned as the rc13 campaign's companion, which leaves
+the gateway out (`experiments/rc13-campaign/PREREGISTRATION.md`). It is not pre-registered; it
+is a deterministic replay of episodes already recorded, and it will be run again on the rc13
+campaign's traces when they exist.
+
+## Method
+
+`vais.gateway_replay` takes each recorded protected trace (the attacked run and its matched
+control) and builds a real `Gateway`:
+
+- the workflow's `TaskContract`, written as an operator contract file and loaded by the gateway's
+  own `ContractRegistry`, with a second file for the narrow application contract the library uses
+  to fetch a delegated agent's output;
+- the reference policy and `REFERENCE_PROFILE`, plus bindings for the reference application's own
+  three tools (the public-update declassifier and its two senders), which the harness serves
+  directly on the library path;
+- upstream sessions that return the recorded result of each call;
+- an empty approval store, as a fresh deployment has.
+
+It then sends the recorded calls in order, including the application's setup reads, so the
+gateway sees everything the agent saw, and compares each step:
+
+- **Decision**, ranked allow < require approval < deny. A gateway decision above the library's is
+  *stricter*, a utility cost; below it is *looser*, a security question.
+- **Labels**, per argument: stricter when less trusted or more confidential.
+
+A trace is compared up to its first divergent decision. After that the two paths have observed
+different results, so the recorded actions no longer describe what an agent behind the gateway
+would have done.
+
+A harness refusal made after the monitor allowed the call (`unknown_public_artifact`) counts as
+an allow on the library side, and the replayed upstream refuses it the same way.
+
+## Results
+
+| Source | Traces | Identical | Steps compared | Stricter decisions | Looser decisions | Stricter labels | Looser labels |
+|---|---|---|---|---|---|---|---|
+| P1b-4, 7 arms | 3,360 | 2,684 (79.9%) | 14,168 | 676 | **0** | 1,928 | **0** |
+| RC7, 15 models | 7,200 | 6,208 (86.2%) | 40,502 | 992 | **0** | 4,183 | **0** |
+| Total | 10,560 | 8,892 (84.2%) | 54,670 | 1,668 | **0** | 6,111 | **0** |
+
+1,642 steps came after a trace's first divergence and were not compared.
+
+**Behind the gateway, no recorded agent would have been allowed anything the library refused.**
+Every stricter decision has one of two causes:
+
+| Cause | Tool | Library → gateway | P1b-4 | RC7 |
+|---|---|---|---|---|
+| Approval store hides contract approvals (FIND-062) | `production.restart_service` | allow → require approval | 328 | 552 |
+| Authority minted during the session (LIM-068) | `email.send_public_update` | allow → deny | 193 | 302 |
+| | `slack.send_public_update` | allow → deny | 155 | 138 |
+
+**FIND-062.** Given an approval store, the monitor checks it and never falls back to the
+contract's `approved_action_fingerprints`. The gateway always has a store, so an approval held in
+a contract file authorizes nothing, and a restart the workflow's contract pre-approved needs an
+operator. VERIFY's `exact_action_approval` accepts either source, so the two layers disagree.
+It fails closed. No test combined a store with contract approvals; the replay found it on its
+first run.
+
+**LIM-068.** After the declassifier runs, the reference application binds the public artifact id
+it minted into the contract, and the send tools require that argument trusted. A gateway
+contract is an operator file, fixed for the session, so the agent's `artifact_id` is model
+output and the send is denied. This is the gateway's documented rule that a contract binding is
+the only route to trust (DEC-051), meeting an application whose authority is created mid-session.
+
+**Labels.** The only argument that ever lost trust at the gateway was that artifact id (354 steps
+in P1b-4, 466 in RC7). Every other stricter label had the same trust and a higher confidentiality,
+mostly the setup retrieval queries (`knowledge.search`, `logs.search`, `agent.delegate`), which the
+harness labels public before the incident read and the gateway labels at the session's level
+after it, and arguments planned in the same turn as a more confidential read, which the gateway
+counts and the harness, labelling the whole plan at once, does not. None changed a decision.
+
+**Can the check fail?** `tests/test_gateway_replay.py` replaces the gateway's labelling with one
+that trusts every argument, and the replay then reports looser decisions and labels. The same
+test pins the two stricter causes on the deterministic reference targets, so a new cause, or a
+looser step, fails the suite.
+
+## What this does not show
+
+- It replays recorded agents. An agent behind the gateway that was refused something would have
+  continued differently, so nothing after a trace's first divergence is evidence either way, and
+  the utility cost of the stricter steps is an upper bound on what the recorded agents lost, not
+  a measured rate for agents built for the gateway.
+- Transport, authentication, the deployment conditions of LIM-060 and the MCP protocol layer
+  (`gateway_server`) are not exercised; the replay calls `Gateway.call` directly.
+- One reference application. Another application's contracts may lean on minted authority more
+  or less.
+- RC7's traces were recorded with 0.12.0rc7 and replayed with 0.12.0rc13's gateway and monitor,
+  so a monitor change between the two versions would appear here as a divergence. None appeared
+  beyond the two causes above.
+
+## Reproduce
+
+From the repository root, with the recorded episodes on disk:
+
+```
+python experiments/gateway-equivalence/replay.py p1b4 experiments/p1b4/results/*/full.jsonl --out experiments/gateway-equivalence/summary-p1b4.json
+python experiments/gateway-equivalence/replay.py rc7 <rc7 evidence>/*-full.jsonl --out experiments/gateway-equivalence/summary-rc7.json
+```
+
+P1b-4 takes about a minute, RC7 under three. `summary-p1b4.json` and `summary-rc7.json` are the
+outputs these tables are read from.
