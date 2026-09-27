@@ -7,10 +7,9 @@ import math
 import unicodedata
 from .models import FrozenDict
 
-import yaml
-
 from .exceptions import PolicyValidationError
 from .models import ConfidentialityLevel
+from .yaml_input import read_yaml_document
 
 
 @dataclass(frozen=True)
@@ -237,8 +236,7 @@ def _parse_tool(raw: Any, path: str, version: int) -> ToolPolicy:
 
 
 def load_policy(path: str | Path) -> Policy:
-    with open(path, "r", encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = read_yaml_document(path, "policy") or {}
 
     raw = _mapping(raw, "policy")
     _known_keys(raw, {"version", "default_action", "tools"}, "policy")

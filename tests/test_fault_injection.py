@@ -26,7 +26,6 @@ import json
 from unittest.mock import patch
 
 import pytest
-import yaml
 
 from vais import (
     ApprovalStore,
@@ -86,18 +85,16 @@ def test_a_corrupt_policy_is_rejected(tmp_path, name, text):
         load_policy(write(tmp_path, f"{name}.yaml", text))
 
 
-def test_malformed_yaml_raises_a_yaml_error_not_a_policy_error(tmp_path):
-    """LIM-039, asserted rather than assumed.
+def test_malformed_yaml_is_a_policy_error(tmp_path):
+    """LIM-039, closed in rc14.
 
-    Both outcomes fail closed, but they fail closed as different exception types.
-    An application that catches `PolicyValidationError` in order to degrade
-    gracefully will not catch a policy file that is not valid YAML at all, and
-    will see an unhandled `yaml.YAMLError` instead.
+    Until then a policy file that was not valid YAML escaped as `yaml.YAMLError`, which an
+    application catching `PolicyValidationError` to degrade gracefully did not catch.
+    tests/test_yaml_input.py covers the other loaders and the other ways a file can fail.
     """
     path = write(tmp_path, "bad.yaml", "tools: [unclosed\n")
-    with pytest.raises(yaml.YAMLError):
+    with pytest.raises(PolicyValidationError, match="not a valid YAML document"):
         load_policy(path)
-    assert not issubclass(yaml.YAMLError, PolicyValidationError)
 
 
 @pytest.mark.parametrize("text", ["", "   \n\n", "# only a comment\n"])

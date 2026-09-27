@@ -33,7 +33,6 @@ import re
 import threading
 from typing import Any, Mapping
 
-import yaml
 
 from .approvals import ApprovalStore
 from .audit import AuditTrail
@@ -67,6 +66,7 @@ from .models import (
     security_equal,
 )
 from .monitor import ReferenceMonitor
+from .yaml_input import read_yaml_document
 
 # SEP-986, the MCP tool-name rule. Exposed names are checked against it at startup.
 _TOOL_NAME = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
@@ -97,8 +97,8 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
     """
     location = str(path)
     try:
-        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+        raw = read_yaml_document(path, location)
+    except OSError as exc:
         raise PolicyValidationError(f"{location}: cannot read contract ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
     _known_keys(raw, _CONTRACT_KEYS, location)

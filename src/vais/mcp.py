@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Mapping, Protocol
 import unicodedata
 
-import yaml
 
 from .exceptions import PolicyValidationError
 from .models import (
@@ -28,6 +27,7 @@ from .audit import AuditTrail, action_audit_details
 from .ledger import SessionLedger
 from .monitor import ReferenceMonitor
 from .sandbox import Effect, EffectConfidence
+from .yaml_input import read_yaml_document
 
 
 class MCPToolSession(Protocol):
@@ -692,8 +692,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
     remote MCP results to be configured as ``trusted`` authority.
     """
 
-    with open(path, "r", encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = read_yaml_document(path, "mcp_profile") or {}
 
     raw = _mapping(raw, "mcp_profile")
     _known_keys(raw, {"version", "servers"}, "mcp_profile")

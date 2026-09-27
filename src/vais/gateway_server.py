@@ -36,7 +36,6 @@ from pathlib import Path
 import re
 from typing import Any, AsyncIterator
 
-import yaml
 
 from .approvals import ApprovalStore
 from .exceptions import PolicyValidationError
@@ -45,6 +44,7 @@ from .mcp import MCPProfile, _fail, _known_keys, _mapping, _string, load_mcp_pro
 from .monitor import ReferenceMonitor
 from .policy import Policy, load_policy
 from .revocation import RevocationList
+from .yaml_input import read_yaml_document
 
 _SECRET_REFERENCE = re.compile(r"\$\{env:([A-Za-z_][A-Za-z0-9_]*)\}")
 
@@ -84,8 +84,8 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
     location = str(path)
     base = Path(path).resolve().parent
     try:
-        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+        raw = read_yaml_document(path, location)
+    except OSError as exc:
         raise PolicyValidationError(f"{location}: cannot read gateway configuration ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
     _known_keys(raw, {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",

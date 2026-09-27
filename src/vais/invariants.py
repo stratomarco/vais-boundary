@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any, Callable
 import math
 import unicodedata
 
-import yaml
 
 from .exceptions import PolicyValidationError
 from .models import ConfidentialityLevel, TaskContract, TrustLevel, security_equal
 from .sandbox import Effect, EffectConfidence
+from .yaml_input import read_yaml_document
 
 if TYPE_CHECKING:
     from .approvals import ApprovalStore
@@ -470,8 +470,7 @@ def _parse_invariant(raw: Any, path: str) -> InvariantDefinition:
 
 
 def load_invariants(path: str | Path) -> DeclarativeInvariantEngine:
-    with open(path, "r", encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = read_yaml_document(path, "invariants") or {}
 
     raw = _mapping(raw, "invariants")
     _known_keys(raw, {"version", "invariants"}, "invariants")

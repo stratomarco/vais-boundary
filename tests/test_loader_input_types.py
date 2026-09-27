@@ -52,18 +52,10 @@ def test_a_non_string_default_action_is_rejected_cleanly(tmp_path, value):
     ["1", "true", "~", "1.5", "2026-01-01", "[a, b]" ],
 )
 def test_a_non_string_key_is_reported_as_an_unknown_field(tmp_path, key):
-    """FIND-048 in the policy loader."""
-    try:
+    """FIND-048 in the policy loader. A key PyYAML cannot build at all, such as a list,
+    makes the file not a valid document, which is reported as such from rc14 (LIM-039)."""
+    with pytest.raises(PolicyValidationError, match=r"unknown field\(s\)|not a valid YAML document"):
         load_policy(write(tmp_path, "p.yaml", f"version: 1\n{key}: x\n"))
-    except PolicyValidationError as exc:
-        assert "unknown field(s)" in str(exc)
-    except Exception as exc:  # noqa: BLE001 - the point is that nothing else is raised
-        import yaml
-
-        if not isinstance(exc, yaml.YAMLError):
-            raise AssertionError(f"expected a clean rejection, got {type(exc).__name__}: {exc}")
-    else:
-        raise AssertionError("a policy with an unknown key was accepted")
 
 
 def test_a_non_string_key_is_reported_by_the_invariant_loader(tmp_path):
