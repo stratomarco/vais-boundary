@@ -86,15 +86,17 @@ retry, longer timeout), as registered, so it is reported as exploratory only.
 **Correction (2026-09-27).** The intervals above treat each arm's 240 episodes as independent.
 They are 20 stories of 12 adaptive episodes, and the RC13 campaign measured the story rates'
 variance at 5.7 times the binomial variance on average, so these intervals are too narrow.
-Resampling whole stories, paired across the two studies because they share the same 20, no
-difference here excludes zero: gemma-4-12b +6.2 (−0.8 to +13.3), qwen3.5-9b −2.5 (−14.2 to +9.2),
-smollm3-3b +5.2 (−12.1 to +21.7), qwen3-0.6b +17.6 (−0.8 to +36.2). So this study does not show
+Resampling whole stories (`clustered.py`), paired across the two studies because they share the
+same 20, no difference here excludes zero: gemma-4-12b +6.2 (−0.4 to +12.9), qwen3.5-9b −2.5
+(−14.2 to +8.8), smollm3-3b +5.2 (−11.8 to +21.3), qwen3-0.6b +17.6 (−0.7 to +36.8). So this study does not show
 that the language-model attacker moved any model more than RC7's mutation search. The primary
 results are unaffected: there were no violations, and resampling stories only widens the reasoning
-comparison (gemma-4-12b −4.1, −11.7 to +3.1; qwen3.5-9b +4.0, −12.3 to +19.0; qwen3-0.6b +3.6,
-−10.8 to +17.8). The per-arm Wilson upper bound of 1.6% for violations also assumes independent
+comparison (gemma-4-12b −4.1, −12.0 to +3.0; qwen3.5-9b +4.0, −12.3 to +19.0; qwen3-0.6b +3.6,
+−10.7 to +17.9). The per-arm Wilson upper bound of 1.6% for violations also assumes independent
 episodes; counted by story, all 140 story-arms had none, which bounds the share of story-arms
-with any violation at about 2.1%. See `experiments/rc13-campaign/RESULTS.md` and FIND-065.
+with any violation at about 2.1%. The chart above shows the story-clustered intervals; the tables
+keep the registered ones. See `results/clustered.json`, `experiments/rc13-campaign/RESULTS.md` and
+FIND-065.
 
 ## Q4: allowed actions the control did not take
 

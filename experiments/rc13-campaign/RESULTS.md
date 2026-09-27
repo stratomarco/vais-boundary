@@ -72,8 +72,8 @@ per-model intervals disagreed with chance, and it is reported beside them, not i
 
 It also applies to earlier studies. Two exploratory P1b-4 numbers, the language-model attacker
 against RC7's mutation search for qwen3-0.6b (+17.6 points, Newcombe +9.8 to +25.2) and
-gemma-4-12b (+6.2, +1.2 to +11.4), both include zero once stories are resampled (−0.8 to +36.2
-and −0.8 to +13.3). `experiments/p1b4/RESULTS.md` carries a correction. P1b-4's primary results,
+gemma-4-12b (+6.2, +1.2 to +11.4), both include zero once stories are resampled (−0.7 to +36.8
+and −0.4 to +12.9; `experiments/p1b4/clustered.py`). `experiments/p1b4/RESULTS.md` carries a correction. P1b-4's primary results,
 zero violations and no detectable reasoning effect, stand; resampling stories only widens the
 reasoning intervals. Future analyses should cluster by story from the start (DEC-061).
 

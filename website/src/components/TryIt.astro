@@ -160,7 +160,7 @@ Security property: the MCP data can influence the model, but it cannot grant its
   .links { display: flex; flex-wrap: wrap; gap: 28px; margin: 36px 0 0; font-size: .9375rem; }
 
   @media (max-width: 850px) {
-    .try-grid { grid-template-columns: 1fr; }
+    .try-grid { grid-template-columns: minmax(0, 1fr); } /* 1fr would grow to the widest code line */
   }
   @media (max-width: 580px) {
     .try { padding-block: 48px; }

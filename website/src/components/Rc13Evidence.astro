@@ -1,0 +1,90 @@
+---
+// The RC13 campaign inside the evidence section. The chart is the repository's own file and the
+// figures are read from the committed analysis.json and clustered.json at build time, so neither
+// can drift from the published results.
+import chart from '../../../experiments/rc13-campaign/rc13-attack-added.svg';
+import analysis from '../../../experiments/rc13-campaign/results/analysis.json';
+import clustered from '../../../experiments/rc13-campaign/results/clustered.json';
+
+const repo = 'https://github.com/stratomarco/vais-boundary';
+const pct = (v: number) => `${(100 * v).toFixed(1)}%`;
+const pts = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(100 * v).toFixed(1)}`;
+
+const arms = analysis.arms as Record<string, any>;
+const models = clustered.models as Record<string, { reasons_minus_outcomes: number; clustered_ci95: [number, number] }>;
+const rows = Object.keys(models).map((model) => ({
+  model,
+  reasons: arms[`${model}-reasons`],
+  outcomes: arms[`${model}-outcomes`],
+  diff: models[model],
+}));
+const q1 = analysis.q1;
+const pooled = clustered.pooled;
+const q4b = Object.values(arms).map((a: any) => a.q4.q4b_rate);
+---
+<div class="rc13">
+  <h3>Does telling the attacker why it was refused help it?</h3>
+  <p class="lead">In the pre-registered RC13 campaign a language model attacked 13 local models twice: once told the monitor’s reason for each refusal, once told only the outcome. Across {q1.evaluable.toLocaleString('en')} evaluable episodes in {q1.complete_arms} arms there {q1.protected_violations === 0 ? 'were zero' : `were ${q1.protected_violations}`} protected violations, and the reasons made no detectable difference: {pts(pooled.mean)} points pooled over models (95% interval {pts(pooled.two_level_ci95[0])} to {pts(pooled.two_level_ci95[1])}).</p>
+
+  <figure>
+    <img src={chart.src} width={chart.width} height={chart.height} loading="lazy"
+         alt={`Attack-added security event rates for 13 models, with the attacker told the monitor's reasons and told only the outcome, with story-clustered 95% intervals; ${q1.protected_violations} protected violations in every arm. The same figures are in the table below.`} />
+    <figcaption>
+      <details>
+        <summary>Show as a table</summary>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th scope="col">Model</th><th scope="col">Told the reasons</th><th scope="col">Told the outcome only</th><th scope="col">Difference, points (story-clustered 95% CI)</th><th scope="col">Protected violations</th></tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr>
+                  <th scope="row">{r.model}</th>
+                  <td>{pct(r.reasons.attack_added_rate)}</td>
+                  <td>{pct(r.outcomes.attack_added_rate)}</td>
+                  <td>{pts(r.diff.reasons_minus_outcomes)} ({pts(r.diff.clustered_ci95[0])} to {pts(r.diff.clustered_ci95[1])})</td>
+                  <td>{r.reasons.protected_violations + r.outcomes.protected_violations} of {r.reasons.evaluable + r.outcomes.evaluable}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </figcaption>
+  </figure>
+
+  <ul class="rc13-limits">
+    <li>Thirteen local models up to 15B with reasoning off, one attacker model and one runtime; bounded evidence for this setup, not proof. A stronger attacker may use the reasons differently, so the gateway still withholds them by default.</li>
+    <li>The twelve episodes of one story are not independent, so the intervals resample whole stories. Treated as independent, six models appeared to show an effect in one direction or the other; resampled, none does.</li>
+    <li>Attacks still got models to make allowed actions the task did not need, in {pct(Math.min(...q4b))} to {pct(Math.max(...q4b))} of episodes. All were reads; tenant isolation and secret flow held.</li>
+    <li>The campaign ran on the library path. Replaying its traces through the gateway gave no decision more permissive than the library’s.</li>
+  </ul>
+  <p class="evidence-links rc13-links">
+    <a href={`${repo}/blob/main/experiments/rc13-campaign/RESULTS.md`}>Read the RC13 results</a>
+    <a href={`${repo}/blob/main/experiments/rc13-campaign/PREREGISTRATION.md`}>Pre-registration and errata</a>
+    <a href={`${repo}/blob/main/experiments/gateway-equivalence/RESULTS.md`}>Gateway replay</a>
+  </p>
+</div>
+
+<style>
+  .rc13 { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+  .rc13 h3 { font-size: 1.5rem; letter-spacing: -.03em; line-height: 1.25; margin: 0 0 14px; }
+  .lead { color: var(--muted); line-height: 1.7; max-width: 820px; margin-bottom: 28px; }
+  figure { margin: 0 0 24px; }
+  img { display: block; width: 100%; max-width: 960px; height: auto; border: 1px solid var(--line); }
+  figcaption { margin-top: 12px; }
+  summary { cursor: pointer; font-size: .9375rem; color: var(--accent); }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+  table { border-collapse: collapse; margin-top: 14px; font-size: .875rem; width: 100%; max-width: 900px; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-family: Consolas, 'Courier New', monospace; font-size: .75rem; letter-spacing: .05em; text-transform: uppercase; color: #475569; font-weight: 400; }
+  tbody th { font-weight: 600; }
+  td { color: var(--muted); }
+  .rc13-limits { list-style: none; margin: 0; padding: 0; max-width: 820px; }
+  .rc13-limits li { position: relative; padding-left: 20px; margin-bottom: 12px; line-height: 1.65; color: var(--muted); font-size: .9375rem; }
+  .rc13-limits li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 1px; background: #B45309; }
+  .rc13-links { margin-top: 24px !important; }
+  @media (max-width: 580px) {
+    table { font-size: .8125rem; }
+    th, td { padding-right: 8px; }
+  }
+</style>

@@ -3,8 +3,9 @@
     .venv\\Scripts\\python.exe experiments\\p1b4\\chart.py
 
 Writes p1b4-attack-added.svg: for each model, the attack-added security-event rate with
-reasoning off and on, with Wilson 95% intervals, and the protected violations beside it
-as text. Colours are the dataviz reference pair, validated on the site's light surface;
+reasoning off and on, with story-clustered 95% intervals from results/clustered.json (the
+registered Wilson intervals treat episodes as independent and are too narrow, FIND-065), and the
+protected violations beside it as text. Colours are the dataviz reference pair, validated on the site's light surface;
 shape (circle off, square on) is a second cue, and every value is labelled in ink.
 """
 from __future__ import annotations
@@ -15,6 +16,7 @@ from xml.sax.saxutils import escape
 
 HERE = Path(__file__).resolve().parent
 ANALYSIS = HERE / "results" / "analysis.json"
+CLUSTERED = HERE / "results" / "clustered.json"
 OUT = HERE / "p1b4-attack-added.svg"
 
 OFF, ON = "#2a78d6", "#eb6834"
@@ -31,8 +33,8 @@ MODELS = [
 ]
 
 W, H = 960, 470
-PLOT_X0, PLOT_X1 = 170, 690          # x range for 0% .. 70%
-XMAX = 0.70
+PLOT_X0, PLOT_X1 = 170, 690          # x range for 0% .. 80%
+XMAX = 0.80
 ROW0, ROW_H = 118, 78
 VIOL_X = 760
 
@@ -47,16 +49,17 @@ def pct(v: float) -> str:
 
 def main() -> int:
     arms = json.loads(ANALYSIS.read_text(encoding="utf-8"))["arms"]
+    spans = json.loads(CLUSTERED.read_text(encoding="utf-8"))["arms"]
     out: list[str] = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" '
         f'aria-labelledby="t d" font-family="{FONT}">',
         '<title id="t">P1b-4: attack-added security events with reasoning off and on</title>',
         '<desc id="d">For four local models attacked by a language model, the share of episodes in which the attack '
-        'added a security-relevant action, with reasoning off and on, and 95 percent Wilson intervals. Every '
+        'added a security-relevant action, with reasoning off and on, and story-clustered 95 percent intervals. Every '
         'completed arm had zero protected violations.</desc>',
         f'<rect width="{W}" height="{H}" fill="{SURFACE}"/>',
         f'<text x="24" y="36" font-size="18" font-weight="700" fill="{INK}">Attacks changed behaviour; none got through</text>',
-        f'<text x="24" y="60" font-size="13" fill="{MUTED}">Episodes with an attack-added security event (95% Wilson interval), '
+        f'<text x="24" y="60" font-size="13" fill="{MUTED}">Episodes with an attack-added security event (story-clustered 95% interval), '
         f'and protected violations, per arm</text>',
         # legend
         f'<circle cx="30" cy="86" r="5" fill="{OFF}" stroke="{SURFACE}" stroke-width="2"/>'
@@ -66,7 +69,7 @@ def main() -> int:
         f'<text x="{VIOL_X}" y="90" font-size="12" fill="{MUTED}" font-family="{MONO}" letter-spacing=".5">PROTECTED VIOLATIONS</text>',
     ]
     # grid and axis
-    for t in range(0, 71, 10):
+    for t in range(0, 81, 10):
         gx = x(t / 100)
         out.append(f'<line x1="{gx:.1f}" y1="104" x2="{gx:.1f}" y2="{ROW0 + ROW_H * 4 - 18}" stroke="{HAIR}" stroke-width="1"/>')
         out.append(f'<text x="{gx:.1f}" y="{ROW0 + ROW_H * 4}" font-size="12" fill="{MUTED}" text-anchor="middle">{t}%</text>')
@@ -84,8 +87,8 @@ def main() -> int:
                            f'reasoning {name}: {escape(note or "did not complete")}</text>')
                 violations.append(f"{name}: —")
                 continue
-            rate, (lo, hi) = arm["attack_added_rate"], arm["attack_added_ci95"]
-            tip = (f"{label}, reasoning {name}: {pct(rate)} ({pct(lo)} to {pct(hi)}), "
+            rate, (lo, hi) = arm["attack_added_rate"], spans[arm_id]["clustered_ci95"]
+            tip = (f"{label}, reasoning {name}: {pct(rate)} (story-clustered {pct(lo)} to {pct(hi)}), "
                    f"{arm['attack_added']} of {arm['evaluable']} evaluable episodes; "
                    f"{arm['protected_violations']} protected violations")
             if arm_id.endswith("-r2"):
@@ -106,7 +109,7 @@ def main() -> int:
             out.append(f'<text x="{VIOL_X}" y="{top + 16 + j * 26}" font-size="13" fill="{INK}">{escape(v)}</text>')
 
     out.append(f'<text x="24" y="{H - 16}" font-size="11" fill="{MUTED}">Attacker: qwen2.5-7b-instruct. Local Q4_K_M weights, LM Studio. '
-               f'qwen3.5-9b "on" is the follow-up arm (Deviation 2). Source: experiments/p1b4/results/analysis.json.</text>')
+               f'qwen3.5-9b "on" is the follow-up arm (Deviation 2). Intervals resample stories. Source: experiments/p1b4/results/.</text>')
     out.append('</svg>')
     OUT.write_text("\n".join(out) + "\n", encoding="utf-8")
     print(f"wrote {OUT.name}")
