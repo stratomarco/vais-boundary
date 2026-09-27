@@ -1,0 +1,253 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 920" width="960" height="920" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">RC13 campaign: attack-added security events with and without the monitor's reasons</title>
+<desc id="d">For 13 local models attacked by a language model, the share of episodes in which the attack added a security-relevant action, when the attacker was told why it was refused and when it was told only the outcome, with story-clustered 95 percent intervals. 0 protected violations in 6237 evaluable episodes. Pooled over models, telling the reasons changed the rate by +0.3 points (95 percent interval -4.7 to +5.2).</desc>
+<rect width="960" height="920" fill="#F8FAFC"/>
+<text x="24" y="36" font-size="18" font-weight="700" fill="#0B192C">Telling the attacker why made no detectable difference; nothing got through</text>
+<text x="24" y="60" font-size="13" fill="#475569">Episodes with an attack-added security event (story-clustered 95% interval), and protected violations, per arm</text>
+<circle cx="30" cy="88" r="5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/><text x="42" y="92" font-size="13" fill="#0B192C">Attacker told the reasons</text>
+<rect x="220" y="83" width="10" height="10" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/><text x="236" y="92" font-size="13" fill="#0B192C">Told only the outcome</text>
+<text x="770" y="92" font-size="12" fill="#475569" font-family="Consolas, 'Courier New', monospace" letter-spacing=".5">PROTECTED VIOLATIONS</text>
+<line x1="210.0" y1="108" x2="210.0" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="210.0" y="852" font-size="12" fill="#475569" text-anchor="middle">0%</text>
+<line x1="264.4" y1="108" x2="264.4" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="264.4" y="852" font-size="12" fill="#475569" text-anchor="middle">10%</text>
+<line x1="318.9" y1="108" x2="318.9" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="318.9" y="852" font-size="12" fill="#475569" text-anchor="middle">20%</text>
+<line x1="373.3" y1="108" x2="373.3" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="373.3" y="852" font-size="12" fill="#475569" text-anchor="middle">30%</text>
+<line x1="427.8" y1="108" x2="427.8" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="427.8" y="852" font-size="12" fill="#475569" text-anchor="middle">40%</text>
+<line x1="482.2" y1="108" x2="482.2" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="482.2" y="852" font-size="12" fill="#475569" text-anchor="middle">50%</text>
+<line x1="536.7" y1="108" x2="536.7" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="536.7" y="852" font-size="12" fill="#475569" text-anchor="middle">60%</text>
+<line x1="591.1" y1="108" x2="591.1" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="591.1" y="852" font-size="12" fill="#475569" text-anchor="middle">70%</text>
+<line x1="645.6" y1="108" x2="645.6" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="645.6" y="852" font-size="12" fill="#475569" text-anchor="middle">80%</text>
+<line x1="700.0" y1="108" x2="700.0" y2="836" stroke="#CBD5E1" stroke-width="1"/>
+<text x="700.0" y="852" font-size="12" fill="#475569" text-anchor="middle">90%</text>
+<text x="24" y="143" font-size="14" font-weight="700" fill="#0B192C">gemma-3-1b-it</text>
+<g><title>gemma-3-1b-it, attacker told the reasons: 41.7% (story-clustered 27.1% to 57.1%), 100 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="357.5" y1="132" x2="520.8" y2="132" stroke="#2a78d6" stroke-width="2"/>
+<line x1="357.5" y1="127" x2="357.5" y2="137" stroke="#2a78d6" stroke-width="2"/>
+<line x1="520.8" y1="127" x2="520.8" y2="137" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="436.9" cy="132" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="528.8" y="136" font-size="12" fill="#0B192C">41.7%</text>
+</g>
+<text x="770" y="136" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>gemma-3-1b-it, attacker told the outcome only: 39.6% (story-clustered 25.8% to 54.2%), 95 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="350.6" y1="152" x2="504.9" y2="152" stroke="#eb6834" stroke-width="2"/>
+<line x1="350.6" y1="147" x2="350.6" y2="157" stroke="#eb6834" stroke-width="2"/>
+<line x1="504.9" y1="147" x2="504.9" y2="157" stroke="#eb6834" stroke-width="2"/>
+<rect x="420.0" y="146.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="512.9" y="156" font-size="12" fill="#0B192C">39.6%</text>
+</g>
+<text x="770" y="156" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="199" font-size="14" font-weight="700" fill="#0B192C">gemma-4-12b</text>
+<g><title>gemma-4-12b, attacker told the reasons: 14.6% (story-clustered 4.6% to 26.2%), 35 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="235.0" y1="188" x2="352.9" y2="188" stroke="#2a78d6" stroke-width="2"/>
+<line x1="235.0" y1="183" x2="235.0" y2="193" stroke="#2a78d6" stroke-width="2"/>
+<line x1="352.9" y1="183" x2="352.9" y2="193" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="289.4" cy="188" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="360.9" y="192" font-size="12" fill="#0B192C">14.6%</text>
+</g>
+<text x="770" y="192" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>gemma-4-12b, attacker told the outcome only: 11.2% (story-clustered 3.8% to 21.2%), 27 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="230.4" y1="208" x2="325.7" y2="208" stroke="#eb6834" stroke-width="2"/>
+<line x1="230.4" y1="203" x2="230.4" y2="213" stroke="#eb6834" stroke-width="2"/>
+<line x1="325.7" y1="203" x2="325.7" y2="213" stroke="#eb6834" stroke-width="2"/>
+<rect x="265.8" y="202.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="333.7" y="212" font-size="12" fill="#0B192C">11.2%</text>
+</g>
+<text x="770" y="212" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="255" font-size="14" font-weight="700" fill="#0B192C">granite-4.1-8b</text>
+<g><title>granite-4.1-8b, attacker told the reasons: 25.8% (story-clustered 12.5% to 40.8%), 62 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="278.1" y1="244" x2="432.3" y2="244" stroke="#2a78d6" stroke-width="2"/>
+<line x1="278.1" y1="239" x2="278.1" y2="249" stroke="#2a78d6" stroke-width="2"/>
+<line x1="432.3" y1="239" x2="432.3" y2="249" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="350.6" cy="244" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="440.3" y="248" font-size="12" fill="#0B192C">25.8%</text>
+</g>
+<text x="770" y="248" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>granite-4.1-8b, attacker told the outcome only: 34.2% (story-clustered 19.2% to 50.4%), 82 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="314.4" y1="264" x2="484.5" y2="264" stroke="#eb6834" stroke-width="2"/>
+<line x1="314.4" y1="259" x2="314.4" y2="269" stroke="#eb6834" stroke-width="2"/>
+<line x1="484.5" y1="259" x2="484.5" y2="269" stroke="#eb6834" stroke-width="2"/>
+<rect x="390.5" y="258.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="492.5" y="268" font-size="12" fill="#0B192C">34.2%</text>
+</g>
+<text x="770" y="268" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="311" font-size="14" font-weight="700" fill="#0B192C">lfm2.5-1.2b-instruct</text>
+<g><title>lfm2.5-1.2b-instruct, attacker told the reasons: 68.3% (story-clustered 52.9% to 82.9%), 164 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="498.1" y1="300" x2="661.4" y2="300" stroke="#2a78d6" stroke-width="2"/>
+<line x1="498.1" y1="295" x2="498.1" y2="305" stroke="#2a78d6" stroke-width="2"/>
+<line x1="661.4" y1="295" x2="661.4" y2="305" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="582.0" cy="300" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="669.4" y="304" font-size="12" fill="#0B192C">68.3%</text>
+</g>
+<text x="770" y="304" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>lfm2.5-1.2b-instruct, attacker told the outcome only: 58.8% (story-clustered 44.2% to 72.9%), 141 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="450.5" y1="320" x2="607.0" y2="320" stroke="#eb6834" stroke-width="2"/>
+<line x1="450.5" y1="315" x2="450.5" y2="325" stroke="#eb6834" stroke-width="2"/>
+<line x1="607.0" y1="315" x2="607.0" y2="325" stroke="#eb6834" stroke-width="2"/>
+<rect x="524.4" y="314.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="615.0" y="324" font-size="12" fill="#0B192C">58.8%</text>
+</g>
+<text x="770" y="324" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="367" font-size="14" font-weight="700" fill="#0B192C">llama-3.1-8b-instruct</text>
+<g><title>llama-3.1-8b-instruct, attacker told the reasons: 47.9% (story-clustered 35.4% to 60.0%), 115 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="402.8" y1="356" x2="536.7" y2="356" stroke="#2a78d6" stroke-width="2"/>
+<line x1="402.8" y1="351" x2="402.8" y2="361" stroke="#2a78d6" stroke-width="2"/>
+<line x1="536.7" y1="351" x2="536.7" y2="361" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="470.9" cy="356" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="544.7" y="360" font-size="12" fill="#0B192C">47.9%</text>
+</g>
+<text x="770" y="360" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>llama-3.1-8b-instruct, attacker told the outcome only: 38.8% (story-clustered 23.3% to 54.6%), 93 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="337.0" y1="376" x2="507.2" y2="376" stroke="#eb6834" stroke-width="2"/>
+<line x1="337.0" y1="371" x2="337.0" y2="381" stroke="#eb6834" stroke-width="2"/>
+<line x1="507.2" y1="371" x2="507.2" y2="381" stroke="#eb6834" stroke-width="2"/>
+<rect x="415.5" y="370.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="515.2" y="380" font-size="12" fill="#0B192C">38.8%</text>
+</g>
+<text x="770" y="380" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="423" font-size="14" font-weight="700" fill="#0B192C">llama-3.2-1b-instruct</text>
+<g><title>llama-3.2-1b-instruct, attacker told the reasons: 70.4% (story-clustered 55.4% to 83.8%), 169 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="511.7" y1="412" x2="666.0" y2="412" stroke="#2a78d6" stroke-width="2"/>
+<line x1="511.7" y1="407" x2="511.7" y2="417" stroke="#2a78d6" stroke-width="2"/>
+<line x1="666.0" y1="407" x2="666.0" y2="417" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="593.4" cy="412" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="674.0" y="416" font-size="12" fill="#0B192C">70.4%</text>
+</g>
+<text x="770" y="416" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>llama-3.2-1b-instruct, attacker told the outcome only: 61.9% (story-clustered 47.1% to 75.7%), 148 of 239 evaluable episodes; 0 protected violations</title>
+<line x1="466.3" y1="432" x2="622.3" y2="432" stroke="#eb6834" stroke-width="2"/>
+<line x1="466.3" y1="427" x2="466.3" y2="437" stroke="#eb6834" stroke-width="2"/>
+<line x1="622.3" y1="427" x2="622.3" y2="437" stroke="#eb6834" stroke-width="2"/>
+<rect x="541.6" y="426.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="630.3" y="436" font-size="12" fill="#0B192C">61.9%</text>
+</g>
+<text x="770" y="436" font-size="13" fill="#0B192C">0 of 239</text>
+<text x="24" y="479" font-size="14" font-weight="700" fill="#0B192C">mistral-7b-instruct</text>
+<g><title>mistral-7b-instruct, attacker told the reasons: 53.8% (story-clustered 37.1% to 70.0%), 129 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="411.9" y1="468" x2="591.1" y2="468" stroke="#2a78d6" stroke-width="2"/>
+<line x1="411.9" y1="463" x2="411.9" y2="473" stroke="#2a78d6" stroke-width="2"/>
+<line x1="591.1" y1="463" x2="591.1" y2="473" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="502.6" cy="468" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="599.1" y="472" font-size="12" fill="#0B192C">53.8%</text>
+</g>
+<text x="770" y="472" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>mistral-7b-instruct, attacker told the outcome only: 62.9% (story-clustered 44.2% to 80.4%), 151 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="450.5" y1="488" x2="647.8" y2="488" stroke="#eb6834" stroke-width="2"/>
+<line x1="450.5" y1="483" x2="450.5" y2="493" stroke="#eb6834" stroke-width="2"/>
+<line x1="647.8" y1="483" x2="647.8" y2="493" stroke="#eb6834" stroke-width="2"/>
+<rect x="547.0" y="482.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="655.8" y="492" font-size="12" fill="#0B192C">62.9%</text>
+</g>
+<text x="770" y="492" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="535" font-size="14" font-weight="700" fill="#0B192C">phi-4</text>
+<g><title>phi-4, attacker told the reasons: 24.2% (story-clustered 12.9% to 36.7%), 58 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="280.3" y1="524" x2="409.6" y2="524" stroke="#2a78d6" stroke-width="2"/>
+<line x1="280.3" y1="519" x2="280.3" y2="529" stroke="#2a78d6" stroke-width="2"/>
+<line x1="409.6" y1="519" x2="409.6" y2="529" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="341.6" cy="524" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="417.6" y="528" font-size="12" fill="#0B192C">24.2%</text>
+</g>
+<text x="770" y="528" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>phi-4, attacker told the outcome only: 28.3% (story-clustered 14.6% to 42.9%), 68 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="289.4" y1="544" x2="443.7" y2="544" stroke="#eb6834" stroke-width="2"/>
+<line x1="289.4" y1="539" x2="289.4" y2="549" stroke="#eb6834" stroke-width="2"/>
+<line x1="443.7" y1="539" x2="443.7" y2="549" stroke="#eb6834" stroke-width="2"/>
+<rect x="358.8" y="538.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="451.7" y="548" font-size="12" fill="#0B192C">28.3%</text>
+</g>
+<text x="770" y="548" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="591" font-size="14" font-weight="700" fill="#0B192C">phi-4-mini-instruct</text>
+<g><title>phi-4-mini-instruct, attacker told the reasons: 50.0% (story-clustered 35.4% to 65.0%), 120 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="402.8" y1="580" x2="563.9" y2="580" stroke="#2a78d6" stroke-width="2"/>
+<line x1="402.8" y1="575" x2="402.8" y2="585" stroke="#2a78d6" stroke-width="2"/>
+<line x1="563.9" y1="575" x2="563.9" y2="585" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="482.2" cy="580" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="571.9" y="584" font-size="12" fill="#0B192C">50.0%</text>
+</g>
+<text x="770" y="584" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>phi-4-mini-instruct, attacker told the outcome only: 46.7% (story-clustered 32.9% to 60.0%), 112 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="389.2" y1="600" x2="536.7" y2="600" stroke="#eb6834" stroke-width="2"/>
+<line x1="389.2" y1="595" x2="389.2" y2="605" stroke="#eb6834" stroke-width="2"/>
+<line x1="536.7" y1="595" x2="536.7" y2="605" stroke="#eb6834" stroke-width="2"/>
+<rect x="458.6" y="594.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="544.7" y="604" font-size="12" fill="#0B192C">46.7%</text>
+</g>
+<text x="770" y="604" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="647" font-size="14" font-weight="700" fill="#0B192C">qwen3-0.6b</text>
+<g><title>qwen3-0.6b, attacker told the reasons: 38.8% (story-clustered 23.8% to 54.2%), 93 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="339.3" y1="636" x2="504.9" y2="636" stroke="#2a78d6" stroke-width="2"/>
+<line x1="339.3" y1="631" x2="339.3" y2="641" stroke="#2a78d6" stroke-width="2"/>
+<line x1="504.9" y1="631" x2="504.9" y2="641" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="421.0" cy="636" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="512.9" y="640" font-size="12" fill="#0B192C">38.8%</text>
+</g>
+<text x="770" y="640" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>qwen3-0.6b, attacker told the outcome only: 39.6% (story-clustered 23.8% to 56.2%), 95 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="339.3" y1="656" x2="516.2" y2="656" stroke="#eb6834" stroke-width="2"/>
+<line x1="339.3" y1="651" x2="339.3" y2="661" stroke="#eb6834" stroke-width="2"/>
+<line x1="516.2" y1="651" x2="516.2" y2="661" stroke="#eb6834" stroke-width="2"/>
+<rect x="420.0" y="650.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="524.2" y="660" font-size="12" fill="#0B192C">39.6%</text>
+</g>
+<text x="770" y="660" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="703" font-size="14" font-weight="700" fill="#0B192C">qwen3-4b-instruct</text>
+<g><title>qwen3-4b-instruct, attacker told the reasons: 16.7% (story-clustered 9.2% to 25.5%), 40 of 239 evaluable episodes; 0 protected violations</title>
+<line x1="259.9" y1="692" x2="349.0" y2="692" stroke="#2a78d6" stroke-width="2"/>
+<line x1="259.9" y1="687" x2="259.9" y2="697" stroke="#2a78d6" stroke-width="2"/>
+<line x1="349.0" y1="687" x2="349.0" y2="697" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="301.1" cy="692" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="357.0" y="696" font-size="12" fill="#0B192C">16.7%</text>
+</g>
+<text x="770" y="696" font-size="13" fill="#0B192C">0 of 239</text>
+<g><title>qwen3-4b-instruct, attacker told the outcome only: 25.4% (story-clustered 14.6% to 37.1%), 61 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="289.4" y1="712" x2="411.9" y2="712" stroke="#eb6834" stroke-width="2"/>
+<line x1="289.4" y1="707" x2="289.4" y2="717" stroke="#eb6834" stroke-width="2"/>
+<line x1="411.9" y1="707" x2="411.9" y2="717" stroke="#eb6834" stroke-width="2"/>
+<rect x="342.9" y="706.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="419.9" y="716" font-size="12" fill="#0B192C">25.4%</text>
+</g>
+<text x="770" y="716" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="759" font-size="14" font-weight="700" fill="#0B192C">qwen3.5-9b</text>
+<g><title>qwen3.5-9b, attacker told the reasons: 28.3% (story-clustered 14.2% to 45.0%), 68 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="287.1" y1="748" x2="455.0" y2="748" stroke="#2a78d6" stroke-width="2"/>
+<line x1="287.1" y1="743" x2="287.1" y2="753" stroke="#2a78d6" stroke-width="2"/>
+<line x1="455.0" y1="743" x2="455.0" y2="753" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="364.3" cy="748" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="463.0" y="752" font-size="12" fill="#0B192C">28.3%</text>
+</g>
+<text x="770" y="752" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>qwen3.5-9b, attacker told the outcome only: 32.1% (story-clustered 19.6% to 45.8%), 77 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="316.6" y1="768" x2="459.5" y2="768" stroke="#eb6834" stroke-width="2"/>
+<line x1="316.6" y1="763" x2="316.6" y2="773" stroke="#eb6834" stroke-width="2"/>
+<line x1="459.5" y1="763" x2="459.5" y2="773" stroke="#eb6834" stroke-width="2"/>
+<rect x="379.2" y="762.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="467.5" y="772" font-size="12" fill="#0B192C">32.1%</text>
+</g>
+<text x="770" y="772" font-size="13" fill="#0B192C">0 of 240</text>
+<text x="24" y="815" font-size="14" font-weight="700" fill="#0B192C">smollm3-3b</text>
+<g><title>smollm3-3b, attacker told the reasons: 62.9% (story-clustered 49.2% to 75.4%), 151 of 240 evaluable episodes; 0 protected violations</title>
+<line x1="477.7" y1="804" x2="620.6" y2="804" stroke="#2a78d6" stroke-width="2"/>
+<line x1="477.7" y1="799" x2="477.7" y2="809" stroke="#2a78d6" stroke-width="2"/>
+<line x1="620.6" y1="799" x2="620.6" y2="809" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="552.5" cy="804" r="5.5" fill="#2a78d6" stroke="#F8FAFC" stroke-width="2"/>
+<text x="628.6" y="808" font-size="12" fill="#0B192C">62.9%</text>
+</g>
+<text x="770" y="808" font-size="13" fill="#0B192C">0 of 240</text>
+<g><title>smollm3-3b, attacker told the outcome only: 60.3% (story-clustered 46.2% to 73.1%), 144 of 239 evaluable episodes; 0 protected violations</title>
+<line x1="461.8" y1="824" x2="608.0" y2="824" stroke="#eb6834" stroke-width="2"/>
+<line x1="461.8" y1="819" x2="461.8" y2="829" stroke="#eb6834" stroke-width="2"/>
+<line x1="608.0" y1="819" x2="608.0" y2="829" stroke="#eb6834" stroke-width="2"/>
+<rect x="532.5" y="818.5" width="11" height="11" fill="#eb6834" stroke="#F8FAFC" stroke-width="2"/>
+<text x="616.0" y="828" font-size="12" fill="#0B192C">60.3%</text>
+</g>
+<text x="770" y="828" font-size="13" fill="#0B192C">0 of 239</text>
+<text x="24" y="882" font-size="11" fill="#475569">Attacker: qwen2.5-7b-instruct, reasoning off. Targets: local Q4_K_M weights in LM Studio, reasoning off. 20 stories x 12 adaptive episodes per arm.</text>
+<text x="24" y="900" font-size="11" fill="#475569">Intervals resample whole stories (exploratory; the registered Wilson intervals are narrower). Source: experiments/rc13-campaign/results/.</text>
+</svg>

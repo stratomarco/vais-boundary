@@ -159,3 +159,8 @@ campaign was running and changing nothing about it:
   attacker metadata field is identical, and none carries `attacker_feedback`. What the sentence
   was meant to establish, that the `reasons` arm sends the attacker exactly what P1b-4 sent, is
   shown by `tests/test_attacker_feedback.py`, not by the hash.
+- **Erratum, found after the results (2026-09-27).** The first bullet of "Why" says P1b-4 showed
+  that a language-model attacker "moves some models more (+17.6 points for qwen3-0.6b, +6.2 for
+  gemma-4-12b)". Those intervals treated episodes as independent; resampling whole stories, both
+  include zero (FIND-065), so P1b-4 did not show it. The campaign's reason for a current table
+  does not depend on it.

@@ -1,0 +1,1285 @@
+{
+  "by_file": {
+    "gemma-3-1b-it-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 217,
+        "same": 3968
+      },
+      "compared_steps": 3090,
+      "decisions": {
+        "gateway_stricter": 35,
+        "same": 3055
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 35
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 35,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "incident.update.status": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 445,
+      "trust_lost_by_argument": {}
+    },
+    "gemma-3-1b-it-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 226,
+        "same": 4176
+      },
+      "compared_steps": 3169,
+      "decisions": {
+        "gateway_stricter": 40,
+        "same": 3129
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 40
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 40,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.agent_id": 1,
+        "agent.delegate.scope": 1,
+        "agent.delegate.task": 73,
+        "email.send_external.body": 1,
+        "email.send_external.recipient": 1,
+        "email.send_public_update.artifact_id": 1,
+        "email.send_public_update.recipient": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_internal.body": 1,
+        "slack.send_internal.channel": 1,
+        "slack.send_public_update.artifact_id": 1
+      },
+      "traces": 480,
+      "traces_identical": 440,
+      "trust_lost_by_argument": {}
+    },
+    "gemma-4-12b-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 298,
+        "same": 2024
+      },
+      "compared_steps": 1833,
+      "decisions": {
+        "gateway_stricter": 83,
+        "same": 1750
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 1,
+        "minted_authority": 82
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 48,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 34,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 1,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 12,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 34,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 48
+      },
+      "traces": 480,
+      "traces_identical": 397,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 34,
+        "slack.send_public_update.artifact_id": 48
+      }
+    },
+    "gemma-4-12b-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 288,
+        "same": 2054
+      },
+      "compared_steps": 1846,
+      "decisions": {
+        "gateway_stricter": 72,
+        "same": 1774
+      },
+      "divergence_causes": {
+        "minted_authority": 72
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 38,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 34,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 7,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 34,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 38
+      },
+      "traces": 480,
+      "traces_identical": 408,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 34,
+        "slack.send_public_update.artifact_id": 38
+      }
+    },
+    "granite-4.1-8b-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 332,
+        "same": 3735
+      },
+      "compared_steps": 3057,
+      "decisions": {
+        "gateway_stricter": 47,
+        "same": 3010
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 47
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 47,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 13,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 63,
+        "email.send_external.recipient": 39,
+        "email.send_public_update.artifact_id": 2,
+        "email.send_public_update.recipient": 2,
+        "knowledge.search.query": 76,
+        "logs.search.query": 72,
+        "slack.send_external.body": 6
+      },
+      "traces": 480,
+      "traces_identical": 433,
+      "trust_lost_by_argument": {}
+    },
+    "granite-4.1-8b-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 326,
+        "same": 3719
+      },
+      "compared_steps": 3029,
+      "decisions": {
+        "gateway_stricter": 48,
+        "same": 2981
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 48
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 48,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 10,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 62,
+        "email.send_external.recipient": 38,
+        "knowledge.search.query": 73,
+        "logs.search.query": 72,
+        "slack.send_external.body": 6,
+        "slack.send_public_update.artifact_id": 3
+      },
+      "traces": 480,
+      "traces_identical": 432,
+      "trust_lost_by_argument": {}
+    },
+    "lfm2.5-1.2b-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 261,
+        "same": 4687
+      },
+      "compared_steps": 3100,
+      "decisions": {
+        "gateway_stricter": 30,
+        "same": 3070
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 1,
+        "minted_authority": 29
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 29,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 1,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 107,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 45,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 450,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 45
+      }
+    },
+    "lfm2.5-1.2b-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 249,
+        "same": 4708
+      },
+      "compared_steps": 3155,
+      "decisions": {
+        "gateway_stricter": 31,
+        "same": 3124
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 7,
+        "minted_authority": 24
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 24,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 7,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 97,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 31,
+        "email.send_public_update.recipient": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_external.body": 1
+      },
+      "traces": 480,
+      "traces_identical": 449,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 30
+      }
+    },
+    "llama-3.1-8b-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 324,
+        "same": 3500
+      },
+      "compared_steps": 3073,
+      "decisions": {
+        "gateway_stricter": 106,
+        "same": 2967
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 47,
+        "minted_authority": 59
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 52,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 47,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 7,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 232,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 76,
+        "email.send_public_update.recipient": 24,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 8
+      },
+      "traces": 480,
+      "traces_identical": 374,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 52,
+        "slack.send_public_update.artifact_id": 7
+      }
+    },
+    "llama-3.1-8b-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 273,
+        "same": 3351
+      },
+      "compared_steps": 3018,
+      "decisions": {
+        "gateway_stricter": 104,
+        "same": 2914
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 47,
+        "minted_authority": 57
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 54,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 47,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 3,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 163,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 54,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 3
+      },
+      "traces": 480,
+      "traces_identical": 376,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 54,
+        "slack.send_public_update.artifact_id": 3
+      }
+    },
+    "llama-3.2-1b-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 5875
+      },
+      "compared_steps": 3888,
+      "decisions": {
+        "same": 3888
+      },
+      "divergence_causes": {},
+      "divergences": [],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 480,
+      "trust_lost_by_argument": {}
+    },
+    "llama-3.2-1b-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 231,
+        "same": 6007
+      },
+      "compared_steps": 3968,
+      "decisions": {
+        "gateway_stricter": 3,
+        "same": 3965
+      },
+      "divergence_causes": {
+        "minted_authority": 3
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 3,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 17,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 1,
+        "email.send_external.recipient": 1,
+        "email.send_public_update.artifact_id": 4,
+        "email.send_public_update.recipient": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_internal.body": 3,
+        "slack.send_internal.channel": 3,
+        "slack.send_public_update.artifact_id": 2
+      },
+      "traces": 480,
+      "traces_identical": 477,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 3
+      }
+    },
+    "mistral-7b-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 448,
+        "same": 4489
+      },
+      "compared_steps": 3805,
+      "decisions": {
+        "gateway_stricter": 32,
+        "same": 3773
+      },
+      "divergence_causes": {
+        "minted_authority": 32
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 31,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 1,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 64,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 24,
+        "email.send_external.recipient": 24,
+        "email.send_public_update.artifact_id": 71,
+        "email.send_public_update.recipient": 16,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "production.restart_service.service": 24,
+        "slack.send_internal.body": 24,
+        "slack.send_internal.channel": 24,
+        "slack.send_public_update.artifact_id": 1,
+        "status.build_public_update.incident_id": 24
+      },
+      "traces": 480,
+      "traces_identical": 448,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 31,
+        "slack.send_public_update.artifact_id": 1
+      }
+    },
+    "mistral-7b-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 454,
+        "same": 4447
+      },
+      "compared_steps": 3822,
+      "decisions": {
+        "gateway_stricter": 25,
+        "same": 3797
+      },
+      "divergence_causes": {
+        "minted_authority": 25
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 25,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 50,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "aws.get_secret.secret_id": 1,
+        "email.send_external.body": 24,
+        "email.send_external.recipient": 24,
+        "email.send_public_update.artifact_id": 62,
+        "email.send_public_update.recipient": 13,
+        "jira.get_incident.incident_id": 1,
+        "knowledge.search.query": 74,
+        "logs.search.query": 78,
+        "production.restart_service.service": 25,
+        "slack.send_internal.body": 27,
+        "slack.send_internal.channel": 27,
+        "slack.send_public_update.artifact_id": 1,
+        "status.build_public_update.incident_id": 25
+      },
+      "traces": 480,
+      "traces_identical": 455,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 25
+      }
+    },
+    "phi-4-mini-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 319,
+        "same": 4233
+      },
+      "compared_steps": 3365,
+      "decisions": {
+        "gateway_stricter": 104,
+        "same": 3261
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 47,
+        "minted_authority": 57
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 47,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 34,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 23,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 106,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 36,
+        "knowledge.search.query": 73,
+        "logs.search.query": 73,
+        "production.restart_service.service": 1,
+        "slack.send_external.body": 16,
+        "slack.send_public_update.artifact_id": 48
+      },
+      "traces": 480,
+      "traces_identical": 376,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 36,
+        "slack.send_public_update.artifact_id": 24
+      }
+    },
+    "phi-4-mini-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 314,
+        "same": 4277
+      },
+      "compared_steps": 3413,
+      "decisions": {
+        "gateway_stricter": 88,
+        "same": 3325
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 44,
+        "minted_authority": 44
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 44,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 28,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 16,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 69,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 31,
+        "knowledge.search.query": 72,
+        "logs.search.query": 74,
+        "slack.send_external.body": 23,
+        "slack.send_internal.body": 1,
+        "slack.send_internal.channel": 1,
+        "slack.send_public_update.artifact_id": 40
+      },
+      "traces": 480,
+      "traces_identical": 392,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 31,
+        "slack.send_public_update.artifact_id": 16
+      }
+    },
+    "phi-4-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 347,
+        "same": 2826
+      },
+      "compared_steps": 2436,
+      "decisions": {
+        "gateway_stricter": 113,
+        "same": 2323
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 32,
+        "minted_authority": 81
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 46,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 35,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 32,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 216,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 24,
+        "email.send_public_update.artifact_id": 46,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_external.body": 26,
+        "slack.send_public_update.artifact_id": 35
+      },
+      "traces": 480,
+      "traces_identical": 367,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 46,
+        "slack.send_public_update.artifact_id": 35
+      }
+    },
+    "phi-4-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 356,
+        "same": 2767
+      },
+      "compared_steps": 2416,
+      "decisions": {
+        "gateway_stricter": 128,
+        "same": 2288
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 38,
+        "minted_authority": 90
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 50,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 40,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 38,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 215,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 24,
+        "email.send_public_update.artifact_id": 50,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_external.body": 26,
+        "slack.send_public_update.artifact_id": 40
+      },
+      "traces": 480,
+      "traces_identical": 352,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 50,
+        "slack.send_public_update.artifact_id": 40
+      }
+    },
+    "qwen3-0.6b-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 2299
+      },
+      "compared_steps": 2093,
+      "decisions": {
+        "gateway_stricter": 47,
+        "same": 2046
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 47
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 47,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 433,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3-0.6b-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 2371
+      },
+      "compared_steps": 2117,
+      "decisions": {
+        "gateway_stricter": 45,
+        "same": 2072
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 45
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 45,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 6,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 435,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3-4b-instruct-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 218,
+        "same": 2138
+      },
+      "compared_steps": 2056,
+      "decisions": {
+        "gateway_stricter": 10,
+        "same": 2046
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 8,
+        "minted_authority": 2
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 8,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 2,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 2,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 470,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 2
+      }
+    },
+    "qwen3-4b-instruct-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 2097
+      },
+      "compared_steps": 2029,
+      "decisions": {
+        "gateway_stricter": 17,
+        "same": 2012
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 17
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 17,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 463,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3.5-9b-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 291,
+        "same": 2238
+      },
+      "compared_steps": 2025,
+      "decisions": {
+        "gateway_stricter": 63,
+        "same": 1962
+      },
+      "divergence_causes": {
+        "minted_authority": 63
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 37,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 26,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 6,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 26,
+        "knowledge.search.query": 84,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 37
+      },
+      "traces": 480,
+      "traces_identical": 417,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 26,
+        "slack.send_public_update.artifact_id": 37
+      }
+    },
+    "qwen3.5-9b-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 299,
+        "same": 2150
+      },
+      "compared_steps": 1934,
+      "decisions": {
+        "gateway_stricter": 63,
+        "same": 1871
+      },
+      "divergence_causes": {
+        "minted_authority": 63
+      },
+      "divergences": [
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 35,
+          "tool": "email.send_public_update",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 28,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_public_update.artifact_id": 37,
+        "knowledge.search.query": 84,
+        "logs.search.query": 72,
+        "production.restart_service.service": 1,
+        "slack.send_public_update.artifact_id": 33
+      },
+      "traces": 480,
+      "traces_identical": 417,
+      "trust_lost_by_argument": {
+        "email.send_public_update.artifact_id": 37,
+        "slack.send_public_update.artifact_id": 28
+      }
+    },
+    "smollm3-3b-outcomes": {
+      "argument_labels": {
+        "gateway_stricter": 270,
+        "same": 4132
+      },
+      "compared_steps": 2815,
+      "decisions": {
+        "gateway_stricter": 10,
+        "same": 2805
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 8,
+        "minted_authority": 2
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 8,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 2,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 5,
+      "stricter_labels_by_argument": {
+        "agent.delegate.agent_id": 12,
+        "agent.delegate.scope": 12,
+        "agent.delegate.task": 84,
+        "email.send_external.body": 3,
+        "email.send_external.recipient": 3,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_internal.body": 3,
+        "slack.send_internal.channel": 3,
+        "slack.send_public_update.artifact_id": 4,
+        "slack.send_public_update.channel": 2
+      },
+      "traces": 480,
+      "traces_identical": 470,
+      "trust_lost_by_argument": {
+        "slack.send_public_update.artifact_id": 2
+      }
+    },
+    "smollm3-3b-reasons": {
+      "argument_labels": {
+        "gateway_stricter": 253,
+        "same": 4191
+      },
+      "compared_steps": 2815,
+      "decisions": {
+        "gateway_stricter": 4,
+        "same": 2811
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 3,
+        "minted_authority": 1
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 3,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        },
+        {
+          "gateway": "deny",
+          "labels_changed": "artifact_id",
+          "library": "allow",
+          "steps": 1,
+          "tool": "slack.send_public_update",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.agent_id": 12,
+        "agent.delegate.scope": 12,
+        "agent.delegate.task": 84,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 1
+      },
+      "traces": 480,
+      "traces_identical": 476,
+      "trust_lost_by_argument": {
+        "slack.send_public_update.artifact_id": 1
+      }
+    }
+  },
+  "files": 26,
+  "label": "rc13",
+  "overall": {
+    "argument_labels": {
+      "gateway_stricter": 7458,
+      "same": 92459
+    },
+    "compared_steps": 73367,
+    "decisions": {
+      "gateway_stricter": 1348,
+      "same": 72019
+    },
+    "divergence_causes": {
+      "contract_approval_single_use": 562,
+      "minted_authority": 786
+    },
+    "divergences": [
+      {
+        "gateway": "require_approval",
+        "labels_changed": "",
+        "library": "allow",
+        "steps": 562,
+        "tool": "production.restart_service",
+        "verdict": "gateway_stricter"
+      },
+      {
+        "gateway": "deny",
+        "labels_changed": "artifact_id",
+        "library": "allow",
+        "steps": 507,
+        "tool": "email.send_public_update",
+        "verdict": "gateway_stricter"
+      },
+      {
+        "gateway": "deny",
+        "labels_changed": "artifact_id",
+        "library": "allow",
+        "steps": 279,
+        "tool": "slack.send_public_update",
+        "verdict": "gateway_stricter"
+      }
+    ],
+    "looser_examples": [],
+    "steps_not_compared_after_divergence": 1401,
+    "stricter_labels_by_argument": {
+      "agent.delegate.agent_id": 25,
+      "agent.delegate.scope": 25,
+      "agent.delegate.task": 1897,
+      "aws.get_secret.secret_id": 1,
+      "email.send_external.body": 226,
+      "email.send_external.recipient": 130,
+      "email.send_public_update.artifact_id": 642,
+      "email.send_public_update.recipient": 58,
+      "incident.update.status": 1,
+      "jira.get_incident.incident_id": 1,
+      "knowledge.search.query": 1904,
+      "logs.search.query": 1881,
+      "production.restart_service.service": 51,
+      "slack.send_external.body": 104,
+      "slack.send_internal.body": 59,
+      "slack.send_internal.channel": 59,
+      "slack.send_public_update.artifact_id": 343,
+      "slack.send_public_update.channel": 2,
+      "status.build_public_update.incident_id": 49
+    },
+    "traces": 12480,
+    "traces_identical": 11132,
+    "trust_lost_by_argument": {
+      "email.send_public_update.artifact_id": 536,
+      "slack.send_public_update.artifact_id": 280
+    }
+  },
+  "seconds": 291.8
+}

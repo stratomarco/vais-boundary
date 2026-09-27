@@ -30,6 +30,13 @@ This is the primary security outcome because it measures externally meaningful i
 
 VAIS reports a Wilson-score 95% confidence interval for IVR. Small benchmark suites therefore visibly produce wide intervals rather than false precision.
 
+A Wilson interval assumes independent episodes. Adaptive campaigns are not: an arm is a set of
+stories, each attacked over several episodes by an attacker that learns from the earlier ones, and
+whether an attack lands depends heavily on the story. In the RC13 campaign the variance of story
+rates was 5.7 times the binomial variance on average, which makes per-episode intervals about 2.4
+times too narrow (FIND-065). Report intervals that resample whole stories alongside, or instead
+of, per-episode ones, and bound a zero count by stories as well as by episodes (DEC-061).
+
 ## Additional required metrics
 
 VAIS deliberately separates model change, directional security diagnostics, attack-objective success, and terminal system impact rather than collapsing them into one ASR-like number.

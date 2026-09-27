@@ -109,6 +109,20 @@ labels. The same tests pin the only cause on the deterministic reference targets
 reused contract approval is named, so a new cause, or a looser step, fails the suite. Against the
 unfixed monitor, the FIND-062 tests and the replay test fail.
 
+## The RC13 campaign's traces
+
+The campaign ran on the library path and promised this replay of its traces (its
+pre-registration, "Out of scope: the gateway path"). With the fixed monitor:
+
+| Source | Traces | Identical | Steps compared | Stricter decisions | Looser decisions | Stricter labels | Looser labels |
+|---|---|---|---|---|---|---|---|
+| RC13 campaign, 26 arms | 12,480 | 11,132 (89.2%) | 73,367 | 1,348 | **0** | 7,458 | **0** |
+
+1,401 steps after a first divergence were not compared. Every stricter decision had a known cause:
+a contract approval used again (562 restart steps) or the declassifier's artifact id (507 email
+and 279 Slack public-update steps). Again the artifact id was the only argument that lost trust.
+`summary-rc13.json` is the output.
+
 ## What this does not show
 
 - It replays recorded agents. An agent behind the gateway that was refused something would have
@@ -134,3 +148,5 @@ python experiments/gateway-equivalence/replay.py rc7 <rc7 evidence>/*-full.jsonl
 
 P1b-4 takes about a minute, RC7 about three. `summary-p1b4.json` and `summary-rc7.json` are the
 fixed run; `summary-*-as-found.json` are the same replay with the monitor as released in 0.12.0rc13.
+`summary-rc13.json` is the campaign's replay, run the same way over
+`experiments/rc13-campaign/results/*/full.jsonl`.

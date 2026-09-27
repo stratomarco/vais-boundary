@@ -173,3 +173,6 @@ limitations:
 
   - id: LIM-068
     limitation: A gateway contract is an operator's file, fixed for the session, so a value a trusted application transform creates during the session cannot become authority at the gateway. The reference application's declassifier mints a public artifact id that the library path binds into the contract, and the send tools require it trusted; behind the gateway the agent passes it back as model output and the send is denied. Workflows that depend on application-minted authority lose utility behind the gateway until it can carry such values, for instance from a declared upstream whose results it binds.
+
+  - id: LIM-069
+    limitation: The RC13 campaign's evidence covers one reference application, 13 local Q4_K_M models up to 15B in one runtime with reasoning off, and one attacker model whose sampling is not seeded. The absence of a reason-channel effect describes this attacker, which proposes one candidate per episode from a short history; a stronger attacker, or one that plans over many more episodes, may use reasons differently. The campaign ran on the library path, and its gateway result comes from replaying its traces, not from running them through the gateway. The story-clustered intervals were added after the results were seen and are exploratory.
