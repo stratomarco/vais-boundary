@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field, replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Mapping, Protocol
+import math
 import unicodedata
 
 
@@ -392,9 +394,13 @@ class MCPProtectedClient:
         audit: AuditTrail | None = None,
         ledger: SessionLedger | None = None,
         reconcilers: Mapping[str, EffectReconciler] | None = None,
+        call_timeout: float | None = None,
     ) -> None:
         if not server_id.strip():
             raise ValueError("server_id must be a non-empty string")
+        if call_timeout is not None and (isinstance(call_timeout, bool) or not isinstance(call_timeout, (int, float))
+                                         or not math.isfinite(call_timeout) or call_timeout <= 0):
+            raise ValueError("call_timeout must be a positive number of seconds or None")
         self.server_id = unicodedata.normalize("NFC", server_id)
         self.session = session
         self.profile = profile
@@ -404,6 +410,10 @@ class MCPProtectedClient:
         self.ledger = ledger
         # effect kind -> reconciler that reads it back from the system of record (P1b-7)
         self.reconcilers = dict(reconcilers or {})
+        # Seconds to wait for the upstream, and for a read-back (LIM-040). A call that runs
+        # out of time was dispatched, so its effect is unknown: it is INDETERMINATE, never
+        # a denial and never scored as defended. None waits for as long as the upstream takes.
+        self.call_timeout = call_timeout
 
     def _audit_decision(
         self, action: PlannedAction, contract: TaskContract, decision: Decision
@@ -457,7 +467,8 @@ class MCPProtectedClient:
             )
 
         try:
-            raw_result = await self.session.call_tool(binding.tool_name, action.plain_arguments())
+            raw_result = await asyncio.wait_for(
+                self.session.call_tool(binding.tool_name, action.plain_arguments()), self.call_timeout)
         except Exception as exc:
             if self.audit:
                 # The exception class only. Messages can carry secrets (FIND-020, FIND-040).
@@ -483,7 +494,8 @@ class MCPProtectedClient:
         reconciler = self.reconcilers.get(effect.kind)
         if reconciler is not None:
             try:
-                effect = apply_reconciliation(effect, await reconciler.reconcile(effect, result_data))
+                effect = apply_reconciliation(
+                    effect, await asyncio.wait_for(reconciler.reconcile(effect, result_data), self.call_timeout))
             except Exception as exc:
                 # The effect happened; only what is known about it is unchanged.
                 if self.audit:

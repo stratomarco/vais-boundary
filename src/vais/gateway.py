@@ -359,6 +359,7 @@ class Gateway:
         audit_path: str | Path | None = None,
         reason_disclosure: str = "decision",
         state_dir: str | Path | None = None,
+        call_timeout: float | None = None,
     ) -> None:
         if reason_disclosure not in ("decision", "reasons"):
             raise ValueError("reason_disclosure must be 'decision' or 'reasons'")
@@ -372,6 +373,7 @@ class Gateway:
         self.audit_path = Path(audit_path) if audit_path is not None else None
         self.reason_disclosure = reason_disclosure
         self.state_dir = Path(state_dir) if state_dir is not None else None
+        self.call_timeout = call_timeout
         self._states: dict[tuple[str, str, str], _SessionState] = {}
         self._lock = threading.RLock()
         self._flushed = 0
@@ -457,6 +459,7 @@ class Gateway:
             audit=self.audit,
             ledger=state.ledger,
             reconcilers=self._reconcilers(binding),
+            call_timeout=self.call_timeout,
         )
         record = await client.execute(action, contract)
 

@@ -20,6 +20,7 @@ Configuration (paths are relative to the configuration file)::
     state: state/                  # optional; session ledgers and context survive restarts
     revocations: revocations.json  # optional; sessions and capabilities an operator withdrew
     reason_disclosure: decision    # or "reasons"
+    call_timeout: 60               # optional; seconds before an upstream call is indeterminate
     upstreams:
       ops:
         stdio: {command: python, args: [ops_server.py], env: {OPS_KEY: "${env:OPS_KEY}"}}
@@ -77,6 +78,7 @@ class GatewayConfig:
     upstreams: tuple[UpstreamConfig, ...]
     state: Path | None = None
     revocations: Path | None = None
+    call_timeout: float | None = None
 
 
 def load_gateway_config(path: str | Path) -> GatewayConfig:
@@ -89,7 +91,7 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         raise PolicyValidationError(f"{location}: cannot read gateway configuration ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
     _known_keys(raw, {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",
-                      "audit", "state", "revocations", "reason_disclosure", "upstreams"}, location)
+                      "audit", "state", "revocations", "reason_disclosure", "call_timeout", "upstreams"}, location)
     if raw.get("version") != 1 or isinstance(raw.get("version"), bool):
         _fail(f"{location}.version", "must be 1")
 
@@ -101,6 +103,11 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
 
     def local(key: str) -> Path:
         return base / _string(raw.get(key), f"{location}.{key}")
+
+    call_timeout = raw.get("call_timeout")
+    if call_timeout is not None and (isinstance(call_timeout, bool) or not isinstance(call_timeout, (int, float))
+                                     or not 0 < call_timeout < float("inf")):
+        _fail(f"{location}.call_timeout", "must be a positive number of seconds")
 
     disclosure = raw.get("reason_disclosure", "decision")
     if disclosure not in ("decision", "reasons"):
@@ -146,6 +153,7 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         upstreams=tuple(upstreams),
         state=local("state") if "state" in raw else None,
         revocations=local("revocations") if "revocations" in raw else None,
+        call_timeout=float(call_timeout) if call_timeout is not None else None,
     )
 
 
@@ -287,6 +295,7 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
                 profile=profile, monitor=build_monitor(policy, config), registry=registry, sessions=sessions,
                 approval_store=ApprovalStore(config.approvals), pending_dir=config.pending,
                 audit_path=config.audit, reason_disclosure=config.reason_disclosure, state_dir=config.state,
+                call_timeout=config.call_timeout,
             )
             async with server.session_manager.run():
                 yield
