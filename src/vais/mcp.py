@@ -158,6 +158,10 @@ class MCPProfile:
         if len(endpoints) != len(set(endpoints)):
             raise ValueError("MCP server/tool bindings must be unique")
 
+    def effect_kinds(self) -> frozenset[str]:
+        """The effect kinds calls through this profile can produce, for checking invariants (LIM-041)."""
+        return frozenset(item.effect.kind for item in self.bindings)
+
     def by_canonical_tool(self, tool: str) -> MCPToolBinding | None:
         return next((item for item in self.bindings if item.canonical_tool == tool), None)
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from collections import Counter
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 import math
 import unicodedata
 
@@ -55,6 +55,27 @@ class DeclarativeInvariantEngine:
         if len(ids) != len(set(ids)):
             raise ValueError("security invariant IDs must be unique")
         self.invariants = tuple(invariants)
+
+    def effect_kinds(self) -> frozenset[str]:
+        """The effect kinds these invariants watch."""
+        return frozenset(item.effect for item in self.invariants)
+
+    def inert(self, produced_kinds: Iterable[str]) -> tuple[InvariantDefinition, ...]:
+        """Invariants that watch an effect kind the application never produces (LIM-041).
+
+        Such an invariant loads and evaluates cleanly and can never fire, which is how a typo
+        such as ``payment_send`` for ``payment_sent`` hides. ``produced_kinds`` is the
+        application's inventory; for an MCP application, ``MCPProfile.effect_kinds()``.
+        """
+        produced = frozenset(produced_kinds)
+        return tuple(item for item in self.invariants if item.effect not in produced)
+
+    def require_effect_kinds(self, produced_kinds: Iterable[str]) -> None:
+        """Raise ``PolicyValidationError`` naming every invariant that could never fire."""
+        inert = self.inert(produced_kinds)
+        if inert:
+            names = ", ".join(f"{item.id} ({item.effect})" for item in inert)
+            raise PolicyValidationError(f"invariants watch effect kinds the application never produces: {names}")
 
     def evaluate(
         self,

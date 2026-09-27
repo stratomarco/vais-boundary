@@ -452,6 +452,13 @@ def _parser() -> argparse.ArgumentParser:
 
     gateway_token = subparsers.add_parser("gateway-token", help="operator: generate a session token and the digest a contract file stores")
 
+    check_invariants = subparsers.add_parser(
+        "check-invariants", help="list invariants that watch an effect kind the application never produces")
+    check_invariants.add_argument("invariants", help="invariant YAML")
+    check_invariants.add_argument("--profile", help="MCP profile; its tools' effect kinds are produced")
+    check_invariants.add_argument("--effect-kind", action="append", default=[],
+                                  help="an effect kind the application produces outside the profile (repeatable)")
+
     audit_verify = subparsers.add_parser("audit-verify", help="check an audit JSONL file's hash chain and report every break")
     audit_verify.add_argument("path", help="audit file, for example the gateway's audit.jsonl")
 
@@ -1216,6 +1223,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"token_sha256: {token_digest(token)}")
         print("Give the token to the agent's runtime; put only the digest in the contract file.")
         return 0
+
+    if args.command == "check-invariants":
+        from .mcp import load_mcp_profile
+
+        engine = load_invariants(args.invariants)  # the module-level import
+        produced = set(args.effect_kind)
+        if args.profile:
+            produced |= load_mcp_profile(args.profile).effect_kinds()
+        if not produced:
+            print("give --profile or --effect-kind: without an inventory nothing can be checked")
+            return 2
+        inert = engine.inert(produced)
+        for item in inert:
+            print(f"inert: {item.id} watches {item.effect!r}, which is never produced")
+        print(f"{len(engine.invariants) - len(inert)} of {len(engine.invariants)} invariants watch a produced effect kind")
+        return 1 if inert else 0
 
     if args.command == "audit-verify":
         from .audit import verify_jsonl
