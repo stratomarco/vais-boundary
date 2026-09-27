@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 import hashlib
+import json
 import threading
 
 from .models import PlannedAction, TaskContract, action_fingerprint, canonical_json, deep_freeze
@@ -58,17 +59,27 @@ class AuditTrail:
             return event
 
     def verify(self) -> bool:
-        previous = "0" * 64
-        for expected, event in enumerate(self._events, 1):
-            body = dict(sequence=event.sequence, event_type=event.event_type, tool=event.tool,
-                        decision=event.decision, reasons=event.reasons, details=event.details,
-                        previous_hash=event.previous_hash)
-            if event.sequence != expected or event.previous_hash != previous:
-                return False
-            if hashlib.sha256(canonical_json(body)).hexdigest() != event.event_hash:
-                return False
-            previous = event.event_hash
-        return True
+        return self.verify_report().ok
+
+    def verify_report(self) -> "AuditVerification":
+        """Check every event and report every break, not only whether there is one (LIM-038)."""
+        return _verify(list(self._events))
+
+    @classmethod
+    def from_jsonl(cls, text: str) -> "AuditTrail":
+        """A trail read back from ``to_jsonl`` output, for verification.
+
+        Events are taken as written, hashes included; nothing is recomputed. A line that is
+        not an event cannot be represented, so use ``verify_jsonl`` to check a file.
+        """
+        trail = cls()
+        for line in text.splitlines():
+            if line.strip():
+                event = _event_from_json(line)
+                if event is None:
+                    raise ValueError("not an audit event line")
+                trail._events.append(event)
+        return trail
 
     def to_jsonl(self) -> str:
         return "\n".join(canonical_json({
@@ -80,6 +91,102 @@ class AuditTrail:
 
     def write_jsonl(self, path: str | Path) -> None:
         Path(path).write_text(self.to_jsonl() + ("\n" if self._events else ""), encoding="utf-8")
+
+
+@dataclass(frozen=True)
+class AuditBreak:
+    """One failed check. ``position`` is the event's 1-based place in the trail.
+
+    ``check`` is one of:
+
+    - ``malformed``: the line is not an audit event, so neither it nor its link can be checked;
+    - ``sequence``: the event's sequence number is not its position (removed or reordered events);
+    - ``link``: its ``previous_hash`` is not the preceding event's hash, so the trail was spliced
+      here, or everything on one side of this point was rewritten with recomputed hashes;
+    - ``content``: its own hash does not match its content, so it was edited in place. If the
+      next event still links to the stored hash, only this record changed.
+    """
+
+    position: int
+    check: str
+
+
+@dataclass(frozen=True)
+class AuditVerification:
+    events: int
+    breaks: tuple[AuditBreak, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.breaks
+
+    @property
+    def first_break(self) -> AuditBreak | None:
+        return self.breaks[0] if self.breaks else None
+
+    def describe(self) -> str:
+        if self.ok:
+            return f"intact: {self.events} events, every link and hash checks"
+        lines = [f"broken: {len(self.breaks)} failed check(s) in {self.events} events"]
+        for item in self.breaks:
+            lines.append(f"  event {item.position}: {item.check}")
+        return "\n".join(lines)
+
+
+def verify_jsonl(text: str) -> AuditVerification:
+    """Verify an audit file's text, reporting malformed lines as breaks rather than raising."""
+    lines = [line for line in text.splitlines() if line.strip()]
+    return _verify([_event_from_json(line) for line in lines])
+
+
+def _verify(events: list[AuditEvent | None]) -> AuditVerification:
+    breaks: list[AuditBreak] = []
+    previous: str | None = "0" * 64  # None: the preceding event could not be read
+    for position, event in enumerate(events, 1):
+        if event is None:
+            breaks.append(AuditBreak(position, "malformed"))
+            previous = None
+            continue
+        if event.sequence != position:
+            breaks.append(AuditBreak(position, "sequence"))
+        if previous is not None and event.previous_hash != previous:
+            breaks.append(AuditBreak(position, "link"))
+        body = dict(sequence=event.sequence, event_type=event.event_type, tool=event.tool,
+                    decision=event.decision, reasons=event.reasons, details=event.details,
+                    previous_hash=event.previous_hash)
+        try:
+            recomputed = hashlib.sha256(canonical_json(body)).hexdigest()
+        except ValueError:
+            recomputed = None
+        if recomputed != event.event_hash:
+            breaks.append(AuditBreak(position, "content"))
+        # The next event is checked against the hash this one stores, so an edit that left
+        # the stored hash alone shows as one content break, not a broken chain from here on.
+        previous = event.event_hash
+    return AuditVerification(len(events), tuple(breaks))
+
+
+_EVENT_FIELDS = {"sequence", "event_type", "tool", "decision", "reasons", "details", "previous_hash", "event_hash"}
+
+
+def _event_from_json(line: str) -> AuditEvent | None:
+    try:
+        raw = json.loads(line)
+    except ValueError:
+        return None
+    if not isinstance(raw, dict) or set(raw) != _EVENT_FIELDS:
+        return None
+    if (isinstance(raw["sequence"], bool) or not isinstance(raw["sequence"], int)
+            or not isinstance(raw["event_type"], str) or not isinstance(raw["reasons"], list)
+            or not all(isinstance(r, str) for r in raw["reasons"])
+            or not isinstance(raw["previous_hash"], str) or not isinstance(raw["event_hash"], str)):
+        return None
+    try:
+        details = deep_freeze(raw["details"])
+    except ValueError:
+        return None
+    return AuditEvent(raw["sequence"], raw["event_type"], raw["tool"], raw["decision"], tuple(raw["reasons"]),
+                      details, raw["previous_hash"], raw["event_hash"])
 
 
 def action_audit_details(action: PlannedAction, contract: TaskContract) -> dict[str, Any]:

@@ -452,6 +452,9 @@ def _parser() -> argparse.ArgumentParser:
 
     gateway_token = subparsers.add_parser("gateway-token", help="operator: generate a session token and the digest a contract file stores")
 
+    audit_verify = subparsers.add_parser("audit-verify", help="check an audit JSONL file's hash chain and report every break")
+    audit_verify.add_argument("path", help="audit file, for example the gateway's audit.jsonl")
+
     subparsers.add_parser("version", help="print the installed VAIS version")
     return parser
 
@@ -1213,6 +1216,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"token_sha256: {token_digest(token)}")
         print("Give the token to the agent's runtime; put only the digest in the contract file.")
         return 0
+
+    if args.command == "audit-verify":
+        from .audit import verify_jsonl
+
+        report = verify_jsonl(Path(args.path).read_text(encoding="utf-8"))
+        print(report.describe())
+        return 0 if report.ok else 1
 
     if args.command == "version":
         from ._version import __version__
