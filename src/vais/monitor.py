@@ -197,17 +197,22 @@ class ReferenceMonitor:
         if approval_store is not None and approval_store.consume(action, contract):
             return Decision(DecisionType.ALLOW), False
 
-        # An approval held in the contract. Without a store it counts as before: reusable
-        # for the life of the contract (LIM-044) unless a ledger makes it single-use. With a
-        # store it counts only through a ledger, so adding a store never makes a contract
-        # approval reusable. Before this, a store hid contract approvals entirely, and the
-        # gateway, which always has one, ignored every approval in its contract files
-        # (FIND-062). The store is tried first, so a decision that consumed a grant before
-        # still does, and only a missing grant can now be met by the contract.
+        # An approval held in the contract (DEC-060). Before this, a store hid contract
+        # approvals entirely, and the gateway, which always has one, ignored every approval
+        # in its contract files (FIND-062). The store is tried first, so a decision that
+        # consumed a grant before still does, and only a missing grant can now be met by
+        # the contract.
         if fingerprint in contract.approved_action_fingerprints:
-            if ledger is not None:
-                if not ledger.contract_approval_used(fingerprint):
+            if ledger is not None and ledger.contract_approval_used(fingerprint):
+                pass
+            elif approval_store is not None:
+                # Single use recorded in the store file, so it survives a restart and holds
+                # across processes sharing the store, which the in-memory ledger does not
+                # (LIM-055). The ledger, when present, still records the use below.
+                if approval_store.use_contract_approval(fingerprint, contract):
                     return Decision(DecisionType.ALLOW), True
-            elif approval_store is None:
+            else:
+                # No store: once per ledger, or reusable for the life of the contract
+                # without one (LIM-044), as before.
                 return Decision(DecisionType.ALLOW), True
         return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False

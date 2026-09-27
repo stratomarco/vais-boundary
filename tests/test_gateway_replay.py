@@ -75,8 +75,8 @@ def test_a_gateway_that_trusted_the_agent_would_be_caught(records, monkeypatch):
 
 
 def test_a_reused_contract_approval_is_explained_and_nothing_else_is(tmp_path):
-    # The library path has no ledger, so a contract approval can authorize the same action
-    # again (LIM-044); the gateway's ledger allows it once. The replay names that cause.
+    # The library path has no store or ledger, so a contract approval can authorize the same
+    # action again (LIM-044); the gateway allows it once (DEC-060). The replay names that cause.
     workflow = next(w for w in replay.workflows_by_id().values() if w.approved_restart_service)
     runner = ReferenceAgentRunner()
     result = asyncio.run(runner.run_workflow(workflow, DeterministicReferenceTarget(), mode=ReferenceMode.PROTECTED))

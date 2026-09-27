@@ -73,7 +73,7 @@ _APPLICATION_REFUSALS = ("unknown_public_artifact:",)
 # The known reasons the gateway can be stricter than the library. Anything else, and every
 # looser decision, is "unexplained".
 MINTED_AUTHORITY = "minted_authority"  # LIM-068
-CONTRACT_APPROVAL_SINGLE_USE = "contract_approval_single_use"  # the ledger; LIM-044 on the library path
+CONTRACT_APPROVAL_SINGLE_USE = "contract_approval_single_use"  # DEC-060; reusable on the library path (LIM-044)
 _MINTED_ARGUMENTS = {("email.send_public_update", "artifact_id"), ("slack.send_public_update", "artifact_id")}
 
 

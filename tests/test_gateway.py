@@ -347,3 +347,14 @@ def test_an_approval_in_the_contract_file_is_honoured_once(world):
     assert again.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
     assert other.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
     assert [name for name, _ in upstream.calls] == ["pay"]
+
+    # A restarted gateway, or a second one on the same store file, has a fresh in-memory
+    # ledger; the use recorded in the store still holds. When single use lived only in the
+    # ledger, each of these allowed the payment again.
+    for _ in range(2):
+        restarted = Gateway(profile=PROFILE, monitor=ReferenceMonitor(POLICY),
+                            registry=ContractRegistry(tmp_path / "contracts"), sessions={"ops": upstream},
+                            approval_store=ApprovalStore(tmp_path / "approvals.json"), pending_dir=tmp_path / "pending")
+        outcome = run(restarted.call(TOKEN, "ops.pay", {"payee": "vendor-9", "amount": 500}))
+        assert outcome.kind is GatewayOutcomeKind.APPROVAL_REQUIRED
+    assert [name for name, _ in upstream.calls] == ["pay"]

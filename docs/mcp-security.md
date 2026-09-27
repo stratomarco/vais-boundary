@@ -123,7 +123,7 @@ When VERIFY runs over MCP effects approved through a store, pass the same store 
 
 From 0.12.0rc13 the client also accepts a `ledger` (a `SessionLedger` for this session). With it the monitor enforces a tool's `max_calls` in flight and makes contract-held approvals single-use; pass the same ledger to VERIFY to check that every MCP effect corresponds to an `ALLOW` (`monitor_mediated`).
 
-With both a store and a ledger, an action is approved by a store grant if there is one and otherwise by the contract, once. With a store and no ledger the contract's approvals do not count, since nothing could make them single-use. Before this was fixed, a store hid the contract's approvals even with a ledger, so the gateway ignored every approval in its contract files (FIND-062, DEC-060).
+With a store, an action is approved by a store grant if there is one and otherwise by the contract's approval, once per session. The store records that use in its file, so, unlike the in-memory ledger (LIM-055), it survives a restart and holds across processes sharing the file. Before this was fixed, a store hid the contract's approvals entirely, so the gateway ignored every approval in its contract files (FIND-062, DEC-060).
 
 Validity windows and revocation need nothing MCP-specific: construct the `ReferenceMonitor` given to the client with a `RevocationList`, and give the contract `not_before`/`not_after`. Several server workers can share one approval store file from 0.12.0rc13, on one machine (LIM-057); a grant made with `ttl_seconds` is refused once it expires.
 

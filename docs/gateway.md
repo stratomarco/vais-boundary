@@ -54,8 +54,9 @@ P1b-4 and RC7, **no gateway decision and no label was more permissive than the l
 88.6% of traces were identical (FIND-063). The gateway is stricter for two reasons:
 
 - **A contract approval counts once.** An action listed in a contract file's
-  `approved_action_fingerprints` is allowed the first time and then needs an operator, because
-  the gateway's session ledger makes it single-use. The library path without a ledger lets it
+  `approved_action_fingerprints` is allowed the first time in a session and then needs an
+  operator. The use is recorded in the approval store's file, so it stays spent after a restart
+  and across gateways sharing the file. The library path without a store or ledger lets it
   authorize the same action again (LIM-044). Before DEC-060 the gateway ignored these approvals
   entirely, because an approval store hid them (FIND-062); the replay found that.
 - **Authority minted during a session is lost.** A trusted application transform, such as the

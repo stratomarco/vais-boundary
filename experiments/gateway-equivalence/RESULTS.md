@@ -69,7 +69,7 @@ refused.** The stricter decisions by cause:
 | Cause | Tool | Library → gateway | P1b-4 as released | RC7 as released | P1b-4 fixed | RC7 fixed |
 |---|---|---|---|---|---|---|
 | Unexplained: the approval store hid the contract's approval (FIND-062) | `production.restart_service` | allow → require approval | 328 | 552 | 0 | 0 |
-| A contract approval used again, which the gateway's ledger allows once | `production.restart_service` | allow → require approval | | | 96 | 319 |
+| A contract approval used again, which the gateway allows once | `production.restart_service` | allow → require approval | | | 96 | 319 |
 | Authority minted during the session (LIM-068) | `email.send_public_update` | allow → deny | 193 | 302 | 193 | 302 |
 | | `slack.send_public_update` | allow → deny | 155 | 138 | 155 | 138 |
 
@@ -78,15 +78,17 @@ the contract's `approved_action_fingerprints`. The gateway always has a store, s
 in a contract file authorized nothing, and a restart the workflow's contract pre-approved needed
 an operator. VERIFY's `exact_action_approval` accepts either source, so the two layers disagreed.
 It failed closed. No test combined a store with contract approvals; the replay found it on its
-first run, as divergences no known cause explained. The fix (DEC-060) tries the store, then the
-contract, and with a store counts the contract's approval only through a ledger, once. A caller
-with a store and no ledger is exactly as strict as before, since nothing could make the approval
-single-use.
+first run, as divergences no known cause explained. The fix (DEC-060) tries the store's grants,
+then the contract's approval, and with a store records the approval's use in the store file, so
+it is spent once per session across restarts and processes. A first version counted the use only
+in the gateway's in-memory ledger; review found that a restarted gateway, or a second one on the
+same store, then allowed the same pre-approved action again, and it was replaced before merging.
+The replay results are the same for both versions, since each trace starts a fresh store.
 
 **Single use.** After the fix, every remaining restart divergence repeats an identical restart
 already allowed earlier in the same trace. The reference harness has no ledger, so on the library
 path a contract approval authorizes the same action as often as the agent proposes it (LIM-044);
-the gateway's ledger allows it once. This is the stricter behaviour the ledger exists for.
+the gateway allows it once. That is the single use DEC-060 intends.
 
 **LIM-068.** After the declassifier runs, the reference application binds the public artifact id
 it minted into the contract, and the send tools require that argument trusted. A gateway
