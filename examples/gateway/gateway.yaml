@@ -8,6 +8,8 @@ contracts: contracts/          # operator-owned: one file per session, see contr
 approvals: approvals.json      # operator-owned: written by `vais gateway-approve`
 pending: pending/              # operator-owned: approval requests the gateway writes
 audit: audit.jsonl
+state: state/                  # session ledgers and context, kept across restarts
+revocations: revocations.json  # operator-owned: written by `vais gateway-revoke`
 reason_disclosure: decision    # the agent is told the outcome only; the audit keeps the reasons
 upstreams:
   ops:

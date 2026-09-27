@@ -79,7 +79,7 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 - `public`, `internal`, `confidential`, and `secret` data labels;
 - conservative information-flow propagation;
 - exact-action approvals bound to canonical action fingerprints;
-- an optional per-session ledger that enforces call limits in flight, makes contract-held approvals single-use, and lets VERIFY check that every effect was allowed;
+- an optional per-session ledger that enforces call limits in flight, makes contract-held approvals single-use, and lets VERIFY check that every effect was allowed, kept in memory or in a file that survives restarts and is shared by processes on one machine;
 - principal, session, and tenant binding with consume-once approvals when an `ApprovalStore` is supplied, across processes sharing its file on one machine;
 - optional contract validity windows, approval expiry and session or capability revocation, and sub-agent contracts that can only narrow their parent's authority;
 - an optional action origin, the join of what was visible when an action was planned, so a policy can put a human in front of a tool once untrusted content is in play (measured on RC7: a gate, not a detector);

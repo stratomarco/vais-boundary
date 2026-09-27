@@ -5,11 +5,11 @@ from dataclasses import asdict, dataclass
 import json
 import math
 from pathlib import Path
-import sys
 import threading
 import time
-from typing import Callable, Iterator
+from typing import Callable
 
+from .durable import interprocess_lock, lock_path_for
 from .models import PlannedAction, TaskContract, action_fingerprint
 
 
@@ -221,7 +221,7 @@ class ApprovalStore:
     def _file_guard(self):
         if self.path is None:
             return nullcontext()
-        return _interprocess_lock(self.path.with_suffix(self.path.suffix + ".lock"), self._lock_timeout)
+        return interprocess_lock(lock_path_for(self.path), self._lock_timeout)
 
     def _refresh(self) -> None:
         """Replace memory with the file, so a change made by another process is seen."""
@@ -261,48 +261,3 @@ class ApprovalStore:
         temporary = self.path.with_suffix(self.path.suffix + ".tmp")
         temporary.write_text(data, encoding="utf-8")
         temporary.replace(self.path)
-
-
-@contextmanager
-def _interprocess_lock(lock_path: Path, timeout: float) -> Iterator[None]:
-    """Exclusive lock on ``lock_path`` across processes on this machine.
-
-    Waiting longer than ``timeout`` raises ``TimeoutError``. Nothing catches it on the
-    enforcement path, so a store that cannot be locked denies by failing, not by
-    answering without the lock.
-    """
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    deadline = time.monotonic() + timeout
-    with open(lock_path, "a+b") as handle:
-        if sys.platform == "win32":
-            import msvcrt
-
-            while True:
-                handle.seek(0)
-                try:
-                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
-                    break
-                except OSError:
-                    if time.monotonic() >= deadline:
-                        raise TimeoutError(f"approval store lock not acquired within {timeout} s") from None
-                    time.sleep(0.01)
-            try:
-                yield
-            finally:
-                handle.seek(0)
-                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-        else:
-            import fcntl
-
-            while True:
-                try:
-                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    break
-                except OSError:
-                    if time.monotonic() >= deadline:
-                        raise TimeoutError(f"approval store lock not acquired within {timeout} s") from None
-                    time.sleep(0.01)
-            try:
-                yield
-            finally:
-                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)

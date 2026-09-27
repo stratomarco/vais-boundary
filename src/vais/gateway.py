@@ -37,6 +37,7 @@ import yaml
 
 from .approvals import ApprovalStore
 from .audit import AuditTrail
+from .durable import SharedStateLock, write_json_atomic
 from .exceptions import PolicyValidationError
 from .ledger import SessionLedger
 from .mcp import (
@@ -257,11 +258,65 @@ class GatewayOutcome:
         return self.kind is not GatewayOutcomeKind.ALLOWED
 
 
+class _SessionContext:
+    """What a session has received through the gateway: its confidentiality high-water mark
+    and whether any tool result has reached the agent yet.
+
+    Both only ever rise. Without a path they live in memory and a restart starts the session
+    fresh, so an agent that read secret data could send it once the gateway restarts
+    (LIM-063). With a path they are a file every call reloads under an operating-system
+    lock, so a restarted gateway, or a second one sharing the state directory, labels the
+    session's next arguments as the first would have.
+    """
+
+    def __init__(self, path: Path | None = None) -> None:
+        self.path = path
+        self.level = ConfidentialityLevel.PUBLIC
+        self.trust = TrustLevel.TRUSTED
+        self.lock = SharedStateLock(path, self._reload)
+        if path is not None:
+            with self.lock:
+                pass
+
+    def current(self) -> tuple[ConfidentialityLevel, TrustLevel]:
+        with self.lock:
+            return self.level, self.trust
+
+    def observe(self, level: ConfidentialityLevel) -> None:
+        """Record that a result at ``level`` reached the agent."""
+        with self.lock:
+            new_level = level if level.rank > self.level.rank else self.level
+            # MCP results are never authority (label_mcp_input), so once one is in the
+            # agent's context, whatever it plans next has an untrusted origin.
+            new_trust = TrustLevel.DERIVED_UNTRUSTED
+            if (new_level, new_trust) == (self.level, self.trust):
+                return
+            if self.path is not None:
+                write_json_atomic(self.path, {"version": 1, "confidentiality": new_level.value, "trust": new_trust.value})
+            self.level, self.trust = new_level, new_trust
+
+    def _reload(self) -> None:
+        if self.path is None or not self.path.exists():
+            return
+        raw = json.loads(self.path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict) or raw.get("version") != 1 or set(raw) != {"version", "confidentiality", "trust"}:
+            raise ValueError(f"{self.path}: not a version 1 gateway session context")
+        self.level = ConfidentialityLevel(raw["confidentiality"])
+        self.trust = TrustLevel(raw["trust"])
+
+
 @dataclass
 class _SessionState:
     ledger: SessionLedger
-    context_level: ConfidentialityLevel = ConfidentialityLevel.PUBLIC
-    context_trust: TrustLevel = TrustLevel.TRUSTED
+    context: _SessionContext = field(default_factory=_SessionContext)
+
+    @property
+    def context_level(self) -> ConfidentialityLevel:
+        return self.context.current()[0]
+
+    @property
+    def context_trust(self) -> TrustLevel:
+        return self.context.current()[1]
 
 
 @dataclass(frozen=True)
@@ -284,6 +339,11 @@ class Gateway:
     refused agent is told: ``"decision"`` (the default) gives the outcome only, so denials
     are not a probing oracle (S13, IMP-003); ``"reasons"`` adds the monitor's reason codes.
     The audit trail always keeps them.
+
+    ``state_dir`` keeps each session's ledger and context in files there, so call limits,
+    single-use contract approvals and the confidentiality high-water mark survive a restart
+    and hold across gateways on one machine sharing the directory. Without it they live in
+    this process's memory (LIM-063).
     """
 
     def __init__(
@@ -298,6 +358,7 @@ class Gateway:
         audit: AuditTrail | None = None,
         audit_path: str | Path | None = None,
         reason_disclosure: str = "decision",
+        state_dir: str | Path | None = None,
     ) -> None:
         if reason_disclosure not in ("decision", "reasons"):
             raise ValueError("reason_disclosure must be 'decision' or 'reasons'")
@@ -310,6 +371,7 @@ class Gateway:
         self.audit = audit or AuditTrail()
         self.audit_path = Path(audit_path) if audit_path is not None else None
         self.reason_disclosure = reason_disclosure
+        self.state_dir = Path(state_dir) if state_dir is not None else None
         self._states: dict[tuple[str, str, str], _SessionState] = {}
         self._lock = threading.RLock()
         self._flushed = 0
@@ -343,7 +405,15 @@ class Gateway:
         with self._lock:
             state = self._states.get(key)
             if state is None:
-                state = self._states[key] = _SessionState(SessionLedger(contract))
+                if self.state_dir is None:
+                    state = _SessionState(SessionLedger(contract))
+                else:
+                    # File names from a digest of the identity, so an identity cannot
+                    # name a path.
+                    stem = hashlib.sha256(json.dumps(list(key)).encode("utf-8")).hexdigest()[:32]
+                    state = _SessionState(SessionLedger(contract, self.state_dir / f"{stem}.ledger.json"),
+                                          _SessionContext(self.state_dir / f"{stem}.context.json"))
+                self._states[key] = state
             return state
 
     async def call(self, token: str, name: str, arguments: Mapping[str, Any] | None) -> GatewayOutcome:
@@ -370,9 +440,9 @@ class Gateway:
 
         binding = exposed.binding
         state = self._state(contract)
+        level, trust = state.context.current()
         try:
-            action = label_agent_action(binding.canonical_tool, arguments, contract,
-                                        state.context_level, state.context_trust)
+            action = label_agent_action(binding.canonical_tool, arguments, contract, level, trust)
         except ValueError:
             self.audit.record("gateway_malformed_arguments", tool=binding.canonical_tool,
                               decision=DecisionType.DENY.value, reasons=("malformed_arguments",))
@@ -391,13 +461,7 @@ class Gateway:
         record = await client.execute(action, contract)
 
         if record.call_state is MCPCallState.OBSERVED:
-            level = binding.result_policy.confidentiality
-            with self._lock:
-                if level.rank > state.context_level.rank:
-                    state.context_level = level
-                # MCP results are never authority (label_mcp_input), so once one is in
-                # the agent's context, whatever it plans next has an untrusted origin.
-                state.context_trust = TrustLevel.DERIVED_UNTRUSTED
+            state.context.observe(binding.result_policy.confidentiality)
             return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
         if record.call_state is MCPCallState.INDETERMINATE:
             return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,

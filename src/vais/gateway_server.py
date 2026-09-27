@@ -17,6 +17,8 @@ Configuration (paths are relative to the configuration file)::
     approvals: approvals.json      # shared ApprovalStore, written by operators
     pending: pending/              # approval requests, read by operators
     audit: audit.jsonl
+    state: state/                  # optional; session ledgers and context survive restarts
+    revocations: revocations.json  # optional; sessions and capabilities an operator withdrew
     reason_disclosure: decision    # or "reasons"
     upstreams:
       ops:
@@ -42,6 +44,7 @@ from .gateway import ContractRegistry, Gateway, exposed_name
 from .mcp import MCPProfile, _fail, _known_keys, _mapping, _string, load_mcp_profile
 from .monitor import ReferenceMonitor
 from .policy import Policy, load_policy
+from .revocation import RevocationList
 
 _SECRET_REFERENCE = re.compile(r"\$\{env:([A-Za-z_][A-Za-z0-9_]*)\}")
 
@@ -72,6 +75,8 @@ class GatewayConfig:
     audit: Path
     reason_disclosure: str
     upstreams: tuple[UpstreamConfig, ...]
+    state: Path | None = None
+    revocations: Path | None = None
 
 
 def load_gateway_config(path: str | Path) -> GatewayConfig:
@@ -84,7 +89,7 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         raise PolicyValidationError(f"{location}: cannot read gateway configuration ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
     _known_keys(raw, {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",
-                      "audit", "reason_disclosure", "upstreams"}, location)
+                      "audit", "state", "revocations", "reason_disclosure", "upstreams"}, location)
     if raw.get("version") != 1 or isinstance(raw.get("version"), bool):
         _fail(f"{location}.version", "must be 1")
 
@@ -139,7 +144,15 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         approvals=local("approvals"), pending=local("pending"), audit=local("audit"),
         reason_disclosure=disclosure,
         upstreams=tuple(upstreams),
+        state=local("state") if "state" in raw else None,
+        revocations=local("revocations") if "revocations" in raw else None,
     )
+
+
+def build_monitor(policy: Policy, config: GatewayConfig) -> ReferenceMonitor:
+    """The gateway's monitor, checking the configured revocation list first when there is one."""
+    revocations = RevocationList(config.revocations) if config.revocations is not None else None
+    return ReferenceMonitor(policy, revocations=revocations)
 
 
 def _string_map(value: Any, path: str) -> dict[str, str]:
@@ -271,9 +284,9 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
                         "which that upstream does not offer")
             state["tools"] = upstream_tools
             state["gateway"] = Gateway(
-                profile=profile, monitor=ReferenceMonitor(policy), registry=registry, sessions=sessions,
+                profile=profile, monitor=build_monitor(policy, config), registry=registry, sessions=sessions,
                 approval_store=ApprovalStore(config.approvals), pending_dir=config.pending,
-                audit_path=config.audit, reason_disclosure=config.reason_disclosure,
+                audit_path=config.audit, reason_disclosure=config.reason_disclosure, state_dir=config.state,
             )
             async with server.session_manager.run():
                 yield

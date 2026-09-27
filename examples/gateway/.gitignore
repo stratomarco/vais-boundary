@@ -1,0 +1,9 @@
+# Written while the example runs.
+approvals.json
+approvals.json.lock
+pending/
+audit.jsonl
+state/
+revocations.json
+revocations.json.lock
+contracts/*.yaml

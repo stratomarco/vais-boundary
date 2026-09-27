@@ -102,7 +102,19 @@ and the requesting contract, and a request whose action was edited after the gat
 refused. The requester's identity in the file is not protected the same way, which is one reason
 `pending/` must be writable by operators only.
 
-Revoking a session is deleting its contract file; the next call is unauthenticated.
+Revoking a session is deleting its contract file; the next call is unauthenticated. To withdraw
+it while keeping the file, for the record, set `revocations:` in the configuration and run:
+
+```bash
+vais gateway-revoke --config gateway.yaml contracts/alice.yaml   # --capability-only for one capability
+```
+
+The running gateway reads the revocation list on every decision, so the next call is denied.
+
+With `state:` set, each session's ledger and confidentiality level are kept in files there, so
+call limits, single-use approvals and what the session has read survive a restart, and several
+gateway processes on one machine sharing the directory act as one. Without it they live in the
+gateway's memory and a restart starts every session fresh (LIM-063).
 
 ## What a deployment must guarantee
 
@@ -141,8 +153,9 @@ account, the agent in another with network access to the gateway's port and noth
   as secrets placed in the prompt (LIM-061).
 - Only tools are proxied. Resources, prompts, sampling and elicitation are not, and results are
   passed on as text or structured data (LIM-062).
-- Ledgers and the confidentiality level live in the gateway's memory; a restart starts fresh
-  (LIM-055, LIM-063). The contract directory is read on every request.
+- Without `state:`, ledgers and the confidentiality level live in the gateway's memory and a
+  restart starts fresh (LIM-055, LIM-063). With it they are files, shared by processes on one
+  machine only. The contract directory is read on every request.
 - An approval in a contract file authorizes its exact action once per session (DEC-060).
 - A value an application creates during the session cannot become authority at the gateway
   (LIM-068).

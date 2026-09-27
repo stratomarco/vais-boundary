@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-import threading
+from dataclasses import asdict, dataclass
+import json
+from pathlib import Path
 
+from .durable import SharedStateLock, write_json_atomic
 from .models import TaskContract
 
 
@@ -37,14 +39,23 @@ class SessionLedger:
     parent's session, so its calls count against the same limits and it cannot reset
     them by delegating.
 
-    It lives in memory, in one process. Like the approval store (LIM-045), it does not
-    coordinate between processes (LIM-055).
+    Without a ``path`` it lives in one process's memory, and a restart or a second worker
+    starts from nothing (LIM-055). With a ``path`` the record is a file: the monitor's
+    lock also takes an operating-system lock on it and reloads it, so the check and the
+    record are one critical section for every process on this machine sharing the file,
+    and the record survives a restart. A write that fails is rolled back in memory and
+    raised, so the decision it would have recorded is never returned.
     """
 
-    def __init__(self, contract: TaskContract) -> None:
+    def __init__(self, contract: TaskContract, path: str | Path | None = None, *,
+                 lock_timeout: float = 30.0) -> None:
         self.identity = _identity(contract)
-        self.lock = threading.RLock()
+        self.path = Path(path) if path is not None else None
         self._entries: list[LedgerEntry] = []
+        self.lock = SharedStateLock(self.path, self._reload, lock_timeout)
+        if self.path is not None:
+            with self.lock:  # loads the file, and checks that it belongs to this session
+                pass
 
     def matches(self, contract: TaskContract) -> bool:
         return _identity(contract) == self.identity
@@ -69,6 +80,37 @@ class SessionLedger:
         """Append an allowed action. Called by the reference monitor, under its lock."""
         with self.lock:
             self._entries.append(entry)
+            if self.path is not None:
+                try:
+                    write_json_atomic(self.path, {
+                        "version": 1,
+                        "identity": list(self.identity),
+                        "entries": [asdict(e) for e in self._entries],
+                    })
+                except BaseException:
+                    self._entries.pop()
+                    raise
+
+    def _reload(self) -> None:
+        if self.path is None or not self.path.exists():
+            return
+        raw = json.loads(self.path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict) or raw.get("version") != 1:
+            raise ValueError(f"{self.path}: not a version 1 session ledger")
+        if tuple(raw.get("identity") or ()) != self.identity:
+            # Reading another session's record would let one session spend another's limits.
+            raise ValueError(f"{self.path}: the ledger belongs to a different session")
+        entries = raw.get("entries")
+        if not isinstance(entries, list):
+            raise ValueError(f"{self.path}: entries must be a list")
+        loaded = []
+        for item in entries:
+            if (not isinstance(item, dict) or set(item) != {"tool", "action_fingerprint", "contract_approval"}
+                    or not isinstance(item["tool"], str) or not isinstance(item["contract_approval"], bool)
+                    or not (item["action_fingerprint"] is None or isinstance(item["action_fingerprint"], str))):
+                raise ValueError(f"{self.path}: malformed ledger entry")
+            loaded.append(LedgerEntry(**item))
+        self._entries = loaded
 
 
 def _identity(contract: TaskContract) -> tuple[str, str, str]:

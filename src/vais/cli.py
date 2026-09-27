@@ -444,6 +444,12 @@ def _parser() -> argparse.ArgumentParser:
     gateway_approve.add_argument("request", help="request id, as the gateway reported it")
     gateway_approve.add_argument("--ttl", type=float, default=None, help="seconds the grant stays usable (default: until used)")
 
+    gateway_revoke = subparsers.add_parser("gateway-revoke", help="operator: withdraw a gateway session, or one capability, at its next call")
+    gateway_revoke.add_argument("--config", required=True, help="gateway configuration YAML, with 'revocations' set")
+    gateway_revoke.add_argument("contract", help="the session's contract file")
+    gateway_revoke.add_argument("--capability-only", action="store_true",
+                                help="withdraw only this contract's capability, not every capability in its session")
+
     gateway_token = subparsers.add_parser("gateway-token", help="operator: generate a session token and the digest a contract file stores")
 
     subparsers.add_parser("version", help="print the installed VAIS version")
@@ -1176,6 +1182,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         fingerprint = grant_pending_request(config.pending / f"{args.request}.json", ContractRegistry(config.contracts),
                                             ApprovalStore(config.approvals), ttl_seconds=args.ttl)
         print(f"granted {fingerprint}")
+        return 0
+
+    if args.command == "gateway-revoke":
+        from .gateway import load_gateway_contract
+        from .gateway_server import load_gateway_config
+        from .revocation import RevocationList
+
+        config = load_gateway_config(args.config)
+        if config.revocations is None:
+            print("the gateway configuration has no 'revocations' file; add one, restart the gateway, and revoke again")
+            return 2
+        _, contract = load_gateway_contract(args.contract)
+        revocations = RevocationList(config.revocations)
+        if args.capability_only:
+            revocations.revoke_capability(contract)
+            print(f"revoked capability {contract.capability_id} of session {contract.session_id}")
+        else:
+            revocations.revoke_session(contract)
+            print(f"revoked session {contract.session_id} and every capability in it")
         return 0
 
     if args.command == "gateway-token":
