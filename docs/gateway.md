@@ -88,7 +88,7 @@ which must be an interpreter with the `mcp` extra installed.) The agent connects
 `ops.get_incident` and `ops.send_email`. The incident record carries an injection asking for the
 summary to go to `attacker@evil.test`; that call returns `denied` and never reaches the
 upstream, while the email to `ir-team@acme.example` is sent. Every decision is in
-`audit.jsonl`, hash-chained.
+`audit.jsonl`, hash-chained; `vais audit-verify audit.jsonl` checks the chain and names any break.
 
 When a call needs an approval, the agent is told `approval_required` with a request id, and the
 gateway writes the exact action to `pending/<id>.json`. An operator reviews it and runs:

@@ -395,3 +395,9 @@ findings:
     version: "0.12.0rc13"
     type: methodology
     evidence: [experiments/rc13-campaign/clustered.py, experiments/rc13-campaign/results/clustered.json, experiments/rc13-campaign/RESULTS.md, experiments/p1b4/RESULTS.md, docs/evaluation-methodology.md]
+
+  - id: FIND-066
+    finding: A security file nested deeply enough escaped every loader as RecursionError, and one that was not UTF-8 escaped the library loaders as UnicodeDecodeError, beyond the yaml.YAMLError LIM-039 recorded. The gateway's contract and configuration loaders caught the other two but not the recursion, so one deeply nested file in the contract directory made ContractRegistry.scan raise and every session's lookup fail, rather than being skipped as a bad file. Only an operator can write that directory, so this was an availability fault, not a bypass. Found while closing LIM-039; all five loaders now read through vais.yaml_input.
+    version: "0.12.0rc14"
+    type: loader_contract_defect
+    evidence: [src/vais/yaml_input.py, tests/test_yaml_input.py]

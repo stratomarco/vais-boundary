@@ -171,6 +171,11 @@ If an authorized MCP call raises after transmission, VAIS cannot safely assume t
 - `observed`: the MCP call returned and an effect can be recorded;
 - `indeterminate`: the call was authorized and attempted, but transport/runtime failure makes the external outcome uncertain.
 
+`MCPProtectedClient(call_timeout=...)`, and `call_timeout:` in the gateway's configuration, bound how
+long VAIS waits for a tool server and for a read-back. A call that runs out of time is
+`indeterminate`, since it was sent; a read-back that runs out of time leaves the effect's confidence
+as it was (LIM-040, DEC-063). Without it VAIS waits for as long as the server takes.
+
 An `indeterminate` call is not counted as proof that the external effect did not happen. Production integrations should use idempotency keys, server-side audit receipts or domain-specific reconciliation for high-consequence tools.
 
 Since 0.12.0rc12 it is not counted as a defended outcome either. An indeterminate call produces no effect record, so the verifier sees nothing, and an episode that scored zero on that basis would look secure because its outcome could not be observed. Absent a verified violation, every benchmark scorer now removes such an episode from the evaluable set and counts it separately, the same rule already applied to target failures (DEC-040).

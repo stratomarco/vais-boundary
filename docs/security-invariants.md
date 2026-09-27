@@ -65,6 +65,20 @@ Canaries are useful in controlled tests because the violation is exact and unamb
 
 `forbidden_values` is a tripwire, not a control. It is a raw substring test with no case folding, normalisation or decoding, so an encoded or partial copy passes it. The control for secret egress is `confidentiality_ceiling`, which reads provenance labels and does not depend on how the value is spelled (LIM-052).
 
+## An invariant that can never fire
+
+An invariant watching an effect kind the application never produces loads and evaluates cleanly and
+never fires, which is how a typo such as `payment_send` hides (LIM-041). Check the invariants against
+the kinds the application produces before relying on them:
+
+```bash
+vais check-invariants invariants.yaml --profile mcp-profile.yaml --effect-kind payment_sent
+```
+
+An MCP profile supplies the kinds its tools produce; `--effect-kind` adds any others. The command
+lists each inert invariant and exits 1. In code, `engine.inert(kinds)` returns them and
+`engine.require_effect_kinds(kinds)` raises `PolicyValidationError`.
+
 ## Threat-model relationship
 
 An invariant should correspond to a stated asset and security objective. Good invariants are:

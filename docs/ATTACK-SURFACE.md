@@ -48,6 +48,9 @@ enforcement path. The approval store did **not** fail closed and is fixed (FIND-
 have no mechanism to test and are recorded rather than quietly dropped: there is no clock in the
 enforcement path so clock skew cannot move a decision, there is no timeout so a fault that never
 returns hangs instead of denying (LIM-040), and OOM is not reproducible in a unit test.
+From rc14 the part that can hang is bounded: an optional call timeout on the MCP client and the
+gateway makes a hung tool server or read-back indeterminate, never denied and never scored as
+defended; the monitor and the declarative invariants do no unbounded work (DEC-063).
 
 **rc11 note.** S14 was added after an external reviewer found that the central property covers
 only the flow half of composition and not the volume half; the VERIFY half is closed and the
@@ -353,7 +356,10 @@ work is done:
   branch by construction. Each is asserted by a test expected to fail if a signed head or external
   commitment is added.
   **Also recorded (LIM-038):** `verify()` returns a bare `bool` with no locus, so an investigator
-  cannot distinguish one edited record from a wholly rewritten prefix.
+  cannot distinguish one edited record from a wholly rewritten prefix. From rc14
+  `verify_report()`, `verify_jsonl()` and `vais audit-verify` list every failed check with its
+  position: an in-place edit is one `content` break, a splice or rewritten stretch a `link` break
+  where it meets the original (DEC-063). The chain is still unsigned (LIM-037).
 - **Related:** `_reject_secret_fields` (`audit.py:85`) fails closed on secret-bearing detail keys
   — already tested (`test_audit_rejects_secret_bearing_fields`).
 

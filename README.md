@@ -73,7 +73,7 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 
 ## Core capabilities
 
-- fail-closed YAML policy and invariant schemas;
+- fail-closed YAML policy and invariant schemas, with a check for invariants that could never fire;
 - immutable trusted task contracts and capability scopes;
 - `trusted`, `untrusted`, and `derived_untrusted` provenance;
 - `public`, `internal`, `confidential`, and `secret` data labels;
@@ -86,7 +86,7 @@ Pre-effect enforcement and post-effect verification are separate. The verifier e
 - effect confidence: an MCP effect is `requested`, `acknowledged` by the server's reply, `confirmed` by a read-back from the system of record, or `contradicted`, and the verifier reports which level each verdict rests on;
 - a gateway (`vais gateway`) that serves MCP to the agent over streamable HTTP and is the only holder of the upstream credentials, so complete mediation is a property of the deployment rather than an assumption (see `docs/gateway.md`);
 - protected MCP calls with explicit observed, not-called, and indeterminate outcomes, where an indeterminate outcome is never scored as defended;
-- tamper-evident audit hash chaining;
+- tamper-evident audit hash chaining, with a verifier that reports where a chain broke;
 - independent effect-level security invariants;
 - deterministic, static, and adaptive security benchmarks;
 - resumable cross-model LM Studio campaigns and public-safe reports.
