@@ -25,6 +25,30 @@ jobs:
       - run: python -m vais validate-invariants invariants/default.yaml
       - run: python -m vais benchmark-default --mode protected --fail-on-protected-violation --fail-on-clean-utility-loss --fail-on-target-failure --output results/ci-protected.jsonl
 
+  # The gateway's MCP transport tests need the mcp extra and are skipped without it, so the
+  # matrix above never ran them. This job installs it and fails if they are skipped anyway.
+  test-mcp:
+    name: pytest with the mcp extra (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev,mcp]"
+      - run: python -m pytest
+      - name: The gateway transport tests ran rather than skipped
+        shell: bash
+        run: |
+          python -m pytest tests/test_gateway_server.py -rs | tee gateway-server.txt
+          if grep -q SKIPPED gateway-server.txt; then echo "gateway transport tests were skipped"; exit 1; fi
+
   package-smoke:
     name: wheel smoke test
     runs-on: ubuntu-latest
