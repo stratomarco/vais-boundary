@@ -15,6 +15,8 @@ Durability and the gateway, after checking the gateway against the library: appr
 - Register the RC13 campaign (`experiments/rc13-campaign/`): 13 local models, reasoning off, each with the attacker told the reasons and told only the outcomes, before any episode runs.
 - **Report the RC13 campaign.** Zero protected violations in 6,237 evaluable episodes across 26 arms of 13 local models, and no detectable effect of telling the attacker the monitor's reasons (+0.3 points pooled, 95% interval −3.2 to +3.8), as predicted; the reason defaults stay (FIND-064, DEC-061). A new per-model table and chart are in `experiments/rc13-campaign/`, and its traces replayed through the gateway gave nothing looser than the library.
 - **Report intervals that resample stories (FIND-065).** A campaign's episodes cluster by story, with a design effect of 5.7 on average, so every per-episode interval VAIS has reported was about 2.4 times too narrow. It changes no primary result, but two exploratory P1b-4 differences against RC7 no longer exclude zero; `experiments/p1b4/RESULTS.md` carries a correction, and `docs/evaluation-methodology.md` says how to report from now on.
+- Run the test suite with the `mcp` extra in CI, so the gateway transport tests run on every push; they had always been skipped there.
+- Add `docs/rc13-to-rc14-diff.md` and `benchmarks/rc/v0.12.0rc14-release-review.json`.
 
 ## 0.12.0-rc13 - 2026-09-25
 
