@@ -32,7 +32,7 @@ import yaml
 
 from .approvals import ApprovalStore
 from .gateway import ContractRegistry, Gateway, GatewayOutcomeKind, exposed_name, label_agent_action, token_digest
-from .mcp import MCPEffectMapping, MCPProfile, MCPResultPolicy, MCPToolBinding
+from .mcp import MCPEffectMapping, MCPMintSpec, MCPProfile, MCPResultPolicy, MCPToolBinding
 from .models import ConfidentialityLevel, TaskContract, TrustLevel, action_fingerprint
 from .monitor import ReferenceMonitor
 from .reference_agent import (
@@ -47,9 +47,14 @@ from .reference_agent import (
 # The reference application's own tools, served by the harness rather than an MCP server on
 # the library path. Behind a gateway they would be upstream tools like any other.
 APPLICATION_BINDINGS = (
+    # The declassifier's result is the public artifact id the senders require trusted. The
+    # library binds it into the contract; behind the gateway the operator declares it a mint
+    # (DEC-064). Without the mint the sends were denied (LIM-068).
     MCPToolBinding("status", "build_public_update", "status.build_public_update",
                    MCPResultPolicy(ConfidentialityLevel.PUBLIC),
-                   MCPEffectMapping("public_update_built", {"incident_id": "incident_id"})),
+                   MCPEffectMapping("public_update_built", {"incident_id": "incident_id"}),
+                   mints=(MCPMintSpec(None, (("email.send_public_update", "artifact_id"),
+                                             ("slack.send_public_update", "artifact_id"))),)),
     MCPToolBinding("email", "send_public_update", "email.send_public_update",
                    MCPResultPolicy(ConfidentialityLevel.PUBLIC),
                    MCPEffectMapping("email_public_update_sent", {"recipient": "recipient", "artifact_id": "artifact_id"})),
@@ -231,7 +236,8 @@ async def replay_trace(workflow: ReferenceWorkflow, trace: list[Mapping[str, Any
 
         # The labels the gateway assigns, from the session state it holds before this call.
         state = gateway._state(agent_contract)
-        planned = label_agent_action(tool, arguments, contract, state.context_level, state.context_trust)
+        planned = label_agent_action(tool, arguments, contract, state.context_level, state.context_trust,
+                                     state.context.minted_for(tool))
         labels, trust_lost = {}, []
         for name, value in action["arguments"].items():
             recorded = value["provenance"]

@@ -51,7 +51,9 @@ recorded traces through a real `Gateway`, with upstreams that return the recorde
 compares each step up to the first decision that differs
 ([results](../experiments/gateway-equivalence/RESULTS.md)). Over 10,560 protected traces from
 P1b-4 and RC7, **no gateway decision and no label was more permissive than the library's**, and
-88.6% of traces were identical (FIND-063). The gateway is stricter for two reasons:
+88.6% of traces were identical (FIND-063). With rc14's mint for the reference declassifier declared,
+95.8% of 23,040 traces, the RC13 campaign's included, are identical and only the first reason below
+remains. The gateway was stricter for two reasons:
 
 - **A contract approval counts once.** An action listed in a contract file's
   `approved_action_fingerprints` is allowed the first time in a session and then needs an
@@ -59,10 +61,36 @@ P1b-4 and RC7, **no gateway decision and no label was more permissive than the l
   and across gateways sharing the file. The library path without a store or ledger lets it
   authorize the same action again (LIM-044). Before DEC-060 the gateway ignored these approvals
   entirely, because an approval store hid them (FIND-062); the replay found that.
-- **Authority minted during a session is lost.** A trusted application transform, such as the
-  reference application's declassifier, can create a value the library binds into the contract.
-  A gateway contract is a fixed operator file, so the value comes back from the agent as model
-  output and a tool requiring it trusted denies it (LIM-068).
+- **Authority minted during a session needed a declaration.** A trusted application transform,
+  such as the reference application's declassifier, can create a value the library binds into
+  the contract. A gateway contract is a fixed operator file, so until rc14 the value came back
+  from the agent as model output and a tool requiring it trusted denied it (LIM-068). A declared
+  mint now carries it (below); with the declassifier's mint declared, the replay's only remaining
+  difference is single use.
+
+## Values the application creates during a session
+
+Some applications create a trusted value mid-session that a later tool requires, such as a
+declassifier's public artifact id. An operator can declare in the MCP profile that a tool's
+result is authority for named arguments of other tools:
+
+```yaml
+servers:
+  status:
+    tools:
+      build_public_update:
+        mints:
+          - from: result               # or result.<field> of a structured result
+            to: [email.send_public_update.artifact_id]
+```
+
+After the minting call is allowed and observed, an argument **exactly equal** to the value is
+trusted, with the minting tool as its source, for the rest of that session, and only for targets
+whose tool the session's contract allows. Any other value is model output, a contract binding for
+the same argument still wins, and every mint is audited with a digest of the value rather than
+the value. With `state:` set, minted values survive a restart like the rest of the session.
+Declaring a mint trusts the minting server as part of the application (LIM-070): a compromised
+minting server can mint whatever it likes for those arguments.
 
 ## Quick start
 
@@ -157,5 +185,5 @@ account, the agent in another with network access to the gateway's port and noth
   restart starts fresh (LIM-055, LIM-063). With it they are files, shared by processes on one
   machine only. The contract directory is read on every request.
 - An approval in a contract file authorizes its exact action once per session (DEC-060).
-- A value an application creates during the session cannot become authority at the gateway
-  (LIM-068).
+- A value an application creates during the session becomes authority only through a declared
+  mint, which trusts the minting server (LIM-068, LIM-070).

@@ -50,7 +50,10 @@ class MCPResultPolicy:
     Direct MCP output is never authority by default. v0.7 intentionally does
     not provide a profile switch that upgrades remote result data to TRUSTED;
     applications that truly need authority must construct it through a trusted
-    application-specific adapter outside the model/MCP data path.
+    application-specific adapter outside the model/MCP data path. The one narrow
+    exception, from rc14, is a declared mint (``MCPMintSpec``): at the gateway, a
+    named result value becomes trusted for named arguments of other tools, in one
+    session, by exact match only (DEC-064).
     """
 
     confidentiality: ConfidentialityLevel = ConfidentialityLevel.PUBLIC
@@ -121,14 +124,57 @@ class MCPEffectMapping:
 
 
 @dataclass(frozen=True)
+class MCPMintSpec:
+    """A tool result the operator declares to be authority for other tools' arguments (DEC-064).
+
+    MCP results are never authority by default. Some applications create a trusted value
+    during a session, such as a declassifier's public artifact id, and a later tool requires
+    exactly that value (LIM-068). A mint lets the gateway carry it: when the tool is called
+    and observed, the value becomes trusted for each target ``(canonical tool, argument)``,
+    for that session only, and only for an argument exactly equal to it. Declaring a mint
+    trusts the minting server as part of the application (LIM-070).
+
+    ``field`` is ``None`` to take the whole result, which must then be a string or an
+    integer, or the name of a top-level field of a structured result.
+    """
+
+    field: str | None
+    targets: tuple[tuple[str, str], ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "targets", tuple(tuple(t) for t in self.targets))
+        if self.field is not None and (not isinstance(self.field, str) or not self.field.strip()):
+            raise ValueError("a mint's field must be a non-empty string or None")
+        if not self.targets:
+            raise ValueError("a mint needs at least one target")
+        for target in self.targets:
+            if len(target) != 2 or not all(isinstance(part, str) and part.strip() for part in target):
+                raise ValueError("a mint target is a (canonical tool, argument) pair")
+        if len(set(self.targets)) != len(self.targets):
+            raise ValueError("a mint names the same target twice")
+
+    def value(self, result: Any) -> str | int | None:
+        """The minted value in an observed result, or None if the result does not carry one."""
+        if self.field is not None:
+            if not isinstance(result, Mapping) or self.field not in result:
+                return None
+            result = result[self.field]
+        if isinstance(result, bool) or not isinstance(result, (str, int)):
+            return None
+        return result
+
+
+@dataclass(frozen=True)
 class MCPToolBinding:
     server_id: str
     tool_name: str
     canonical_tool: str
     result_policy: MCPResultPolicy = field(default_factory=MCPResultPolicy)
     effect: MCPEffectMapping = field(default_factory=MCPEffectMapping)
+    mints: tuple[MCPMintSpec, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "mints", tuple(self.mints))
         for label, value in {
             "server_id": self.server_id,
             "tool_name": self.tool_name,
@@ -159,6 +205,11 @@ class MCPProfile:
             raise ValueError("MCP canonical tool names must be unique")
         if len(endpoints) != len(set(endpoints)):
             raise ValueError("MCP server/tool bindings must be unique")
+        for item in self.bindings:
+            for mint in item.mints:
+                for tool, _ in mint.targets:
+                    if tool not in canonical:
+                        raise ValueError(f"{item.canonical_tool} mints for {tool!r}, which the profile does not bind")
 
     def effect_kinds(self) -> frozenset[str]:
         """The effect kinds calls through this profile can produce, for checking invariants (LIM-041)."""
@@ -701,11 +752,46 @@ def _confidentiality(value: Any, path: str) -> ConfidentialityLevel:
     raise AssertionError("unreachable")
 
 
+def _parse_mints(value: Any, path: str) -> tuple[MCPMintSpec, ...]:
+    """``mints: [{from: result | result.<field>, to: [<canonical tool>.<argument>, ...]}]``"""
+    if not isinstance(value, list):
+        _fail(path, "must be a list")
+    mints = []
+    for index, item in enumerate(value):
+        where = f"{path}[{index}]"
+        item = _mapping(item, where)
+        _known_keys(item, {"from", "to"}, where)
+        source = _string(item.get("from"), f"{where}.from")
+        if source == "result":
+            field_name = None
+        elif source.startswith("result.") and source[len("result."):] and "." not in source[len("result."):]:
+            field_name = source[len("result."):]
+        else:
+            _fail(f"{where}.from", "must be 'result' or 'result.<field>'")
+        targets_raw = item.get("to")
+        if not isinstance(targets_raw, list) or not targets_raw:
+            _fail(f"{where}.to", "must be a non-empty list of '<canonical tool>.<argument>'")
+        targets = []
+        for target in targets_raw:
+            text = _string(target, f"{where}.to[]")
+            # Canonical tool names may contain dots; the argument is after the last one.
+            tool, _, argument = text.rpartition(".")
+            if not tool or not argument:
+                _fail(f"{where}.to", f"{text!r} is not '<canonical tool>.<argument>'")
+            targets.append((tool, argument))
+        try:
+            mints.append(MCPMintSpec(field_name, tuple(targets)))
+        except ValueError as exc:
+            _fail(where, str(exc))
+    return tuple(mints)
+
+
 def load_mcp_profile(path: str | Path) -> MCPProfile:
     """Load a strict MCP integration profile.
 
     Schema v1 deliberately permits confidentiality labeling but does not allow
-    remote MCP results to be configured as ``trusted`` authority.
+    remote MCP results to be configured as ``trusted`` authority, except through a
+    tool's ``mints``, which the gateway applies (DEC-064).
     """
 
     raw = read_yaml_document(path, "mcp_profile") or {}
@@ -734,7 +820,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             tool_raw = _mapping(tool_raw, tool_path)
             _known_keys(
                 tool_raw,
-                {"canonical_tool", "result_confidentiality", "effect"},
+                {"canonical_tool", "result_confidentiality", "effect", "mints"},
                 tool_path,
             )
             canonical = tool_raw.get("canonical_tool")
@@ -800,6 +886,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                         raise
                     _fail(confirm_path, str(exc))
 
+            mints = _parse_mints(tool_raw.get("mints", []), f"{tool_path}.mints")
             try:
                 binding = MCPToolBinding(
                     server_id=server_id,
@@ -807,6 +894,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                     canonical_tool=canonical,
                     result_policy=MCPResultPolicy(result_conf),
                     effect=MCPEffectMapping(effect_kind, fields, acknowledge, confirm),
+                    mints=mints,
                 )
             except ValueError as exc:
                 _fail(tool_path, str(exc))

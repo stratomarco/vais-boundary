@@ -1,0 +1,268 @@
+{
+  "by_file": {
+    "gemma-4-12b-off": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 2122
+      },
+      "compared_steps": 1838,
+      "decisions": {
+        "gateway_stricter": 7,
+        "same": 1831
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 7
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 7,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 473,
+      "trust_lost_by_argument": {}
+    },
+    "gemma-4-12b-on": {
+      "argument_labels": {
+        "gateway_stricter": 216,
+        "same": 1954
+      },
+      "compared_steps": 1656,
+      "decisions": {
+        "same": 1656
+      },
+      "divergence_causes": {},
+      "divergences": [],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 480,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3-0.6b-off": {
+      "argument_labels": {
+        "gateway_stricter": 224,
+        "same": 2316
+      },
+      "compared_steps": 2102,
+      "decisions": {
+        "gateway_stricter": 48,
+        "same": 2054
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 48
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 48,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 4,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "email.send_external.body": 1,
+        "email.send_external.recipient": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_external.body": 1,
+        "slack.send_internal.body": 2,
+        "slack.send_internal.channel": 2,
+        "slack.send_public_update.artifact_id": 1
+      },
+      "traces": 480,
+      "traces_identical": 432,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3-0.6b-on": {
+      "argument_labels": {
+        "gateway_stricter": 217,
+        "same": 2273
+      },
+      "compared_steps": 2060,
+      "decisions": {
+        "gateway_stricter": 39,
+        "same": 2021
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 39
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 39,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_public_update.artifact_id": 1
+      },
+      "traces": 480,
+      "traces_identical": 441,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3.5-9b-off": {
+      "argument_labels": {
+        "gateway_stricter": 228,
+        "same": 2188
+      },
+      "compared_steps": 1935,
+      "decisions": {
+        "same": 1935
+      },
+      "divergence_causes": {},
+      "divergences": [],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "knowledge.search.query": 84,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 480,
+      "trust_lost_by_argument": {}
+    },
+    "qwen3.5-9b-on-r2": {
+      "argument_labels": {
+        "gateway_stricter": 223,
+        "same": 2351
+      },
+      "compared_steps": 1969,
+      "decisions": {
+        "same": 1969
+      },
+      "divergence_causes": {},
+      "divergences": [],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 0,
+      "stricter_labels_by_argument": {
+        "agent.delegate.task": 72,
+        "incident.update.status": 1,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72,
+        "slack.send_external.body": 4,
+        "slack.send_public_update.artifact_id": 2
+      },
+      "traces": 480,
+      "traces_identical": 480,
+      "trust_lost_by_argument": {}
+    },
+    "smollm3-3b-off": {
+      "argument_labels": {
+        "gateway_stricter": 250,
+        "same": 4317
+      },
+      "compared_steps": 2890,
+      "decisions": {
+        "gateway_stricter": 2,
+        "same": 2888
+      },
+      "divergence_causes": {
+        "contract_approval_single_use": 2
+      },
+      "divergences": [
+        {
+          "gateway": "require_approval",
+          "labels_changed": "",
+          "library": "allow",
+          "steps": 2,
+          "tool": "production.restart_service",
+          "verdict": "gateway_stricter"
+        }
+      ],
+      "looser_examples": [],
+      "steps_not_compared_after_divergence": 1,
+      "stricter_labels_by_argument": {
+        "agent.delegate.agent_id": 2,
+        "agent.delegate.scope": 2,
+        "agent.delegate.task": 74,
+        "email.send_public_update.artifact_id": 14,
+        "email.send_public_update.recipient": 14,
+        "knowledge.search.query": 72,
+        "logs.search.query": 72
+      },
+      "traces": 480,
+      "traces_identical": 478,
+      "trust_lost_by_argument": {}
+    }
+  },
+  "files": 7,
+  "label": "p1b4",
+  "overall": {
+    "argument_labels": {
+      "gateway_stricter": 1574,
+      "same": 17521
+    },
+    "compared_steps": 14450,
+    "decisions": {
+      "gateway_stricter": 96,
+      "same": 14354
+    },
+    "divergence_causes": {
+      "contract_approval_single_use": 96
+    },
+    "divergences": [
+      {
+        "gateway": "require_approval",
+        "labels_changed": "",
+        "library": "allow",
+        "steps": 96,
+        "tool": "production.restart_service",
+        "verdict": "gateway_stricter"
+      }
+    ],
+    "looser_examples": [],
+    "steps_not_compared_after_divergence": 5,
+    "stricter_labels_by_argument": {
+      "agent.delegate.agent_id": 2,
+      "agent.delegate.scope": 2,
+      "agent.delegate.task": 506,
+      "email.send_external.body": 1,
+      "email.send_external.recipient": 1,
+      "email.send_public_update.artifact_id": 14,
+      "email.send_public_update.recipient": 14,
+      "incident.update.status": 1,
+      "knowledge.search.query": 516,
+      "logs.search.query": 504,
+      "slack.send_external.body": 5,
+      "slack.send_internal.body": 2,
+      "slack.send_internal.channel": 2,
+      "slack.send_public_update.artifact_id": 4
+    },
+    "traces": 3360,
+    "traces_identical": 3264,
+    "trust_lost_by_argument": {}
+  },
+  "seconds": 66.0
+}

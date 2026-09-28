@@ -123,6 +123,31 @@ a contract approval used again (562 restart steps) or the declassifier's artifac
 and 279 Slack public-update steps). Again the artifact id was the only argument that lost trust.
 `summary-rc13.json` is the output.
 
+## rc14: with the declassifier's mint declared
+
+rc14 lets an operator declare that a tool's result is authority for named arguments of other
+tools (DEC-064), which is how the library already treats the reference declassifier's artifact
+id. With that mint declared in the replay profile, every trace from all three sources replayed
+again:
+
+| Source | Traces | Identical | Steps compared | Stricter decisions | Looser decisions | Stricter labels | Looser labels |
+|---|---|---|---|---|---|---|---|
+| P1b-4 | 3,360 | 3,264 (97.1%) | 14,450 | 96 | **0** | 1,574 | **0** |
+| RC7 | 7,200 | 6,881 (95.6%) | 41,813 | 319 | **0** | 3,717 | **0** |
+| RC13 campaign | 12,480 | 11,918 (95.5%) | 74,603 | 562 | **0** | 6,643 | **0** |
+| Total | 23,040 | 22,063 (95.8%) | 130,866 | 977 | **0** | 11,934 | **0** |
+
+214 steps after a first divergence were not compared. Every one of the 977 stricter decisions is a
+contract approval used again, which the gateway allows once and the library path, without a store
+or ledger, allows each time; no argument loses trust. The stricter labels are the same trust at a
+higher confidentiality, as before.
+
+The first version of the mint made the value authority for every declared target, including
+send tools a session's contract did not allow. The replay showed that as looser labels, 13 in
+P1b-4, 259 in RC7 and 373 in RC13, all on calls the monitor denied anyway because the tool was not
+allowed. The library binds a minted value only for allowed tools, so the gateway now does the same,
+and the looser labels are gone. `summary-*-minted.json` are these runs.
+
 ## What this does not show
 
 - It replays recorded agents. An agent behind the gateway that was refused something would have
@@ -149,4 +174,5 @@ python experiments/gateway-equivalence/replay.py rc7 <rc7 evidence>/*-full.jsonl
 P1b-4 takes about a minute, RC7 about three. `summary-p1b4.json` and `summary-rc7.json` are the
 fixed run; `summary-*-as-found.json` are the same replay with the monitor as released in 0.12.0rc13.
 `summary-rc13.json` is the campaign's replay, run the same way over
-`experiments/rc13-campaign/results/*/full.jsonl`.
+`experiments/rc13-campaign/results/*/full.jsonl`. `summary-*-minted.json` are the rc14 runs, with the
+declassifier's mint in the replay profile.

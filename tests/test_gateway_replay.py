@@ -21,11 +21,10 @@ from vais.reference_agent import (
     SelectiveReferenceTarget,
 )
 
-# Why the gateway is stricter than the library on the reference application. Until FIND-062
-# was fixed, a contract-held restart approval was a second reason.
-KNOWN_STRICTER = {
-    # The library mints the declassifier's artifact id into the contract as a trusted binding;
-    # an operator's contract file cannot, so the gateway labels it model output (LIM-068).
+# Without a declared mint, the gateway denied the public-update sends the library allowed:
+# the library binds the declassifier's artifact id into the contract, and an operator's
+# contract file cannot (LIM-068). The replay profile declares that mint (DEC-064).
+WITHOUT_MINT = {
     ("email.send_public_update", "allow", "deny"),
     ("slack.send_public_update", "allow", "deny"),
 }
@@ -45,25 +44,30 @@ def records() -> list[dict]:
     return _reference_records()
 
 
-def test_the_gateway_is_never_looser_and_stricter_only_for_known_reasons(records):
+def test_with_the_declassifier_mint_the_gateway_decides_exactly_as_the_library(records):
     summary = replay.summarize(c for *_, c in replay.replay_records(records, parts=("protected_result",)))
-    assert summary["traces"] == len(records)
-    assert "gateway_looser" not in summary["decisions"]
+    assert summary["traces"] == len(records) == summary["traces_identical"]
+    assert set(summary["decisions"]) == {"same"}
+    # Labels may still be more confidential at the gateway; none is less trusted or looser.
     assert set(summary["argument_labels"]) <= {"same", "gateway_stricter"}
-    assert summary["decisions"]["same"] > 0
-    # Only the minted artifact id ever loses trust; every other stricter label is the same
-    # trust at a higher confidentiality.
-    assert set(summary["trust_lost_by_argument"]) <= {"email.send_public_update.artifact_id",
-                                                      "slack.send_public_update.artifact_id"}
-    assert {(d["tool"], d["library"], d["gateway"]) for d in summary["divergences"]} == KNOWN_STRICTER
+    assert summary["trust_lost_by_argument"] == {}
+
+
+def test_without_the_mint_the_sends_are_denied_as_before(records, monkeypatch):
+    unminted = replay.MCPProfile(tuple(
+        replay.MCPToolBinding(b.server_id, b.tool_name, b.canonical_tool, b.result_policy, b.effect)
+        for b in replay.REPLAY_PROFILE.bindings))
+    monkeypatch.setattr(replay, "REPLAY_PROFILE", unminted)
+    summary = replay.summarize(c for *_, c in replay.replay_records(records, parts=("protected_result",)))
+    assert "gateway_looser" not in summary["decisions"]
+    assert {(d["tool"], d["library"], d["gateway"]) for d in summary["divergences"]} == WITHOUT_MINT
     assert set(summary["divergence_causes"]) == {replay.MINTED_AUTHORITY}
-    for d in summary["divergences"]:
-        if d["tool"].endswith("send_public_update"):
-            assert "artifact_id" in d["labels_changed"].split(",")
+    assert set(summary["trust_lost_by_argument"]) == {"email.send_public_update.artifact_id",
+                                                      "slack.send_public_update.artifact_id"}
 
 
 def test_a_gateway_that_trusted_the_agent_would_be_caught(records, monkeypatch):
-    def trusting(tool, arguments, contract, context_level, context_trust=TrustLevel.DERIVED_UNTRUSTED):
+    def trusting(tool, arguments, contract, context_level, context_trust=TrustLevel.DERIVED_UNTRUSTED, minted=None):
         return PlannedAction(tool, {name: TrustedValue(data, source="agent") for name, data in arguments.items()})
 
     monkeypatch.setattr(gateway_module, "label_agent_action", trusting)

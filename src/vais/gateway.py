@@ -204,18 +204,31 @@ class ContractRegistry:
 
 # --- labelling ---------------------------------------------------------------------
 
+@dataclass(frozen=True)
+class MintedValue:
+    """A value a declared mint made authority for one argument in one session (DEC-064)."""
+
+    value: str | int
+    confidentiality: ConfidentialityLevel
+    source_tool: str
+
+
 def label_agent_action(
     tool: str,
     arguments: Mapping[str, Any],
     contract: TaskContract,
     context_level: ConfidentialityLevel,
     context_trust: TrustLevel = TrustLevel.DERIVED_UNTRUSTED,
+    minted: Mapping[str, tuple[MintedValue, ...]] | None = None,
 ) -> PlannedAction:
     """Build the ``PlannedAction`` for arguments that arrived from the agent.
 
     Nothing the agent sends is trusted on its say-so. An argument exactly equal to its
     contract binding takes the binding's label, since its value is the one the operator
-    wrote; every other argument is model output at the session's confidentiality level.
+    wrote. An argument exactly equal to a value minted for it this session (``minted``,
+    argument name to values) is trusted with the minting tool as its source, since the
+    operator declared that tool's result to be authority for it. Every other argument is
+    model output at the session's confidentiality level.
 
     The action's origin (P1b-6) is the session's context as the gateway has seen it:
     trusted until the session receives its first tool result, which VAIS always treats
@@ -225,8 +238,15 @@ def label_agent_action(
     values: dict[str, Value] = {}
     for name, data in arguments.items():
         bound = contract.bound_arguments.get((tool, name))
-        if bound is not None and security_equal(deep_freeze(data), bound.data):
+        frozen = deep_freeze(data)
+        match = next((m for m in (minted or {}).get(name, ()) if security_equal(frozen, m.value)), None)
+        if bound is not None and security_equal(frozen, bound.data):
             values[name] = Value(data, bound.provenance)
+        elif match is not None:
+            values[name] = Value(data, Provenance(
+                source=f"gateway:minted:{match.source_tool}", trust=TrustLevel.TRUSTED,
+                confidentiality=match.confidentiality,
+            ))
         else:
             values[name] = Value(data, Provenance(
                 source="model_output", trust=TrustLevel.DERIVED_UNTRUSTED, confidentiality=context_level,
@@ -259,11 +279,12 @@ class GatewayOutcome:
 
 
 class _SessionContext:
-    """What a session has received through the gateway: its confidentiality high-water mark
-    and whether any tool result has reached the agent yet.
+    """What a session has received through the gateway: its confidentiality high-water mark,
+    whether any tool result has reached the agent yet, and the values declared mints made
+    authority (DEC-064).
 
-    Both only ever rise. Without a path they live in memory and a restart starts the session
-    fresh, so an agent that read secret data could send it once the gateway restarts
+    All three only ever grow. Without a path they live in memory and a restart starts the
+    session fresh, so an agent that read secret data could send it once the gateway restarts
     (LIM-063). With a path they are a file every call reloads under an operating-system
     lock, so a restarted gateway, or a second one sharing the state directory, labels the
     session's next arguments as the first would have.
@@ -273,6 +294,7 @@ class _SessionContext:
         self.path = path
         self.level = ConfidentialityLevel.PUBLIC
         self.trust = TrustLevel.TRUSTED
+        self.minted: dict[tuple[str, str], tuple[MintedValue, ...]] = {}
         self.lock = SharedStateLock(path, self._reload)
         if path is not None:
             with self.lock:
@@ -281,6 +303,10 @@ class _SessionContext:
     def current(self) -> tuple[ConfidentialityLevel, TrustLevel]:
         with self.lock:
             return self.level, self.trust
+
+    def minted_for(self, tool: str) -> dict[str, tuple[MintedValue, ...]]:
+        with self.lock:
+            return {argument: values for (target, argument), values in self.minted.items() if target == tool}
 
     def observe(self, level: ConfidentialityLevel) -> None:
         """Record that a result at ``level`` reached the agent."""
@@ -291,18 +317,49 @@ class _SessionContext:
             new_trust = TrustLevel.DERIVED_UNTRUSTED
             if (new_level, new_trust) == (self.level, self.trust):
                 return
-            if self.path is not None:
-                write_json_atomic(self.path, {"version": 1, "confidentiality": new_level.value, "trust": new_trust.value})
+            self._write(new_level, new_trust, self.minted)
             self.level, self.trust = new_level, new_trust
+
+    def mint(self, targets: tuple[tuple[str, str], ...], value: MintedValue) -> None:
+        """Make ``value`` authority for each target argument for the rest of the session."""
+        with self.lock:
+            minted = dict(self.minted)
+            for target in targets:
+                if value not in minted.get(target, ()):
+                    minted[target] = (*minted.get(target, ()), value)
+            if minted == self.minted:
+                return
+            self._write(self.level, self.trust, minted)
+            self.minted = minted
+
+    def _write(self, level: ConfidentialityLevel, trust: TrustLevel,
+               minted: dict[tuple[str, str], tuple[MintedValue, ...]]) -> None:
+        if self.path is None:
+            return
+        write_json_atomic(self.path, {
+            "version": 1, "confidentiality": level.value, "trust": trust.value,
+            "minted": [[tool, argument, m.value, m.confidentiality.value, m.source_tool]
+                       for (tool, argument), values in sorted(minted.items()) for m in values],
+        })
 
     def _reload(self) -> None:
         if self.path is None or not self.path.exists():
             return
         raw = json.loads(self.path.read_text(encoding="utf-8"))
-        if not isinstance(raw, dict) or raw.get("version") != 1 or set(raw) != {"version", "confidentiality", "trust"}:
+        if (not isinstance(raw, dict) or raw.get("version") != 1
+                or set(raw) != {"version", "confidentiality", "trust", "minted"} or not isinstance(raw["minted"], list)):
             raise ValueError(f"{self.path}: not a version 1 gateway session context")
+        minted: dict[tuple[str, str], tuple[MintedValue, ...]] = {}
+        for item in raw["minted"]:
+            if (not isinstance(item, list) or len(item) != 5 or not isinstance(item[0], str)
+                    or not isinstance(item[1], str) or isinstance(item[2], bool)
+                    or not isinstance(item[2], (str, int)) or not isinstance(item[4], str)):
+                raise ValueError(f"{self.path}: malformed minted value")
+            key = (item[0], item[1])
+            minted[key] = (*minted.get(key, ()), MintedValue(item[2], ConfidentialityLevel(item[3]), item[4]))
         self.level = ConfidentialityLevel(raw["confidentiality"])
         self.trust = TrustLevel(raw["trust"])
+        self.minted = minted
 
 
 @dataclass
@@ -444,7 +501,8 @@ class Gateway:
         state = self._state(contract)
         level, trust = state.context.current()
         try:
-            action = label_agent_action(binding.canonical_tool, arguments, contract, level, trust)
+            action = label_agent_action(binding.canonical_tool, arguments, contract, level, trust,
+                                        state.context.minted_for(binding.canonical_tool))
         except ValueError:
             self.audit.record("gateway_malformed_arguments", tool=binding.canonical_tool,
                               decision=DecisionType.DENY.value, reasons=("malformed_arguments",))
@@ -465,6 +523,7 @@ class Gateway:
 
         if record.call_state is MCPCallState.OBSERVED:
             state.context.observe(binding.result_policy.confidentiality)
+            self._mint(binding, record.result.data if record.result else None, state, contract)
             return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
         if record.call_state is MCPCallState.INDETERMINATE:
             return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,
@@ -473,6 +532,31 @@ class Gateway:
             request = self._request_approval(action, contract)
             return self._refusal(GatewayOutcomeKind.APPROVAL_REQUIRED, record.decision.reasons, request)
         return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
+
+    def _mint(self, binding: MCPToolBinding, result: Any, state: _SessionState, contract: TaskContract) -> None:
+        """Make each declared mint's value authority for its targets in this session (DEC-064).
+
+        Only an observed call mints, so the monitor allowed the minting call itself. The audit
+        records a digest of the value, not the value.
+        """
+        identity = {"principal_id": contract.principal_id, "session_id": contract.session_id,
+                    "tenant_id": contract.tenant_id, "capability_id": contract.capability_id}
+        for spec in binding.mints:
+            value = spec.value(result)
+            source = "result" if spec.field is None else f"result.{spec.field}"
+            # Only for tools this session's contract allows: authority it could never use is
+            # not created, as the library binds a minted value only for allowed tools.
+            targets = tuple(target for target in spec.targets if target[0] in contract.allowed_tools)
+            if value is None or not targets:
+                self.audit.record("authority_not_minted", tool=binding.canonical_tool, details={
+                    "from": source, "reason": "no_value" if value is None else "no_allowed_target", **identity})
+                continue
+            state.context.mint(targets, MintedValue(value, binding.result_policy.confidentiality,
+                                                    binding.canonical_tool))
+            self.audit.record("authority_minted", tool=binding.canonical_tool, details={
+                "from": source, "targets": [f"{tool}.{argument}" for tool, argument in targets],
+                "value_sha256": hashlib.sha256(json.dumps(value).encode("utf-8")).hexdigest(), **identity,
+            })
 
     def _reconcilers(self, binding: MCPToolBinding) -> dict[str, MCPReadBackReconciler]:
         """The read-back for this binding's effect, over the gateway's own upstream session (P1b-7).
