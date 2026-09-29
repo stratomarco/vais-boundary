@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Run Claude as a reference-agent target (P1b-2, DEC-065).** `vais adaptive-reference-anthropic` drives the reference-agent campaign against a Claude model through the Anthropic Messages API, with the official SDK as the optional `anthropic` extra and the key read only from the environment. The model sees the LM Studio prompt unchanged; the differences the API forces (plan schema combinator, no temperature, thinking control, undated model identifiers) are recorded in each run's metadata, refusals are unevaluable steps, and configuration errors stop the run. Runs are neither greedy nor pinned (LIM-071).
+
 ## 0.12.0-rc14 - 2026-09-28
 
 Durability and the gateway, after checking the gateway against the library: approval use, call limits, revocations and what a session has read now survive a restart and hold across processes on one machine; the gateway can carry a value an application creates mid-session as authority when the operator declares it; four recorded gaps are closed; and the RC13 campaign reports that telling a language-model attacker the monitor's reasons made no detectable difference, with no protected violations. Replaying 23,040 recorded traces through the gateway found no decision more permissive than the library's. Every new mechanism is opt-in, and the regenerated snapshots are byte-identical to rc13's apart from the version.

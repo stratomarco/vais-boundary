@@ -331,6 +331,44 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
 
+    adaptive_anthropic = subparsers.add_parser(
+        "adaptive-reference-anthropic",
+        help=(
+            "run adaptive verification against a Claude reference-agent target through the "
+            "Anthropic API; the attacker, if any, stays a local LM Studio model. The API key "
+            "is read from the environment (ANTHROPIC_API_KEY or an `ant auth login` profile)"
+        ),
+    )
+    adaptive_anthropic.add_argument("--target-model", action="append", default=None, help="Claude model ID, default claude-opus-5-5; repeat to compare targets")
+    adaptive_anthropic.add_argument("--target-thinking", choices=("adaptive", "between_tools", "disabled", "omit"), default="adaptive", help="adaptive: thinking on, summarized so it is observable; between_tools: thinking off on models that support it (Claude Sonnet 5.5); disabled: older models; omit: send no thinking parameter")
+    adaptive_anthropic.add_argument("--target-effort", choices=("low", "medium", "high", "xhigh", "max"), default=None, help="output_config.effort; default: the model's own default")
+    adaptive_anthropic.add_argument("--target-max-tokens", type=int, default=16000)
+    adaptive_anthropic.add_argument("--target-truncation-retry-tokens", type=int, default=None, help="retry one max_tokens-truncated generation with this larger budget")
+    adaptive_anthropic.add_argument("--target-max-retries", type=int, default=2, help="SDK retries for rate limits, overload and server errors")
+    adaptive_anthropic.add_argument("--target-reasoning-mode", choices=("off", "low", "medium", "high", "on", "auto"), default=None, help="declared reasoning label, checked against observed thinking blocks")
+    adaptive_anthropic.add_argument("--attacker-model", default=None, help="optional LM Studio attacker model; omit to use deterministic adaptive mutation search")
+    adaptive_anthropic.add_argument("--attacker-base-url", default="http://localhost:1234/v1", help="OpenAI-compatible attacker endpoint")
+    adaptive_anthropic.add_argument("--attacker-temperature", type=float, default=0.7)
+    adaptive_anthropic.add_argument("--attacker-max-tokens", type=int, default=768)
+    adaptive_anthropic.add_argument("--attacker-reasoning-mode", choices=("off", "low", "medium", "high", "on", "auto"), default=None)
+    adaptive_anthropic.add_argument("--attacker-disable-thinking", action="store_true")
+    adaptive_anthropic.add_argument("--attacker-feedback", choices=("reasons", "outcomes"), default="reasons")
+    adaptive_anthropic.add_argument("--transport-retries", type=int, default=1, help="attacker transport retries")
+    adaptive_anthropic.add_argument("--episodes", type=int, default=12, help="maximum adaptive episodes per attack story")
+    adaptive_anthropic.add_argument("--search-mode", choices=("adaptive", "fixed"), default="adaptive")
+    adaptive_anthropic.add_argument("--scenario", action="append", default=None, help="reference attack workflow ID; repeat to select multiple; default all 20")
+    adaptive_anthropic.add_argument("--include-unprotected-diagnostic", action="store_true")
+    adaptive_anthropic.add_argument("--continue-after-violation", action="store_true")
+    adaptive_anthropic.add_argument("--timeout", type=float, default=120.0, help="seconds per request")
+    adaptive_anthropic.add_argument("--output", default="results/adaptive-reference-anthropic.jsonl")
+    adaptive_anthropic.add_argument("--summary", default="results/adaptive-reference-anthropic-summary.json")
+    adaptive_anthropic.add_argument("--rlvr-output", default="results/adaptive-reference-anthropic-rlvr.jsonl")
+    adaptive_anthropic.add_argument("--print-json-summary", action="store_true")
+    adaptive_anthropic.add_argument("--overwrite", action="store_true", help="replace existing output artifacts")
+    adaptive_anthropic.add_argument("--fail-on-protected-violation", action="store_true")
+    adaptive_anthropic.add_argument("--fail-on-target-failure", action="store_true")
+    adaptive_anthropic.add_argument("--fail-on-reasoning-mode-mismatch", action="store_true")
+
     audit_results = subparsers.add_parser(
         "audit-results",
         help="offline reclassify stored episode JSONL using current measurement semantics",
@@ -843,7 +881,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 2
         return 0
 
-    if args.command == "adaptive-reference-lmstudio":
+    if args.command in {"adaptive-reference-lmstudio", "adaptive-reference-anthropic"}:
         import asyncio
         from .adaptive_reference import (
             AdaptiveReferenceVerifier,
@@ -857,6 +895,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             write_rlvr_trajectories,
         )
         from .openai_compatible import lmstudio_config_from_env
+        from .reference_agent_anthropic import AnthropicConfigurationError
         from .reference_agent_lmstudio import ReferenceAgentLMStudioTarget
         from .reporting import render_adaptive_reference_summary
 
@@ -872,23 +911,49 @@ def main(argv: Sequence[str] | None = None) -> int:
             stop_on_violation=not args.continue_after_violation,
             include_unprotected_diagnostic=args.include_unprotected_diagnostic,
         )
-        targets = tuple(
-            ReferenceAgentLMStudioTarget(
-                lmstudio_config_from_env(
-                    model,
-                    base_url=args.target_base_url,
-                    timeout_seconds=args.timeout,
-                    temperature=args.target_temperature,
-                    max_tokens=args.target_max_tokens,
-                    disable_thinking=args.target_disable_thinking,
-                    transport_retries=args.transport_retries,
-                    reasoning_mode_label=args.target_reasoning_mode,
-                    truncation_retry_tokens=args.target_truncation_retry_tokens,
-                    enable_thinking=args.target_enable_thinking,
-                )
+        if args.command == "adaptive-reference-anthropic":
+            from .reference_agent_anthropic import (
+                AnthropicTargetConfig,
+                ReferenceAgentAnthropicTarget,
             )
-            for model in args.target_model
-        )
+
+            try:
+                targets = tuple(
+                    ReferenceAgentAnthropicTarget(
+                        AnthropicTargetConfig(
+                            model=model,
+                            max_tokens=args.target_max_tokens,
+                            thinking=args.target_thinking,
+                            effort=args.target_effort,
+                            timeout_seconds=args.timeout,
+                            max_retries=args.target_max_retries,
+                            reasoning_mode_label=args.target_reasoning_mode,
+                            truncation_retry_tokens=args.target_truncation_retry_tokens,
+                        )
+                    )
+                    for model in (args.target_model or [AnthropicTargetConfig.model])
+                )
+            except ValueError as exc:
+                print(f"configuration error: {exc}")
+                return 7
+        else:
+            targets = tuple(
+                ReferenceAgentLMStudioTarget(
+                    lmstudio_config_from_env(
+                        model,
+                        base_url=args.target_base_url,
+                        timeout_seconds=args.timeout,
+                        temperature=args.target_temperature,
+                        max_tokens=args.target_max_tokens,
+                        disable_thinking=args.target_disable_thinking,
+                        transport_retries=args.transport_retries,
+                        reasoning_mode_label=args.target_reasoning_mode,
+                        truncation_retry_tokens=args.target_truncation_retry_tokens,
+                        enable_thinking=args.target_enable_thinking,
+                    )
+                )
+                for model in args.target_model
+            )
 
         def attacker_factory(_target, _workflow):
             if args.attacker_model is None:
@@ -896,7 +961,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return LMStudioAdaptiveAttacker(
                 lmstudio_config_from_env(
                     args.attacker_model,
-                    base_url=args.attacker_base_url or args.target_base_url,
+                    base_url=args.attacker_base_url or getattr(args, "target_base_url", None),
                     timeout_seconds=args.timeout,
                     temperature=args.attacker_temperature,
                     max_tokens=args.attacker_max_tokens,
@@ -907,11 +972,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 feedback=args.attacker_feedback,
             )
 
-        campaigns = asyncio.run(
-            AdaptiveReferenceVerifier(config=config).run_matrix(
-                workflows, targets, attacker_factory
+        try:
+            campaigns = asyncio.run(
+                AdaptiveReferenceVerifier(config=config).run_matrix(
+                    workflows, targets, attacker_factory
+                )
             )
-        )
+        except AnthropicConfigurationError as exc:
+            print(f"configuration error: {exc}")
+            return 7
         write_adaptive_results_jsonl(campaigns, args.output)
         write_rlvr_trajectories(campaigns, args.rlvr_output)
         summary = summarize_adaptive_campaigns(campaigns)

@@ -63,6 +63,38 @@ vais benchmark-lmstudio `
 
 Only use a shared `--reasoning-mode` label when it accurately describes all targets in that command. Otherwise run the configurations separately.
 
+## Anthropic API adapter (Claude)
+
+`vais adaptive-reference-anthropic` runs the reference-agent campaign with a Claude model as the target, through the Anthropic Messages API (P1b-2, DEC-065). The attacker, when one is used, is still a local LM Studio model; the RC stages use the deterministic mutation search and need no attacker model.
+
+Install the optional SDK and give it a credential in the environment. VAIS never takes the key as an argument and never records it:
+
+```powershell
+pip install "verifiable-ai-security[anthropic]"
+$env:ANTHROPIC_API_KEY = "<your key>"   # or `ant auth login`
+```
+
+The model sees the same prompt as an LM Studio target and returns the same plan, converted by the same code. The differences the API forces are recorded in every run's target metadata:
+
+- **Plan schema.** Structured output uses `output_config.format`. The variants are combined with `anyOf` instead of `oneOf` (each is fixed by a `const` tool name, so they mean the same), and the 0 to 6 array bounds are checked after parsing, as on the LM Studio path.
+- **No temperature.** Current Claude models reject a non-default temperature, so runs are not greedy and a replay can differ (LIM-071).
+- **Thinking.** `--target-thinking adaptive` (the default) requests thinking with a summarized display, so its presence is observable; `between_tools` turns thinking off on Claude Sonnet 5.5; Claude Opus 5.5 cannot run with thinking off. `--target-effort` sets `output_config.effort`. A thinking block whose text the API omitted still counts as observed reasoning, so a declared `--target-reasoning-mode off` fails closed.
+- **Served model.** Model identifiers are not dated snapshots; the model string each response reports is recorded as `served_models`.
+- **Refusals.** `stop_reason: "refusal"` makes the step unevaluable (`finish_reason: refusal`, `error_type: ModelRefusal`, with the category). No refusal fallback is requested, because a fallback would let a different model answer inside the campaign.
+- **Errors.** The SDK retries rate limits, overload and server errors (`--target-max-retries`); what still fails counts as a transport failure or timeout. A bad request, authentication or permission failure, or an unknown model stops the run with exit code 7 after its first call.
+
+A preflight run measures the real cost per call before a full stage:
+
+```powershell
+vais adaptive-reference-anthropic `
+  --target-model claude-opus-5-5 --target-effort low --target-reasoning-mode low `
+  --scenario attack-01 --episodes 1 `
+  --output .\results\api\opus-5-5-preflight.jsonl `
+  --summary .\results\api\opus-5-5-preflight-summary.json `
+  --rlvr-output .\results\api\opus-5-5-preflight-rlvr.jsonl `
+  --fail-on-target-failure --fail-on-reasoning-mode-mismatch --fail-on-protected-violation
+```
+
 ## Target failures are data
 
 A malformed or truncated target response no longer aborts the benchmark.

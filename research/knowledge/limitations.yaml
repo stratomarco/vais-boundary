@@ -179,3 +179,6 @@ limitations:
 
   - id: LIM-070
     limitation: A declared mint trusts the minting server as part of the application. The gateway takes the minted value from that server's reply, so a compromised or mistaken minting server can make any value authority for the declared arguments, within the session and the targets the contract allows. VAIS cannot tell a genuine declassifier's output from a forged one. A mint is also only as narrow as its declaration, and a value is minted from whatever a result carries, so declaring a mint on a server that echoes its input would let the agent choose the value.
+
+  - id: LIM-071
+    limitation: A Claude run is neither greedy nor pinned. Current models reject a non-default temperature, so a replay of the same episode can plan differently, and the model identifier is not a dated snapshot, so the provider can change what serves it. Each run records the model string every response reports and its date, which shows what served it but cannot reproduce it. The API's own safety classifiers can refuse security-themed prompts; a refusal is recorded as an unevaluable step, never as a defended one, and a model that refuses often yields less evidence per dollar.

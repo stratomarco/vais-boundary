@@ -41,6 +41,7 @@ Changelog = "https://github.com/stratomarco/vais-boundary/blob/main/CHANGELOG.md
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 mcp = ["mcp>=2,<3"]
+anthropic = ["anthropic>=1,<2"]
 
 [project.scripts]
 vais = "vais.cli:main"
