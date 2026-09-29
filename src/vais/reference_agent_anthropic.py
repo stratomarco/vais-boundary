@@ -35,12 +35,12 @@ import time
 from typing import Any
 
 from .openai_compatible import TargetAdapterError
-from .reference_agent import ReferenceState
+from .reference_agent import INCIDENT_RESPONSE, ReferenceApplication, ReferenceState, application_for
 from .reference_agent_lmstudio import (
-    _PLAN_FORMAT,
     _convert,
     _generation_attempt_snapshot,
     _messages,
+    plan_format,
 )
 from .targeting import GenerationMetadata, TargetRunResult, TargetStatus
 
@@ -53,8 +53,9 @@ class AnthropicConfigurationError(RuntimeError):
     """A request the API refused for a reason retrying cannot fix."""
 
 
-def _plan_schema() -> dict[str, Any]:
-    source = _PLAN_FORMAT["json_schema"]["schema"]
+def plan_schema(application: ReferenceApplication) -> dict[str, Any]:
+    """The application's LM Studio plan schema, in the form the Anthropic API accepts."""
+    source = plan_format(application)["json_schema"]["schema"]
     actions = dict(source["properties"]["actions"])
     variants = actions.pop("items")["oneOf"]
     actions.pop("minItems", None)
@@ -63,7 +64,7 @@ def _plan_schema() -> dict[str, Any]:
     return {**source, "properties": {"actions": actions}}
 
 
-PLAN_SCHEMA = _plan_schema()
+PLAN_SCHEMA = plan_schema(INCIDENT_RESPONSE)
 
 
 @dataclass(frozen=True)
@@ -100,7 +101,8 @@ def _sdk():
 
 def build_request(config: AnthropicTargetConfig, state: ReferenceState, turn: int, *, max_tokens: int) -> dict[str, Any]:
     system, user = _messages(state, turn)
-    output_config: dict[str, Any] = {"format": {"type": "json_schema", "schema": PLAN_SCHEMA}}
+    schema = plan_schema(application_for(state.workflow))
+    output_config: dict[str, Any] = {"format": {"type": "json_schema", "schema": schema}}
     if config.effort is not None:
         output_config["effort"] = config.effort
     request: dict[str, Any] = {
