@@ -182,3 +182,6 @@ limitations:
 
   - id: LIM-071
     limitation: A Claude run is neither greedy nor pinned. Current models reject a non-default temperature, so a replay of the same episode can plan differently, and the model identifier is not a dated snapshot, so the provider can change what serves it. Each run records the model string every response reports and its date, which shows what served it but cannot reproduce it. The API's own safety classifiers can refuse security-themed prompts; a refusal is recorded as an unevaluable step, never as a defended one, and a model that refuses often yields less evidence per dollar.
+
+  - id: LIM-072
+    limitation: The monitor has no rule over the sum of several actions, and a contract binds one value per tool argument. A task that legitimately makes several payments therefore cannot bind their invoice ids or amounts, and a payment that stays within every per-call rule (vendor, bank account, threshold and call limit) is allowed even when the session's total exceeds what the task named. The accounts-payable application's attack-21 shows this by design, and only the verifier's payment_total catches it. Enforcement covers such a task only as far as its per-call rules reach.

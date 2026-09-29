@@ -369,6 +369,14 @@ def _parser() -> argparse.ArgumentParser:
     adaptive_anthropic.add_argument("--fail-on-target-failure", action="store_true")
     adaptive_anthropic.add_argument("--fail-on-reasoning-mode-mismatch", action="store_true")
 
+    for reference_parser in (reference_default, reference_lmstudio, adaptive_default, adaptive_lmstudio, adaptive_anthropic):
+        reference_parser.add_argument(
+            "--application",
+            choices=("incident-response", "accounts-payable"),
+            default="incident-response",
+            help="reference application to run; default incident-response, the application all earlier evidence used",
+        )
+
     audit_results = subparsers.add_parser(
         "audit-results",
         help="offline reclassify stored episode JSONL using current measurement semantics",
@@ -758,18 +766,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             DeterministicReferenceTarget,
             ReferenceAgentRunner,
             SelectiveReferenceTarget,
-            reference_workflows,
+            application_named,
             summarize_reference_results,
             write_reference_results_jsonl,
         )
         from .reporting import render_reference_agent_summary
 
+        application = application_named(args.application)
         targets = (DeterministicReferenceTarget(), SelectiveReferenceTarget())
         results = asyncio.run(
-            ReferenceAgentRunner().run_matrix(reference_workflows(), targets)
+            ReferenceAgentRunner().run_matrix(application.workflows(), targets)
         )
         write_reference_results_jsonl(results, args.output)
-        summary = summarize_reference_results(results)
+        summary = summarize_reference_results(results, application)
         rendered = json.dumps(summary, indent=2, sort_keys=True)
         print(render_reference_agent_summary(summary))
         if args.print_json_summary:
@@ -786,7 +795,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         from .openai_compatible import lmstudio_config_from_env
         from .reference_agent import (
             ReferenceAgentRunner,
-            reference_workflows,
+            application_named,
             summarize_reference_results,
             write_reference_results_jsonl,
         )
@@ -808,11 +817,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             for model in args.model
         )
+        application = application_named(args.application)
         results = asyncio.run(
-            ReferenceAgentRunner().run_matrix(reference_workflows(), targets)
+            ReferenceAgentRunner().run_matrix(application.workflows(), targets)
         )
         write_reference_results_jsonl(results, args.output)
-        summary = summarize_reference_results(results)
+        summary = summarize_reference_results(results, application)
         rendered = json.dumps(summary, indent=2, sort_keys=True)
         print(render_reference_agent_summary(summary))
         if args.print_json_summary:
@@ -845,7 +855,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if output_error:
             print(output_error + "; pass --overwrite to replace them")
             return 6
-        workflows = selected_attack_workflows(args.scenario)
+        workflows = selected_attack_workflows(args.scenario, application=args.application)
         config = AdaptiveVerifierConfig(
             episodes_per_campaign=args.episodes,
             stop_on_violation=not args.continue_after_violation,
@@ -905,7 +915,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if output_error:
             print(output_error + "; pass --overwrite to replace them")
             return 6
-        workflows = selected_attack_workflows(args.scenario)
+        workflows = selected_attack_workflows(args.scenario, application=args.application)
         config = AdaptiveVerifierConfig(
             episodes_per_campaign=args.episodes,
             stop_on_violation=not args.continue_after_violation,
