@@ -253,6 +253,9 @@ class ReferenceApplication:
     policy_for: Callable[[ReferenceWorkflow], Policy] | None = None
     # Whether each run gets a SessionLedger, which call limits need.
     uses_ledger: bool = False
+    # Converts a model-supplied argument to the application's canonical form before it is
+    # labelled, as the application's own parser would (a numeric amount to "1250.00").
+    normalize_argument: Callable[[str, str, Any], Any] | None = None
 
     def workflow_policy(self, workflow: ReferenceWorkflow) -> Policy:
         return self.policy if self.policy_for is None else self.policy_for(workflow)

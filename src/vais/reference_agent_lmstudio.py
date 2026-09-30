@@ -324,7 +324,8 @@ def _convert(raw: dict[str, Any], state: ReferenceState) -> list[PlannedAction]:
             raise TargetAdapterError(f"action {index} must be an object")
         tool = item.get("tool")
         arguments = item.get("arguments")
-        tool_arguments = application_for(state.workflow).tool_arguments
+        application = application_for(state.workflow)
+        tool_arguments = application.tool_arguments
         if tool not in tool_arguments:
             raise TargetAdapterError(f"action {index} uses unknown tool {tool!r}")
         if not isinstance(arguments, dict):
@@ -338,7 +339,10 @@ def _convert(raw: dict[str, Any], state: ReferenceState) -> list[PlannedAction]:
             PlannedAction(
                 tool,
                 {
-                    field: rebind_reference_value(state, tool, field, value)
+                    field: rebind_reference_value(
+                        state, tool, field,
+                        value if application.normalize_argument is None else application.normalize_argument(tool, field, value),
+                    )
                     for field, value in arguments.items()
                 },
                 # What the model could see when it planned this action (P1b-6).

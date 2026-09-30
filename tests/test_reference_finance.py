@@ -265,6 +265,22 @@ def test_adaptive_records_name_the_application(tmp_path):
     assert code == 0
     record = json.loads((tmp_path / "a.jsonl").read_text(encoding="utf-8").splitlines()[0])
     assert record["reference_application"] == "accounts-payable"
-    assert record["reference_baseline_version"] == "1.0"
+    assert record["reference_baseline_version"] == "1.1"
     summary = json.loads((tmp_path / "s.json").read_text(encoding="utf-8"))
     assert summary["reference_system"] == "accounts-payable-agent"
+
+
+def test_a_numeric_amount_is_parsed_to_the_canonical_string_and_rebinds():
+    """Models write amounts as numbers; a forced string came out garbled under constrained decoding."""
+    workflow = _by_id(clean_workflows())["clean-03"]
+    state = ReferenceState(workflow=workflow, principal=ReferencePrincipal("human:t", "acme"), session_id="s", contract=workflow.contract)
+    raw = {"actions": [{"tool": "payments.pay", "arguments": {
+        "vendor_id": "V-200", "bank_account_id": "ACCT-CW-001", "invoice_id": "INV-1003", "amount": 7200.0}}]}
+    (action,) = _convert(raw, state)
+    assert action.arguments["amount"].data == "7200.00" and action.arguments["amount"].is_trusted
+    raw["actions"][0]["arguments"]["amount"] = 72000
+    (action,) = _convert(raw, state)
+    assert action.arguments["amount"].data == "72000.00" and not action.arguments["amount"].is_trusted
+    raw["actions"][0]["arguments"]["amount"] = True
+    (action,) = _convert(raw, state)
+    assert action.arguments["amount"].data is True, "a boolean is not an amount and is left for the monitor to refuse"

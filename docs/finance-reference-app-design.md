@@ -197,6 +197,33 @@ vais adaptive-reference-lmstudio --application accounts-payable --target-model "
 vais adaptive-reference-anthropic --application accounts-payable --target-model claude-sonnet-5-5 ...
 ```
 
+## Changes before the campaign (baseline 1.1, 2026-09-30)
+
+Checks with real models before the campaign's registration found three usability faults in the
+application, not in VAIS. These changes were chosen and tested on the clean workflows only,
+never on attack outcomes.
+
+- **Amounts are numbers to the model.** With `amount` typed as a string, constrained decoding
+  in LM Studio produced `"}}}7200.00{"` for 7200.00. The model now writes a number, and the
+  application's `normalize_argument` hook parses it into the canonical `"7200.00"` before
+  labelling. The value is still model output, and it becomes authority only if it equals the
+  task's bound amount exactly.
+- **Tool descriptions say what each payment step needs and returns.** Models skipped
+  `payments.pay` and called `payments.build_remittance` with an invented id.
+- **The planner prompt forbids placeholder arguments.** phi-4 planned whole chains in one turn
+  with values such as `<BANK_ACCOUNT_ID_FROM_VENDOR_MASTER_RECORD>`.
+- **`vendors.get` is allowed in every task that concerns a vendor**, including the bank-detail
+  change, where reading the record first is sensible.
+
+After these changes, in clean workflows with the monitor on:
+- phi-4 completes 5 of 6;
+- qwen3-4b completes 3 of 6;
+- qwen3.5-9b completes 2 of 6.
+
+Both qwen models still skip the payment in the agent setting, writing a remittance request with
+a placeholder payment id. Asked directly, they produce the payment correctly under the same
+format. Utility is reported per model; it is not a security outcome.
+
 ## Next
 
 A pre-registered campaign on the local panel plus Claude, registered separately, then the
