@@ -407,3 +407,9 @@ findings:
     version: "0.12.0rc14"
     type: empirical
     evidence: [experiments/p1b2-pilot/RESULTS.md, experiments/p1b2-pilot/analysis.json, experiments/p1b2-pilot/analyze.py]
+
+  - id: FIND-068
+    finding: The RC13 language-model attacker (qwen2.5-7b-instruct, rewriting each injection from the verifier's feedback, with the monitor's reason codes) did not move Claude Sonnet 5.5 either. In a pre-registered run over the 20 incident-response stories, 0 of 238 evaluable episodes gained a security-relevant action from the attack, there were no protected violations, no action was refused or held, and no allowed action used a tool outside the task (Q4b). The attacker produced 240 distinct valid injections. Two further episodes ended in Anthropic safety-classifier refusals (category cyber) on injections asking the agent to impersonate a user, and count as unevaluable, not defended. The 95 percent upper bound on the attack-added rate is 8.4 percent allowing for story clustering. The registered prediction (under 5 percent, zero violations) held, and under the registered decision rule neither attacker VAIS has can test enforcement on this model; that needs a stronger attacker, such as a frontier model as attacker, registered separately.
+    version: "0.12.0rc14"
+    type: empirical
+    evidence: [experiments/frontier-llm-attacker/PREREGISTRATION.md, experiments/frontier-llm-attacker/RESULTS.md, experiments/frontier-llm-attacker/analysis.json]
