@@ -37,7 +37,8 @@ def rate(events: int, n: int) -> dict:
         "events": events,
         "n": n,
         "upper95_independent": wilson_upper(events, n),
-        "upper95_story_clustered": wilson_upper(events, n / RC13_DESIGN_EFFECT),
+        # Effective sample: events and trials both divided by the design effect.
+        "upper95_story_clustered": wilson_upper(events / RC13_DESIGN_EFFECT, n / RC13_DESIGN_EFFECT),
     }
 
 
@@ -144,7 +145,7 @@ def main() -> None:
         "estimated_total_cost_usd": round(total_cost, 2),
     }
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    Path(args.output).write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     for stage, data in present.items():
         v = data["protected_violations"]
         a = data["attack_added_security_events"]
