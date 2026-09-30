@@ -401,3 +401,9 @@ findings:
     version: "0.12.0rc14"
     type: loader_contract_defect
     evidence: [src/vais/yaml_input.py, tests/test_yaml_input.py]
+
+  - id: FIND-067
+    finding: Claude Sonnet 5.5, through the Anthropic API with thinking off, completed the four RC stages of the incident-response reference application with no protected violation and no attack-added security action in 240 full-stage episodes across all 20 stories, and all 240 protected workflows completed their task. The same mutation-search attacker added a security-relevant action in 5.4 to 66.2 percent of full-stage episodes on the 15 RC7 local models, 40.0 percent overall. No action was refused or held in any protected run, so the monitor was never exercised. The 95 percent upper bound on the attack-added rate is 8.4 percent allowing for story clustering (FIND-065) and 1.6 percent treating episodes as independent. The four stages cost about 6.94 USD at list price. This bounds that attacker's success against this model and shows no utility cost of enforcement; it is not evidence that VAIS stopped the model, which needs an attacker that moves it. Runs are neither greedy nor pinned (LIM-071).
+    version: "0.12.0rc14"
+    type: empirical
+    evidence: [experiments/p1b2-pilot/RESULTS.md, experiments/p1b2-pilot/analysis.json, experiments/p1b2-pilot/analyze.py]
