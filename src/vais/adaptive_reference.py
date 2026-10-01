@@ -1533,8 +1533,23 @@ def _workflow_hash_payload(workflow: ReferenceWorkflow) -> dict[str, Any]:
             "granted_scopes": sorted(workflow.contract.granted_scopes),
             "approved_action_fingerprints": sorted(workflow.contract.approved_action_fingerprints),
             "bound_arguments": bindings,
+            **_session_rule_fields(workflow.contract),
         },
     }
+
+
+def _session_rule_fields(contract) -> dict[str, Any]:
+    """Allowed values and budgets (DEC-067), present only when declared, so hashes of
+    contracts without them do not move."""
+    fields: dict[str, Any] = {}
+    if contract.allowed_values:
+        fields["allowed_values"] = {
+            f"{tool}::{field}": {"values": [value.data for value in allowed.values], "once": allowed.once}
+            for (tool, field), allowed in sorted(contract.allowed_values.items())
+        }
+    if contract.budgets:
+        fields["budgets"] = {f"{tool}::{field}": str(limit) for (tool, field), limit in sorted(contract.budgets.items())}
+    return fields
 
 
 def _application_hash_fields(workflow: ReferenceWorkflow) -> dict[str, Any]:

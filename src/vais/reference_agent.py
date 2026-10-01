@@ -1811,6 +1811,10 @@ def rebind_reference_value(state: ReferenceState, tool: str, field: str, data: A
     bound = state.contract.bound_arguments.get((tool, field))
     if bound is not None and security_equal(data, bound.data):
         return bound
+    allowed = state.contract.allowed_values.get((tool, field))
+    match = None if allowed is None else allowed.match(data)
+    if match is not None:
+        return match
     return derive_model_output(data, *state.visible_context())
 
 

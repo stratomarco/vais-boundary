@@ -29,7 +29,22 @@ exception is a value **exactly equal to its contract binding**, which takes the 
 trusted label, because its value is the one the operator wrote. This is the re-labelling step
 LIM-053 describes as every integration's job, done once here.
 
-It is stricter than the library path: a contract binding is the only route to trust. It is
+A contract can also list several values for one argument, where one binding is not enough
+(DEC-067):
+
+```yaml
+allowed_values:
+  mcp:ap:pay: {invoice_id: {values: [INV-1001, INV-1002], once: true}}
+budgets:
+  mcp:ap:pay: {amount: 4650.00}
+```
+
+A value exactly equal to a listed one takes that value's trusted label, any other value is
+refused, and with `once` each value is accepted once per session. A budget caps the sum of a
+numeric argument over the session's allowed calls. Both need the session's ledger, so with
+`state:` they survive a restart.
+
+It is stricter than the library path: a contract binding or allowed value is the only route to trust. It is
 also coarse: once a session has read `secret` data through the gateway, every later argument
 counts as `secret` (DEC-051, LIM-061).
 
@@ -185,5 +200,7 @@ account, the agent in another with network access to the gateway's port and noth
   restart starts fresh (LIM-055, LIM-063). With it they are files, shared by processes on one
   machine only. The contract directory is read on every request.
 - An approval in a contract file authorizes its exact action once per session (DEC-060).
+- A budget caps a session's total, not how it is split between allowed values, and has no
+  currency or unit semantics (LIM-072).
 - A value an application creates during the session becomes authority only through a declared
   mint, which trusts the minting server (LIM-068, LIM-070).

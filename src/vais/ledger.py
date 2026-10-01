@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 import json
 from pathlib import Path
 
@@ -15,11 +16,18 @@ class LedgerEntry:
     ``contract_approval`` is true when the action was authorized by an approval held
     in the task contract rather than one consumed from an ``ApprovalStore``. Those are
     the approvals the ledger itself has to make single-use.
+
+    ``values`` holds, for arguments whose allowed values are single-use, the canonical
+    text of the value used; ``amounts`` holds, for budgeted arguments, the amount spent.
+    Both are (argument, text) pairs and empty unless the contract declares those rules
+    (DEC-067), so a ledger without them is written exactly as before.
     """
 
     tool: str
     action_fingerprint: str | None
     contract_approval: bool = False
+    values: tuple[tuple[str, str], ...] = ()
+    amounts: tuple[tuple[str, str], ...] = ()
 
 
 class SessionLedger:
@@ -76,6 +84,16 @@ class SessionLedger:
                 for entry in self._entries
             )
 
+    def used_values(self, tool: str, field: str) -> frozenset[str]:
+        with self.lock:
+            return frozenset(text for entry in self._entries if entry.tool == tool
+                             for name, text in entry.values if name == field)
+
+    def total(self, tool: str, field: str) -> Decimal:
+        with self.lock:
+            return sum((Decimal(text) for entry in self._entries if entry.tool == tool
+                        for name, text in entry.amounts if name == field), Decimal(0))
+
     def record(self, entry: LedgerEntry) -> None:
         """Append an allowed action. Called by the reference monitor, under its lock."""
         with self.lock:
@@ -85,7 +103,7 @@ class SessionLedger:
                     write_json_atomic(self.path, {
                         "version": 1,
                         "identity": list(self.identity),
-                        "entries": [asdict(e) for e in self._entries],
+                        "entries": [_entry_dict(e) for e in self._entries],
                     })
                 except BaseException:
                     self._entries.pop()
@@ -105,12 +123,43 @@ class SessionLedger:
             raise ValueError(f"{self.path}: entries must be a list")
         loaded = []
         for item in entries:
-            if (not isinstance(item, dict) or set(item) != {"tool", "action_fingerprint", "contract_approval"}
+            if (not isinstance(item, dict) or not _BASE_KEYS <= set(item) <= _BASE_KEYS | {"values", "amounts"}
                     or not isinstance(item["tool"], str) or not isinstance(item["contract_approval"], bool)
                     or not (item["action_fingerprint"] is None or isinstance(item["action_fingerprint"], str))):
                 raise ValueError(f"{self.path}: malformed ledger entry")
-            loaded.append(LedgerEntry(**item))
+            values = _pairs(item.get("values", []), self.path)
+            amounts = _pairs(item.get("amounts", []), self.path)
+            for _, text in amounts:
+                try:
+                    amount = Decimal(text)
+                except InvalidOperation:
+                    raise ValueError(f"{self.path}: malformed ledger amount") from None
+                if not amount.is_finite() or amount < 0:
+                    raise ValueError(f"{self.path}: malformed ledger amount")
+            loaded.append(LedgerEntry(item["tool"], item["action_fingerprint"], item["contract_approval"], values, amounts))
         self._entries = loaded
+
+
+_BASE_KEYS = {"tool", "action_fingerprint", "contract_approval"}
+
+
+def _entry_dict(entry: LedgerEntry) -> dict:
+    data = {"tool": entry.tool, "action_fingerprint": entry.action_fingerprint,
+            "contract_approval": entry.contract_approval}
+    if entry.values:
+        data["values"] = [list(pair) for pair in entry.values]
+    if entry.amounts:
+        data["amounts"] = [list(pair) for pair in entry.amounts]
+    return data
+
+
+def _pairs(raw, path) -> tuple[tuple[str, str], ...]:
+    if not isinstance(raw, list) or any(
+        not isinstance(pair, list) or len(pair) != 2 or not all(isinstance(part, str) for part in pair)
+        for pair in raw
+    ):
+        raise ValueError(f"{path}: malformed ledger entry")
+    return tuple((pair[0], pair[1]) for pair in raw)
 
 
 def _identity(contract: TaskContract) -> tuple[str, str, str]:

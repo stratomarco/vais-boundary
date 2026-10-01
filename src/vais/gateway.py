@@ -53,6 +53,7 @@ from .mcp import (
     _string,
 )
 from .models import (
+    AllowedValues,
     ConfidentialityLevel,
     DecisionType,
     PlannedAction,
@@ -64,6 +65,7 @@ from .models import (
     action_fingerprint,
     deep_freeze,
     security_equal,
+    session_amount,
 )
 from .monitor import ReferenceMonitor
 from .yaml_input import read_yaml_document
@@ -83,7 +85,7 @@ def token_digest(token: str) -> str:
 _CONTRACT_KEYS = {
     "version", "token_sha256", "principal_id", "session_id", "tenant_id", "capability_id",
     "allowed_tools", "granted_scopes", "bound_arguments", "approved_action_fingerprints",
-    "not_before", "not_after",
+    "not_before", "not_after", "allowed_values", "budgets",
 }
 
 
@@ -94,6 +96,11 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
     ``contract`` and may carry a confidentiality level:
     ``bound_arguments: {tool: {argument: value}}`` or
     ``{tool: {argument: {value: ..., confidentiality: secret}}}``.
+
+    Where one binding is not enough (DEC-067), ``allowed_values: {tool: {argument:
+    {values: [...], once: true, confidentiality: ...}}}`` lists the values an argument may
+    take, each at most once per session with ``once``, and ``budgets: {tool: {argument:
+    4650.00}}`` caps the sum of a numeric argument over the session.
     """
     location = str(path)
     try:
@@ -131,6 +138,40 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
                 spec = spec["value"]
             bindings[(tool, argument)] = TrustedValue(spec, source="contract", confidentiality=level)
 
+    choices: dict[tuple[str, str], AllowedValues] = {}
+    for tool, arguments in _mapping(raw.get("allowed_values", {}), f"{location}.allowed_values").items():
+        tool_path = f"{location}.allowed_values.{tool}"
+        tool = _string(tool, tool_path)
+        for argument, spec in _mapping(arguments, tool_path).items():
+            argument_path = f"{tool_path}.{argument}"
+            argument = _string(argument, argument_path)
+            spec = _mapping(spec, argument_path)
+            _known_keys(spec, {"values", "once", "confidentiality"}, argument_path)
+            values = spec.get("values")
+            if not isinstance(values, list) or not values:
+                _fail(f"{argument_path}.values", "must be a non-empty list")
+            once = spec.get("once", False)
+            if not isinstance(once, bool):
+                _fail(f"{argument_path}.once", "must be true or false")
+            level = ConfidentialityLevel.PUBLIC
+            if "confidentiality" in spec:
+                level = _confidentiality(spec["confidentiality"], f"{argument_path}.confidentiality")
+            try:
+                choices[(tool, argument)] = AllowedValues(
+                    tuple(TrustedValue(value, source="contract", confidentiality=level) for value in values), once=once)
+            except ValueError as exc:
+                _fail(argument_path, str(exc))
+
+    budgets: dict[tuple[str, str], Any] = {}
+    for tool, arguments in _mapping(raw.get("budgets", {}), f"{location}.budgets").items():
+        tool_path = f"{location}.budgets.{tool}"
+        tool = _string(tool, tool_path)
+        for argument, limit in _mapping(arguments, tool_path).items():
+            argument_path = f"{tool_path}.{argument}"
+            if session_amount(limit) is None:
+                _fail(argument_path, "must be a finite, non-negative amount")
+            budgets[(tool, _string(argument, argument_path))] = limit
+
     window: dict[str, float] = {}
     for key in ("not_before", "not_after"):
         if key in raw:
@@ -149,6 +190,8 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
             session_id=_string(raw.get("session_id"), f"{location}.session_id"),
             tenant_id=_string(raw.get("tenant_id"), f"{location}.tenant_id"),
             capability_id=_string(raw.get("capability_id"), f"{location}.capability_id"),
+            allowed_values=choices,
+            budgets=budgets,
             **window,
         )
     except ValueError as exc:
@@ -225,7 +268,8 @@ def label_agent_action(
 
     Nothing the agent sends is trusted on its say-so. An argument exactly equal to its
     contract binding takes the binding's label, since its value is the one the operator
-    wrote. An argument exactly equal to a value minted for it this session (``minted``,
+    wrote, and so does one exactly equal to one of its contract's allowed values (DEC-067).
+    An argument exactly equal to a value minted for it this session (``minted``,
     argument name to values) is trusted with the minting tool as its source, since the
     operator declared that tool's result to be authority for it. Every other argument is
     model output at the session's confidentiality level.
@@ -240,8 +284,12 @@ def label_agent_action(
         bound = contract.bound_arguments.get((tool, name))
         frozen = deep_freeze(data)
         match = next((m for m in (minted or {}).get(name, ()) if security_equal(frozen, m.value)), None)
+        allowed = contract.allowed_values.get((tool, name))
+        choice = None if allowed is None else allowed.match(frozen)
         if bound is not None and security_equal(frozen, bound.data):
             values[name] = Value(data, bound.provenance)
+        elif choice is not None:
+            values[name] = Value(data, choice.provenance)
         elif match is not None:
             values[name] = Value(data, Provenance(
                 source=f"gateway:minted:{match.source_tool}", trust=TrustLevel.TRUSTED,

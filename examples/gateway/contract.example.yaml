@@ -11,3 +11,8 @@ bound_arguments:
   mcp:ops:get_incident: {incident_id: INC-1234}
   mcp:ops:send_email: {recipient: ir-team@acme.example}
 # not_after: 1790200000   # optional: seconds since the epoch
+# Optional, where one binding per argument is not enough (DEC-067):
+# allowed_values:
+#   mcp:ops:get_incident: {incident_id: {values: [INC-1234, INC-1235], once: true}}
+# budgets:
+#   mcp:ap:pay: {amount: 4650.00}

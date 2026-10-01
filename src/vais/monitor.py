@@ -8,6 +8,8 @@ from .models import (
     TrustLevel,
     action_fingerprint,
     security_equal,
+    session_amount,
+    value_key,
 )
 from .policy import Policy
 from .approvals import ApprovalStore
@@ -22,9 +24,10 @@ class ReferenceMonitor:
     """Deterministic authorization point for consequential actions.
 
     Enforcement order is intentionally fail-closed:
-    contract validity and revocation -> dynamic task authorization -> static tool
-    policy -> capability scope -> argument integrity/confidentiality and action origin ->
-    call limits -> approval requirements.
+    contract validity and revocation -> dynamic task authorization (bindings and allowed
+    values) -> static tool policy -> capability scope -> argument integrity/confidentiality
+    and action origin -> call limits -> single-use values and budgets -> approval
+    requirements.
 
     Without a ``SessionLedger`` the monitor decides one action at a time and keeps
     no state, so limits over several actions are left to VERIFY (LIM-035) and an
@@ -62,7 +65,8 @@ class ReferenceMonitor:
                     fingerprint = action_fingerprint(action)
                 except ValueError:
                     fingerprint = None
-                ledger.record(LedgerEntry(action.tool, fingerprint, contract_approval))
+                ledger.record(LedgerEntry(action.tool, fingerprint, contract_approval,
+                                          *_session_usage(action, contract)))
             return decision
 
     def _evaluate(self, action: PlannedAction, contract: TaskContract,
@@ -97,11 +101,26 @@ class ReferenceMonitor:
             if not proposed.is_trusted:
                 reasons.append(f"bound_argument_not_trusted:{field}")
 
+        # Allowed values (DEC-067): one of several operator-written values, never another.
+        for (tool, field), allowed in contract.allowed_values.items():
+            if tool != action.tool:
+                continue
+            proposed = action.arguments.get(field)
+            if proposed is None:
+                reasons.append(f"missing_allowed_argument:{field}")
+            elif allowed.match(proposed.data) is None:
+                reasons.append(f"argument_not_allowed:{field}")
+            elif not proposed.is_trusted:
+                reasons.append(f"allowed_argument_not_trusted:{field}")
+
         tool_policy = self.policy.tools.get(action.tool)
         if tool_policy is None:
             if reasons:
                 return Decision(DecisionType.DENY, tuple(dict.fromkeys(reasons))), False
             if self.policy.default_action == "allow":
+                limited = _session_limits(action, contract, ledger)
+                if limited is not None:
+                    return limited, False
                 return Decision(DecisionType.ALLOW), False
             return Decision(DecisionType.DENY, (f"tool_not_in_policy:{action.tool}",)), False
 
@@ -158,6 +177,12 @@ class ReferenceMonitor:
                     DecisionType.DENY,
                     (f"call_limit_reached:{action.tool}:{tool_policy.max_calls}",),
                 ), False
+
+        # Like call limits, single-use values and budgets come before approvals, so a
+        # human's approval is never spent on an action they then refuse.
+        limited = _session_limits(action, contract, ledger)
+        if limited is not None:
+            return limited, False
 
         # Decide whether any approval is needed, then check for one once. Before
         # rc13 each approval rule checked separately, so a tool requiring both an
@@ -216,3 +241,47 @@ class ReferenceMonitor:
                 # without one (LIM-044), as before.
                 return Decision(DecisionType.ALLOW), True
         return Decision(DecisionType.REQUIRE_APPROVAL, (approval_reason,)), False
+
+
+def _session_limits(action: PlannedAction, contract: TaskContract, ledger) -> Decision | None:
+    """Single-use allowed values and budgets, which need the session's history (DEC-067).
+
+    Without a ledger they cannot be enforced, and a rule that cannot be enforced refuses
+    rather than being ignored, as call limits already do.
+    """
+    for (tool, field), allowed in contract.allowed_values.items():
+        if tool != action.tool or not allowed.once:
+            continue
+        if ledger is None:
+            return Decision(DecisionType.DENY, (f"single_use_requires_ledger:{tool}:{field}",))
+        if value_key(action.arguments[field].data) in ledger.used_values(tool, field):
+            return Decision(DecisionType.DENY, (f"allowed_value_already_used:{field}",))
+    for (tool, field), limit in contract.budgets.items():
+        if tool != action.tool:
+            continue
+        value = action.arguments.get(field)
+        if value is None:
+            return Decision(DecisionType.DENY, (f"missing_budget_argument:{field}",))
+        amount = session_amount(value.data)
+        if amount is None:
+            return Decision(DecisionType.DENY, (f"invalid_budget_amount:{field}",))
+        if ledger is None:
+            return Decision(DecisionType.DENY, (f"budget_requires_ledger:{tool}:{field}",))
+        if ledger.total(tool, field) + amount > limit:
+            return Decision(DecisionType.DENY, (f"budget_exceeded:{tool}:{field}",))
+    return None
+
+
+def _session_usage(action: PlannedAction, contract: TaskContract) -> tuple[tuple, tuple]:
+    """What an allowed action spends: single-use values and budgeted amounts."""
+    values = tuple(sorted(
+        (field, value_key(action.arguments[field].data))
+        for (tool, field), allowed in contract.allowed_values.items()
+        if tool == action.tool and allowed.once and field in action.arguments
+    ))
+    amounts = tuple(sorted(
+        (field, str(session_amount(action.arguments[field].data)))
+        for (tool, field) in contract.budgets
+        if tool == action.tool and field in action.arguments
+    ))
+    return values, amounts

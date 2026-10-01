@@ -5,6 +5,7 @@ from enum import Enum
 import hashlib
 import json
 from collections.abc import Mapping
+from decimal import Decimal, InvalidOperation
 from typing import Any
 import math
 import unicodedata
@@ -222,6 +223,65 @@ def security_equal(left: Any, right: Any) -> bool:
         return False
 
 
+def value_key(data: Any) -> str:
+    """The canonical text of a value, as security_equal compares it."""
+    return canonical_json(data).decode("utf-8")
+
+
+def session_amount(data: Any) -> Decimal | None:
+    """A budgeted amount as an exact decimal, or None when it cannot count against a budget.
+
+    Booleans, non-finite numbers and negative amounts are refused: a negative amount
+    would give budget back. Floats are read through their shortest decimal form.
+    """
+    if isinstance(data, bool):
+        return None
+    try:
+        if isinstance(data, float):
+            if not math.isfinite(data):
+                return None
+            amount = Decimal(repr(data))
+        elif isinstance(data, (int, str, Decimal)):
+            amount = Decimal(data.strip() if isinstance(data, str) else data)
+        else:
+            return None
+    except (InvalidOperation, ValueError):
+        return None
+    if not amount.is_finite() or amount < 0:
+        return None
+    return amount
+
+
+@dataclass(frozen=True)
+class AllowedValues:
+    """The values one argument may take in a task, each written by the operator (DEC-067).
+
+    A contract binds one value per argument. A task that legitimately uses several, such
+    as paying two invoices, lists them here instead: the argument must equal one of
+    ``values`` exactly, and takes that value's trusted label. With ``once``, each value may
+    be used by at most one allowed action per session, which needs a ``SessionLedger``;
+    without one the monitor refuses rather than allowing reuse.
+    """
+
+    values: tuple[Value, ...]
+    once: bool = False
+
+    def __post_init__(self) -> None:
+        values = tuple(self.values)
+        if not values:
+            raise ValueError("allowed values must list at least one value")
+        if any(not isinstance(value, Value) or not value.is_trusted for value in values):
+            raise ValueError("allowed values must be trusted Values")
+        if len({value_key(value.data) for value in values}) != len(values):
+            raise ValueError("allowed values must be distinct")
+        if not isinstance(self.once, bool):
+            raise ValueError("once must be a boolean")
+        object.__setattr__(self, "values", values)
+
+    def match(self, data: Any) -> Value | None:
+        return next((value for value in self.values if security_equal(data, value.data)), None)
+
+
 @dataclass(frozen=True)
 class TaskContract:
     """Immutable authorization derived only from trusted input.
@@ -236,6 +296,10 @@ class TaskContract:
     seconds since the epoch; the reference monitor denies outside the window. A
     contract without them is valid for as long as it is used (LIM-047). ``delegate``
     derives a narrower contract for a sub-agent and cannot widen anything.
+
+    ``allowed_values`` lists the values an argument may take when one binding is not
+    enough, and ``budgets`` caps the sum of a numeric argument over every allowed action
+    in the session; both are enforced with a ``SessionLedger`` (DEC-067, LIM-072).
     """
 
     allowed_tools: frozenset[str] | set[str]
@@ -248,6 +312,8 @@ class TaskContract:
     capability_id: str = "legacy"
     not_before: float | None = None
     not_after: float | None = None
+    allowed_values: Mapping[tuple[str, str], AllowedValues] = field(default_factory=dict)
+    budgets: Mapping[tuple[str, str], Decimal] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         raw_tools = tuple(self.allowed_tools)
@@ -296,10 +362,32 @@ class TaskContract:
                 raise ValueError("Unicode normalization produced a duplicate contract binding")
             bindings[normalized_key] = value
 
+        choices: dict[tuple[str, str], AllowedValues] = {}
+        for key, value in self.allowed_values.items():
+            normalized_key = _argument_key(key, "allowed value")
+            if not isinstance(value, AllowedValues):
+                raise ValueError("allowed values must be AllowedValues")
+            if normalized_key in choices:
+                raise ValueError("Unicode normalization produced a duplicate allowed-value key")
+            if normalized_key in bindings:
+                raise ValueError("an argument cannot be both bound and given allowed values")
+            choices[normalized_key] = value
+        budgets: dict[tuple[str, str], Decimal] = {}
+        for key, value in self.budgets.items():
+            normalized_key = _argument_key(key, "budget")
+            limit = session_amount(value)
+            if limit is None:
+                raise ValueError("a budget must be a finite, non-negative amount")
+            if normalized_key in budgets:
+                raise ValueError("Unicode normalization produced a duplicate budget key")
+            budgets[normalized_key] = limit
+
         object.__setattr__(self, "allowed_tools", allowed_tools)
         object.__setattr__(self, "granted_scopes", scopes)
         object.__setattr__(self, "approved_action_fingerprints", approvals)
         object.__setattr__(self, "bound_arguments", FrozenDict(bindings))
+        object.__setattr__(self, "allowed_values", FrozenDict(choices))
+        object.__setattr__(self, "budgets", FrozenDict(budgets))
 
     def with_approved_action(self, action: PlannedAction) -> "TaskContract":
         fingerprint = action_fingerprint(action)
@@ -355,8 +443,23 @@ class TaskContract:
             raise ValueError("delegation cannot add approvals")
         if self.not_after is not None and child.not_after > self.not_after:
             raise ValueError("delegation cannot extend the validity window")
-        bindings = {key: value for key, value in self.bound_arguments.items() if key[0] in child.allowed_tools}
-        return replace(child, bound_arguments=bindings)
+        def kept(mapping):
+            return {key: value for key, value in mapping.items() if key[0] in child.allowed_tools}
+
+        # Allowed values and budgets are inherited unchanged: dropping one would widen the
+        # delegate, and keeping the session means its spending counts against the parent's.
+        return replace(child, bound_arguments=kept(self.bound_arguments),
+                       allowed_values=kept(self.allowed_values), budgets=kept(self.budgets))
+
+
+def _argument_key(key: Any, what: str) -> tuple[str, str]:
+    if (
+        not isinstance(key, tuple)
+        or len(key) != 2
+        or any(not isinstance(part, str) or not part.strip() for part in key)
+    ):
+        raise ValueError(f"{what} keys must be (tool, argument) string tuples")
+    return tuple(unicodedata.normalize("NFC", part) for part in key)
 
 
 class DecisionType(str, Enum):
