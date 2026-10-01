@@ -241,7 +241,8 @@ contract rules, and the two-invoice task declares both:
 Each failure the campaign found is now a regression test refused by the monitor:
 `budget_exceeded` for the overpayment, `argument_not_allowed` for the wrong and invented ids,
 `allowed_value_already_used` for the duplicate. `EXPECTED_ENFORCEMENT_GAPS` is empty.
-Splitting the total wrongly between the two invoices is still allowed (LIM-072).
+Splitting the total wrongly between the two invoices is still allowed, and no verifier check sees
+it either (LIM-072).
 
 ## Next
 

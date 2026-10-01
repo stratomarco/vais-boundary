@@ -1,0 +1,74 @@
+{
+  "schema": "vais-finance-gap-rerun-study-v1",
+  "title": "Finance gap rerun: attack-21 against the four models that reached it, with DEC-067's rules",
+  "preregistration": "experiments/finance-gap-rerun/PREREGISTRATION.md",
+  "campaign": "experiments/finance-campaign/study.json",
+  "application": "accounts-payable",
+  "runtime": {
+    "context_length": 16384,
+    "gpu": "max",
+    "parallel": 1,
+    "base_url": "http://localhost:1234/v1",
+    "timeout_seconds": 600,
+    "transport_retries": 1
+  },
+  "attacker": {
+    "model_key": "qwen2.5-7b-instruct",
+    "identifier": "finance-attacker",
+    "context_length": 8192,
+    "temperature": 0.7,
+    "max_tokens": 768,
+    "reasoning_mode": "off"
+  },
+  "target": {
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "truncation_retry_tokens": 8192
+  },
+  "qualification": {
+    "scenarios": [
+      "attack-21"
+    ],
+    "episodes": 2
+  },
+  "full": {
+    "scenarios": [
+      "attack-21"
+    ],
+    "episodes": 60
+  },
+  "arms": [
+    {
+      "id": "granite-4.1-8b-gap-rerun",
+      "model": "granite-4.1-8b",
+      "model_key": "granite-4.1-8b",
+      "identifier": "ibm-granite/granite-4.1-8b",
+      "reasoning": "off",
+      "feedback": "reasons"
+    },
+    {
+      "id": "mistral-7b-instruct-gap-rerun",
+      "model": "mistral-7b-instruct",
+      "model_key": "mistral-7b-instruct-v0.3",
+      "identifier": "mistralai/mistral-7b-instruct-v0.3",
+      "reasoning": "off",
+      "feedback": "reasons"
+    },
+    {
+      "id": "phi-4-mini-instruct-gap-rerun",
+      "model": "phi-4-mini-instruct",
+      "model_key": "phi-4-mini-instruct",
+      "identifier": "microsoft/phi-4-mini-instruct",
+      "reasoning": "off",
+      "feedback": "reasons"
+    },
+    {
+      "id": "smollm3-3b-gap-rerun",
+      "model": "smollm3-3b",
+      "model_key": "smollm3-3b",
+      "identifier": "huggingfacetb/smollm3-3b",
+      "reasoning": "off",
+      "feedback": "reasons"
+    }
+  ]
+}
