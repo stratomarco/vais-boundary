@@ -120,9 +120,9 @@
   "approvals_provenance_canonicalization_audit_config_loading_scoring": "unchanged from RC14"
  },
  "validation": {
-  "source_tests": "1001 passed and 1 skipped without the mcp extra (locally); with the mcp extra in CI",
+  "source_tests": "1006 passed with the mcp extra, the 5 gateway transport tests included (CI: Ubuntu and Windows, Python 3.11 and 3.14); 1001 passed and 1 skipped without it (locally, and in CI on Python 3.11 to 3.14)",
   "fresh_source_zip_tests": "1001 passed, 1 skipped (mcp extra absent)",
-  "ci": "PENDING",
+  "ci": "all 13 jobs pass on 3b0c5a6: 8 without the mcp extra (1001 passed, 1 skipped), 4 with it (1006 passed, none skipped), and the wheel smoke test",
   "mutation_check": "44 mutants across every rc15 mechanism, 44 killed (DEC-067 19, DEC-066 accounts-payable application 14, DEC-065 Anthropic adapter 6, DEC-068 4, packaged-ledger test 1)",
   "policy_validation": "schema 4, 4 tools",
   "invariant_validation": "7 invariants",
