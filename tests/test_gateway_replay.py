@@ -57,7 +57,7 @@ def test_without_the_mint_the_sends_are_denied_as_before(records, monkeypatch):
     unminted = replay.MCPProfile(tuple(
         replay.MCPToolBinding(b.server_id, b.tool_name, b.canonical_tool, b.result_policy, b.effect)
         for b in replay.REPLAY_PROFILE.bindings))
-    monkeypatch.setattr(replay, "REPLAY_PROFILE", unminted)
+    monkeypatch.setattr(replay, "INCIDENT_REPLAY", replay.replace(replay.INCIDENT_REPLAY, profile=unminted))
     summary = replay.summarize(c for *_, c in replay.replay_records(records, parts=("protected_result",)))
     assert "gateway_looser" not in summary["decisions"]
     assert {(d["tool"], d["library"], d["gateway"]) for d in summary["divergences"]} == WITHOUT_MINT

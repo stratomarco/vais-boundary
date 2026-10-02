@@ -437,3 +437,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [experiments/value-budget-replay/replay.py, experiments/value-budget-replay/RESULTS.md, experiments/value-budget-replay/results/replay.json]
+
+  - id: FIND-073
+    finding: "Replayed through the gateway, the accounts-payable application's recorded traces decided as the library did in all but one step: 6,499 of 6,500 finance-campaign traces and all 480 gap-rerun traces were identical, each given the contract it was recorded under and the application's run-time authority declared as mints. The one difference is looser at the gateway: granite-4.1-8b read the vendor record and paid with its bank account in one planned turn, the library labelled the turn before running it and refused, and the gateway, labelling each call on arrival, held the 7,200.00 payment for a human's approval, as the library would have one turn later. No decision was otherwise looser or stricter; 3,716 argument labels were stricter at the gateway without changing a decision."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [src/vais/gateway_replay.py, tests/test_gateway_replay_finance.py, experiments/gateway-equivalence/RESULTS.md, experiments/gateway-equivalence/summary-finance-campaign.json, experiments/gateway-equivalence/summary-finance-gap-rerun.json]
