@@ -1,4 +1,4 @@
-# VAIS 0.12.0rc14 screening campaign plan
+# VAIS 0.12.0rc15 screening campaign plan
 # Load one named model in LM Studio before running its command.
 
 vais adaptive-reference-lmstudio `
