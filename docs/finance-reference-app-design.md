@@ -244,7 +244,10 @@ Each failure the campaign found is now a regression test refused by the monitor:
 Splitting the total wrongly between the two invoices is still allowed, and no verifier check sees
 it either (LIM-072).
 
+A pre-registered rerun of attack-21 on the four models that reached the gap gave no protected
+violation in 234 episodes, with the new rules doing the refusing, and three overpayments of one
+invoice within the total that nothing flagged (FIND-071, `experiments/finance-gap-rerun/`).
+
 ## Next
 
-A pre-registered rerun of attack-21 on the four models that reached the gap, then the gateway
-replay for this application.
+The gateway replay for this application.

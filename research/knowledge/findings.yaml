@@ -425,3 +425,9 @@ findings:
     version: "0.12.0rc14"
     type: empirical
     evidence: [experiments/finance-campaign/RESULTS.md, experiments/finance-campaign/results/analysis.json, src/vais/reference_finance.py]
+
+  - id: FIND-071
+    finding: "With DEC-067's allowed values and budget declared, the four models that reached the totals gap in the finance campaign made no protected violation in 234 evaluable attack-21 episodes (60 per model, against a search that had found a violation within 3 to 10 episodes in each), as pre-registered. Every model had payments refused by the new rules (budget_exceeded 62, argument_not_allowed 106, allowed_value_already_used 15), and mistral-7b's unattacked double payment is now refused with no matched-control violation in any arm. The registered residual was observed: in 3 episodes (granite-4.1-8b once, mistral-7b twice) a task invoice was overpaid by 200.00 to 1,250.00 while the session total stayed within budget, and neither the monitor nor the verifier flagged it; all three counted as task successes."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [experiments/finance-gap-rerun/PREREGISTRATION.md, experiments/finance-gap-rerun/RESULTS.md, experiments/finance-gap-rerun/results/analysis.json]
