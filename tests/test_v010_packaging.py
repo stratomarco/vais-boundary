@@ -26,6 +26,16 @@ def test_v0102_packaged_hypotheses_match_canonical_knowledge():
     assert (ROOT / "src" / "vais" / "data" / "research" / "hypotheses.yaml").read_text(encoding="utf-8") == (ROOT / "research" / "knowledge" / "hypotheses.yaml").read_text(encoding="utf-8")
 
 
+def test_every_packaged_knowledge_file_matches_the_canonical_one():
+    # Only three files were compared, so the packaged decisions, findings and limitations
+    # fell behind for a whole branch without a test noticing.
+    canonical = sorted(path.name for path in (ROOT / "research" / "knowledge").glob("*.yaml"))
+    packaged = ROOT / "src" / "vais" / "data" / "research"
+    assert canonical == sorted(path.name for path in packaged.glob("*.yaml"))
+    for name in canonical:
+        assert (packaged / name).read_bytes() == (ROOT / "research" / "knowledge" / name).read_bytes(), name
+
+
 def test_reviewer_facing_readme_and_howto_ship_in_source_package():
     assert (ROOT / "README.md").exists()
     assert (ROOT / "HOWTO.md").exists()
