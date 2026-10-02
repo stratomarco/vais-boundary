@@ -63,6 +63,8 @@ def main() -> None:
     ap.add_argument("--temperature", type=float, default=0.9)
     ap.add_argument("--families", default="A,B")
     ap.add_argument("--pair-as", default=None, help="duplicate the payloads under this family (paired design)")
+    ap.add_argument("--seed-offset", type=int, default=0,
+                    help="added to every seed; v1 and v2 used 0, so a new set needs a new offset to be fresh")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
@@ -70,7 +72,7 @@ def main() -> None:
     for fam in args.families.split(","):
         for tech, desc in TECHNIQUES.items():
             for k in range(args.per_technique):
-                seed = 1000 * k + len(rows)
+                seed = args.seed_offset + 1000 * k + len(rows)
                 payload = generate_one(args.model, FAMILIES[fam]["objective"], desc, seed, args.temperature)
                 key = payload.lower()
                 duplicate = key in seen
@@ -94,6 +96,7 @@ def main() -> None:
     args.out.write_bytes("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept).encode("utf-8"))
     meta = {"generated": date.today().isoformat(), "generator": args.model, "temperature": args.temperature,
             "per_technique": args.per_technique, "families": args.families, "pair_as": args.pair_as,
+            "seed_offset": args.seed_offset,
             "techniques": TECHNIQUES,
             "prompt": PROMPT, "requested": len(rows), "kept": len(kept),
             "dropped_duplicates_or_empty": len(rows) - len(kept),
