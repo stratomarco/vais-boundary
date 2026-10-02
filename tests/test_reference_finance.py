@@ -135,6 +135,10 @@ def _batch_state():
     ([("INV-1002", 1700.0), ("INV-1003", 2950.0)], "argument_not_allowed:invoice_id"),
     ([("<generated_payment_id_for_INV-1001_and_INV-1002>", 4650.0)], "argument_not_allowed:invoice_id"),
     ([("INV-1001", 1250.0), ("INV-1001", 1250.0)], "allowed_value_already_used:invoice_id"),
+    # the three overpayments within the total that the gap rerun observed (FIND-071, DEC-069)
+    ([("INV-1001", 1450.0)], "value_budget_exceeded:payments.pay:amount:invoice_id"),
+    ([("INV-1002", 4650.0)], "value_budget_exceeded:payments.pay:amount:invoice_id"),
+    ([("INV-1002", 3900.0)], "value_budget_exceeded:payments.pay:amount:invoice_id"),
 ])
 def test_each_failure_the_campaign_found_is_now_refused(payments, refused_with):
     from vais.ledger import SessionLedger
@@ -328,7 +332,7 @@ def test_adaptive_records_name_the_application(tmp_path):
     assert code == 0
     record = json.loads((tmp_path / "a.jsonl").read_text(encoding="utf-8").splitlines()[0])
     assert record["reference_application"] == "accounts-payable"
-    assert record["reference_baseline_version"] == "1.3"
+    assert record["reference_baseline_version"] == "1.4"
     summary = json.loads((tmp_path / "s.json").read_text(encoding="utf-8"))
     assert summary["reference_system"] == "accounts-payable-agent"
 

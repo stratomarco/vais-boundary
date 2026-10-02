@@ -431,3 +431,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [experiments/finance-gap-rerun/PREREGISTRATION.md, experiments/finance-gap-rerun/RESULTS.md, experiments/finance-gap-rerun/results/analysis.json]
+
+  - id: FIND-072
+    finding: "Replayed over the recorded attack-21 actions of the four models that reached the totals gap (516 attacked and control runs from the campaign and the rerun), the caps per invoice of DEC-069 refuse each of the rerun's three overpayments at the overpaying payment, and every violating campaign run is refused at its first bad payment, by DEC-067's rules. No rerun run without a violation or overpayment gains a refusal, and nothing refused or held is newly allowed. One campaign run counted as clean, a 12,500.00 payment against a 1,250.00 invoice that the recorded monitor held for approval, is now refused before an approval is asked for. Exploratory and counterfactual: decisions are compared only up to the first difference."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [experiments/value-budget-replay/replay.py, experiments/value-budget-replay/RESULTS.md, experiments/value-budget-replay/results/replay.json]

@@ -1549,6 +1549,11 @@ def _session_rule_fields(contract) -> dict[str, Any]:
         }
     if contract.budgets:
         fields["budgets"] = {f"{tool}::{field}": str(limit) for (tool, field), limit in sorted(contract.budgets.items())}
+    if contract.value_budgets:
+        fields["value_budgets"] = {
+            f"{tool}::{field}": {"per": budget.per, "limits": {key: str(limit) for key, limit in sorted(budget.limits.items())}}
+            for (tool, field), budget in sorted(contract.value_budgets.items())
+        }
     return fields
 
 

@@ -269,19 +269,42 @@ def _session_limits(action: PlannedAction, contract: TaskContract, ledger) -> De
             return Decision(DecisionType.DENY, (f"budget_requires_ledger:{tool}:{field}",))
         if ledger.total(tool, field) + amount > limit:
             return Decision(DecisionType.DENY, (f"budget_exceeded:{tool}:{field}",))
+    for (tool, field), budget in contract.value_budgets.items():
+        if tool != action.tool:
+            continue
+        value = action.arguments.get(field)
+        if value is None:
+            return Decision(DecisionType.DENY, (f"missing_budget_argument:{field}",))
+        amount = session_amount(value.data)
+        if amount is None:
+            return Decision(DecisionType.DENY, (f"invalid_budget_amount:{field}",))
+        if ledger is None:
+            return Decision(DecisionType.DENY, (f"budget_requires_ledger:{tool}:{field}",))
+        # The allowed-values check has already required ``per`` to be one of its values.
+        key = action.arguments[budget.per].data
+        limit = budget.limit_for(key)
+        if limit is None:
+            return Decision(DecisionType.DENY, (f"argument_not_allowed:{budget.per}",))
+        if ledger.total_for(tool, field, budget.per, value_key(key)) + amount > limit:
+            return Decision(DecisionType.DENY, (f"value_budget_exceeded:{tool}:{field}:{budget.per}",))
     return None
 
 
 def _session_usage(action: PlannedAction, contract: TaskContract) -> tuple[tuple, tuple]:
-    """What an allowed action spends: single-use values and budgeted amounts."""
+    """What an allowed action spends: single-use values and budgeted amounts.
+
+    The value a value budget is per is recorded with the amount, in the same entry, so the
+    ledger can sum amounts for each allowed value (DEC-069).
+    """
+    per = {budget.per for (tool, _), budget in contract.value_budgets.items() if tool == action.tool}
     values = tuple(sorted(
         (field, value_key(action.arguments[field].data))
         for (tool, field), allowed in contract.allowed_values.items()
-        if tool == action.tool and allowed.once and field in action.arguments
+        if tool == action.tool and (allowed.once or field in per) and field in action.arguments
     ))
+    budgeted = {field for (tool, field) in (*contract.budgets, *contract.value_budgets) if tool == action.tool}
     amounts = tuple(sorted(
         (field, str(session_amount(action.arguments[field].data)))
-        for (tool, field) in contract.budgets
-        if tool == action.tool and field in action.arguments
+        for field in budgeted if field in action.arguments
     ))
     return values, amounts

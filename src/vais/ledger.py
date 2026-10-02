@@ -94,6 +94,14 @@ class SessionLedger:
             return sum((Decimal(text) for entry in self._entries if entry.tool == tool
                         for name, text in entry.amounts if name == field), Decimal(0))
 
+    def total_for(self, tool: str, field: str, per: str, key: str) -> Decimal:
+        """The sum of ``field`` over allowed ``tool`` actions whose ``per`` argument had
+        canonical value ``key`` (DEC-069)."""
+        with self.lock:
+            return sum((Decimal(text) for entry in self._entries
+                        if entry.tool == tool and (per, key) in entry.values
+                        for name, text in entry.amounts if name == field), Decimal(0))
+
     def record(self, entry: LedgerEntry) -> None:
         """Append an allowed action. Called by the reference monitor, under its lock."""
         with self.lock:

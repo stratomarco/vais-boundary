@@ -54,6 +54,7 @@ from .mcp import (
 )
 from .models import (
     AllowedValues,
+    ValueBudget,
     ConfidentialityLevel,
     DecisionType,
     PlannedAction,
@@ -85,7 +86,7 @@ def token_digest(token: str) -> str:
 _CONTRACT_KEYS = {
     "version", "token_sha256", "principal_id", "session_id", "tenant_id", "capability_id",
     "allowed_tools", "granted_scopes", "bound_arguments", "approved_action_fingerprints",
-    "not_before", "not_after", "allowed_values", "budgets",
+    "not_before", "not_after", "allowed_values", "budgets", "value_budgets",
 }
 
 
@@ -100,7 +101,9 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
     Where one binding is not enough (DEC-067), ``allowed_values: {tool: {argument:
     {values: [...], once: true, confidentiality: ...}}}`` lists the values an argument may
     take, each at most once per session with ``once``, and ``budgets: {tool: {argument:
-    4650.00}}`` caps the sum of a numeric argument over the session.
+    4650.00}}`` caps the sum of a numeric argument over the session. ``value_budgets:
+    {tool: {argument: {per: other_argument, limits: {value: 1250.00, ...}}}}`` caps it for
+    each allowed value of another argument (DEC-069).
     """
     location = str(path)
     try:
@@ -172,6 +175,24 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
                 _fail(argument_path, "must be a finite, non-negative amount")
             budgets[(tool, _string(argument, argument_path))] = limit
 
+    value_budgets: dict[tuple[str, str], ValueBudget] = {}
+    for tool, arguments in _mapping(raw.get("value_budgets", {}), f"{location}.value_budgets").items():
+        tool_path = f"{location}.value_budgets.{tool}"
+        tool = _string(tool, tool_path)
+        for argument, spec in _mapping(arguments, tool_path).items():
+            argument_path = f"{tool_path}.{argument}"
+            argument = _string(argument, argument_path)
+            spec = _mapping(spec, argument_path)
+            _known_keys(spec, {"per", "limits"}, argument_path)
+            try:
+                value_budgets[(tool, argument)] = ValueBudget(
+                    per=_string(spec.get("per"), f"{argument_path}.per"),
+                    limits=_mapping(spec.get("limits"), f"{argument_path}.limits"))
+            except ValueError as exc:
+                if isinstance(exc, PolicyValidationError):
+                    raise
+                _fail(argument_path, str(exc))
+
     window: dict[str, float] = {}
     for key in ("not_before", "not_after"):
         if key in raw:
@@ -192,6 +213,7 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
             capability_id=_string(raw.get("capability_id"), f"{location}.capability_id"),
             allowed_values=choices,
             budgets=budgets,
+            value_budgets=value_budgets,
             **window,
         )
     except ValueError as exc:

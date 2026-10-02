@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Cap an amount for each allowed value (DEC-069).** A contract can declare `value_budgets`: a cap on a numeric argument for each allowed value of another argument, summed over the session, such as the amount paid against each invoice. It closes the residual the finance gap rerun observed, an invoice overpaid while the session total held (FIND-071), in the monitor rather than only in the verifier. Like budgets, it needs a session ledger and refuses without one, comes before approvals, survives restarts and is inherited by delegates, in Python and in gateway contract files. The accounts-payable two-invoice task declares it (baseline 1.4). Replayed over the recorded attack-21 actions, it refuses the three observed overpayments at the overpaying payment and adds no refusal to any other rerun run (FIND-072, `experiments/value-budget-replay/`). The incident application, both snapshots and all model-facing prompts are byte-identical.
+
 ## 0.12.0-rc15 - 2026-10-02
 
 Broader evidence, after rc14's only application and local models: a frontier model as a target, a second reference application with its own campaign, and the enforcement gap that campaign confirmed, now closed and re-tested. Claude Sonnet 5.5 was never moved by either available attacker, so its results bound the attackers, not VAIS. The accounts-payable application ran 13 local models with no protected violation in the 20 stories built to be stopped, and showed real models reaching the registered totals gap. Contracts can now list allowed values and cap a session's total, a pre-registered rerun found no violation where the campaign had found one in each of four models, and the one residual it observed is now reported by the verifier. Every new mechanism is opt-in; the incident application's outputs are byte-identical, and the regenerated snapshots are byte-identical to rc14's apart from the version.

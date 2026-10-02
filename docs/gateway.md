@@ -41,8 +41,15 @@ budgets:
 
 A value exactly equal to a listed one takes that value's trusted label, any other value is
 refused, and with `once` each value is accepted once per session. A budget caps the sum of a
-numeric argument over the session's allowed calls. Both need the session's ledger, so with
-`state:` they survive a restart.
+numeric argument over the session's allowed calls. A value budget caps it separately for each
+listed value of another argument, and must cap every one of them (DEC-069):
+
+```yaml
+value_budgets:
+  mcp:ap:pay: {amount: {per: invoice_id, limits: {INV-1001: 1250.00, INV-1002: 3400.00}}}
+```
+
+All of them need the session's ledger, so with `state:` they survive a restart.
 
 It is stricter than the library path: a contract binding or allowed value is the only route to trust. It is
 also coarse: once a session has read `secret` data through the gateway, every later argument
@@ -200,7 +207,7 @@ account, the agent in another with network access to the gateway's port and noth
   restart starts fresh (LIM-055, LIM-063). With it they are files, shared by processes on one
   machine only. The contract directory is read on every request.
 - An approval in a contract file authorizes its exact action once per session (DEC-060).
-- A budget caps a session's total, not how it is split between allowed values, and has no
-  currency or unit semantics (LIM-072).
+- A budget caps a session's total; how it is split between allowed values is capped only by
+  a value budget the operator declares. Neither has currency or unit semantics (LIM-072).
 - A value an application creates during the session becomes authority only through a declared
   mint, which trusts the minting server (LIM-068, LIM-070).

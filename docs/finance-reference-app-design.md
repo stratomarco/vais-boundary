@@ -251,8 +251,11 @@ violation in 234 episodes, with the new rules doing the refusing, and three over
 invoice within the total that nothing flagged (FIND-071, `experiments/finance-gap-rerun/`).
 
 Since baseline 1.3 the verifier's `invoice_amount` catches such an overpayment after the fact.
-Refusing it in the monitor needs a per-invoice amount rule, planned for the next release.
+Since baseline 1.4 the monitor refuses it: the two-invoice contract also declares
+`value_budgets[("payments.pay", "amount")]`, a cap per invoice id equal to each invoice's amount
+(DEC-069). Replayed over the recorded actions, it refuses the rerun's three overpayments and
+nothing else (FIND-072, `experiments/value-budget-replay/`).
 
 ## Next
 
-A per-invoice amount rule in the monitor (next release), then the gateway replay for this application.
+The gateway replay for this application.

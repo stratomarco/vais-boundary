@@ -283,6 +283,47 @@ class AllowedValues:
 
 
 @dataclass(frozen=True)
+class ValueBudget:
+    """A cap on a numeric argument for each allowed value of another argument (DEC-069).
+
+    A session budget caps the sum of, say, ``amount`` over every payment, but not how it
+    is split between the invoices paid. ``ValueBudget(per="invoice_id", limits={...})``
+    caps the sum of ``amount`` over the session's allowed actions separately for each
+    invoice id. ``per`` must have allowed values in the same contract, and ``limits``
+    must give exactly one cap to each of them, so no allowed value is left uncapped.
+    """
+
+    per: str
+    limits: Mapping[Any, Decimal]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.per, str) or not self.per.strip():
+            raise ValueError("a value budget needs the argument it is per")
+        if not isinstance(self.limits, Mapping) or not self.limits:
+            raise ValueError("a value budget must give at least one limit")
+        limits: dict[str, Decimal] = {}
+        for data, amount in self.limits.items():
+            try:
+                key = value_key(data)
+            except ValueError:
+                raise ValueError("a value budget's values must be canonical security JSON") from None
+            limit = session_amount(amount)
+            if limit is None:
+                raise ValueError("a value budget's limits must be finite, non-negative amounts")
+            if key in limits:
+                raise ValueError("a value budget's values must be distinct")
+            limits[key] = limit
+        object.__setattr__(self, "per", unicodedata.normalize("NFC", self.per))
+        object.__setattr__(self, "limits", FrozenDict(limits))
+
+    def limit_for(self, data: Any) -> Decimal | None:
+        try:
+            return self.limits.get(value_key(data))
+        except ValueError:
+            return None
+
+
+@dataclass(frozen=True)
 class TaskContract:
     """Immutable authorization derived only from trusted input.
 
@@ -300,6 +341,8 @@ class TaskContract:
     ``allowed_values`` lists the values an argument may take when one binding is not
     enough, and ``budgets`` caps the sum of a numeric argument over every allowed action
     in the session; both are enforced with a ``SessionLedger`` (DEC-067, LIM-072).
+    ``value_budgets`` caps it separately for each allowed value of another argument, such
+    as the amount paid against each invoice (DEC-069).
     """
 
     allowed_tools: frozenset[str] | set[str]
@@ -314,6 +357,7 @@ class TaskContract:
     not_after: float | None = None
     allowed_values: Mapping[tuple[str, str], AllowedValues] = field(default_factory=dict)
     budgets: Mapping[tuple[str, str], Decimal] = field(default_factory=dict)
+    value_budgets: Mapping[tuple[str, str], ValueBudget] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         raw_tools = tuple(self.allowed_tools)
@@ -381,6 +425,22 @@ class TaskContract:
             if normalized_key in budgets:
                 raise ValueError("Unicode normalization produced a duplicate budget key")
             budgets[normalized_key] = limit
+        value_budgets: dict[tuple[str, str], ValueBudget] = {}
+        for key, value in self.value_budgets.items():
+            normalized_key = _argument_key(key, "value budget")
+            if not isinstance(value, ValueBudget):
+                raise ValueError("value budgets must be ValueBudgets")
+            if normalized_key in value_budgets:
+                raise ValueError("Unicode normalization produced a duplicate value-budget key")
+            tool, field_name = normalized_key
+            if value.per == field_name:
+                raise ValueError("a value budget cannot be per its own argument")
+            allowed = choices.get((tool, value.per))
+            if allowed is None:
+                raise ValueError("a value budget must be per an argument with allowed values")
+            if set(value.limits) != {value_key(member.data) for member in allowed.values}:
+                raise ValueError("a value budget must give exactly one limit to each allowed value")
+            value_budgets[normalized_key] = value
 
         object.__setattr__(self, "allowed_tools", allowed_tools)
         object.__setattr__(self, "granted_scopes", scopes)
@@ -388,6 +448,7 @@ class TaskContract:
         object.__setattr__(self, "bound_arguments", FrozenDict(bindings))
         object.__setattr__(self, "allowed_values", FrozenDict(choices))
         object.__setattr__(self, "budgets", FrozenDict(budgets))
+        object.__setattr__(self, "value_budgets", FrozenDict(value_budgets))
 
     def with_approved_action(self, action: PlannedAction) -> "TaskContract":
         fingerprint = action_fingerprint(action)
@@ -449,7 +510,8 @@ class TaskContract:
         # Allowed values and budgets are inherited unchanged: dropping one would widen the
         # delegate, and keeping the session means its spending counts against the parent's.
         return replace(child, bound_arguments=kept(self.bound_arguments),
-                       allowed_values=kept(self.allowed_values), budgets=kept(self.budgets))
+                       allowed_values=kept(self.allowed_values), budgets=kept(self.budgets),
+                       value_budgets=kept(self.value_budgets))
 
 
 def _argument_key(key: Any, what: str) -> tuple[str, str]:

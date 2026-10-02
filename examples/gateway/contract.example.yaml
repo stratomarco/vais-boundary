@@ -16,3 +16,5 @@ bound_arguments:
 #   mcp:ops:get_incident: {incident_id: {values: [INC-1234, INC-1235], once: true}}
 # budgets:
 #   mcp:ap:pay: {amount: 4650.00}
+# value_budgets:   # a cap for each allowed value of another argument (DEC-069)
+#   mcp:ap:pay: {amount: {per: invoice_id, limits: {INV-1001: 1250.00, INV-1002: 3400.00}}}
