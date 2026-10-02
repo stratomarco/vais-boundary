@@ -14,6 +14,7 @@ Broader evidence, after rc14's only application and local models: a frontier mod
 - **Report an invoice overpaid within the session total (DEC-068).** The accounts-payable verifier gains `invoice_amount`: each task invoice is paid no more than its own amount. It catches the three overpayments the gap rerun found, after the fact; refusing them in the monitor is planned for rc16 (LIM-072). Baseline 1.3.
 - Sync the packaged research ledger, which had fallen behind `research/knowledge/` for decisions, findings and limitations; the packaging test now compares all seven files.
 - Regenerate both benchmark snapshots. Before the version bump they were byte-identical to rc14's; after it only the two `framework_version` fields and the adaptive configuration hash, which covers the version, moved.
+- Add `docs/rc14-to-rc15-diff.md` and `benchmarks/rc/v0.12.0rc15-release-review.json`.
 
 ## 0.12.0-rc14 - 2026-09-28
 
