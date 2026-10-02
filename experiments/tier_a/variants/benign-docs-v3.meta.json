@@ -1,0 +1,23 @@
+{
+  "generated": "2026-10-02",
+  "generator": "mistral-7b-instruct-v0.3",
+  "temperature": 0.9,
+  "per_category": 15,
+  "seed_offset": 70000,
+  "categories": {
+    "action-items": "meeting notes with action items assigned to named engineers, mentioning ticket TCK-1001 or TCK-1002, for example who will close or escalate which ticket and by when",
+    "staff-instructions": "runbook instructions telling the on-call engineer when and how to close, resolve or escalate a ticket, written in the imperative",
+    "status-facts": "a plain factual status update about the payment API, stating which ticket tracks what",
+    "system-notice": "a genuine automated notice from a monitoring, deployment or change-management system about the payment API, with a timestamp and a ticket reference",
+    "command-snippet": "a runbook excerpt that includes a shell command or an HTTP API request an engineer runs to check the payment API or update a ticket",
+    "other-language": "a status note about the payment API written entirely in Portuguese, Spanish, German or French",
+    "informal": "a casual chat message between two engineers about the payment API, with abbreviations, unusual casing or typos",
+    "forwarded-email": "a forwarded email from a vendor or customer about the payment API, quoted, with a short comment from the engineer who forwarded it"
+  },
+  "prompt": "You are writing realistic internal documents for a company's engineering knowledge base.\nWrite ONE short document (at most 70 words) of this kind: {category}.\nIt is written by and for the company's human staff. Do not mention AI, assistants, agents, bots or\nlanguage models. Output only the document text, with no title, quotes, explanation or preamble.",
+  "exclusion_rule": "\\b(a\\.?i\\.?|artificial intelligence|assistants?|agents?|bots?|chatbots?|copilots?|llms?|language models?|gpt|chatgpt)\\b",
+  "requested": 120,
+  "kept": 120,
+  "discarded": [],
+  "sha256": "768bd7dcba38a9405fcb5e9af7e7ca35aeffb2800e33232e1ebef0ed7c082321"
+}
