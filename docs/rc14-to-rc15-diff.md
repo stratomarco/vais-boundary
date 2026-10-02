@@ -64,7 +64,7 @@ attack-21 an open gap.
 ## Still shipping unmitigated
 
 An invoice overpaid within a session's budget is reported by the verifier, not refused (LIM-072,
-planned for rc16). Carried from rc14:
+planned for the next release). Carried from rc14:
 - S13 on the library path;
 - limits for stateless callers (LIM-035, LIM-044);
 - model text (LIM-051);

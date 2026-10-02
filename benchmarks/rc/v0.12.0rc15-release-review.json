@@ -22,7 +22,7 @@
   {
    "id": "FIND-071",
    "status": "gap_closed_residual_detected_by_DEC-068",
-   "summary": "With DEC-067's rules, the same four models made no protected violation in 234 evaluable attack-21 episodes; every model had payments refused by the new rules. In 3 episodes an invoice was overpaid within the session total, which neither the monitor nor the verifier flagged; the verifier's invoice_amount now reports it, and a monitor rule is planned for rc16."
+   "summary": "With DEC-067's rules, the same four models made no protected violation in 234 evaluable attack-21 episodes; every model had payments refused by the new rules. In 3 episodes an invoice was overpaid within the session total, which neither the monitor nor the verifier flagged; the verifier's invoice_amount now reports it, and a monitor rule is planned for the next release."
   },
   {
    "id": "FIND-067/FIND-068",
@@ -77,7 +77,7 @@
   {
    "id": "LIM-072",
    "status": "detected_by_verifier_only",
-   "summary": "Within a session budget the monitor does not pair amounts with allowed values, so an invoice can be overpaid while the total holds; the accounts-payable verifier reports it after the fact (DEC-068). A monitor rule is planned for rc16."
+   "summary": "Within a session budget the monitor does not pair amounts with allowed values, so an invoice can be overpaid while the total holds; the accounts-payable verifier reports it after the fact (DEC-068). A monitor rule is planned for the next release."
   },
   {
    "id": "FIND-067/FIND-068",

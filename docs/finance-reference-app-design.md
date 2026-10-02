@@ -251,8 +251,8 @@ violation in 234 episodes, with the new rules doing the refusing, and three over
 invoice within the total that nothing flagged (FIND-071, `experiments/finance-gap-rerun/`).
 
 Since baseline 1.3 the verifier's `invoice_amount` catches such an overpayment after the fact.
-Refusing it in the monitor needs a per-invoice amount rule, planned for rc16.
+Refusing it in the monitor needs a per-invoice amount rule, planned for the next release.
 
 ## Next
 
-A per-invoice amount rule in the monitor (rc16), then the gateway replay for this application.
+A per-invoice amount rule in the monitor (next release), then the gateway replay for this application.
