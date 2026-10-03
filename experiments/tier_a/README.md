@@ -5,7 +5,7 @@ recognises the *text* stop the resulting action as reliably as a boundary that c
 *effect* against authority fixed before the content was read, and what does each cost on
 legitimate work?
 
-**Status:** harness built and tested; one seed run recorded below. It is a pilot, not a result.
+**Status:** three pre-registered rounds. v1 and v2 could not evaluate their primaries; **v3 did, and all three hypotheses held** ([RESULTS-v3.md](RESULTS-v3.md)): effect-level enforcement with reference resolution caught every validated attack and completed every legitimate task, while the only guardrail that came close on catch dropped about half of a legitimate corpus. The seed-run notes below describe the original pilot.
 
 ## Setup
 

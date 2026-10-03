@@ -443,3 +443,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [src/vais/gateway_replay.py, tests/test_gateway_replay_finance.py, experiments/gateway-equivalence/RESULTS.md, experiments/gateway-equivalence/summary-finance-campaign.json, experiments/gateway-equivalence/summary-finance-gap-rerun.json]
+
+  - id: FIND-074
+    finding: "In the pre-registered Tier-A v3 study (BrokenPilot, an LLM agent, family-C object substitution on 96 fresh payloads), the primary outcome was evaluable for the first time and all three hypotheses held: VAIS_RESOLVE caught 41 of 41 validated attacks, at least as many as every guardrail; the one guardrail within ten points of that catch rate, a phi-4-mini judge at 37 of 41, dropped 58 of 120 documents of a frozen legitimate corpus; and VAIS_RESOLVE completed 16 of 16 benign workflows against 15 for no defence. Across four runs VAIS_RESOLVE caught 197 of 197 validated attacks and completed every benign workflow, while every guardrail that dropped almost no legitimate content caught at most 35% of attacks. The judge was inside the ten-point margin by one variant; in two of the three descriptive runs no guardrail came within ten points. The corpus was written to resemble what guardrails flag, so its drop rates are a stress test, not a sample."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [experiments/tier_a/PREREGISTRATION-v3.md, experiments/tier_a/RESULTS-v3.md, experiments/tier_a/evidence/v3-primary/summary.md, experiments/tier_a/evidence/v3-primary/v3-hypotheses.json]
