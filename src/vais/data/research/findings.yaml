@@ -449,3 +449,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [experiments/tier_a/PREREGISTRATION-v3.md, experiments/tier_a/RESULTS-v3.md, experiments/tier_a/evidence/v3-primary/summary.md, experiments/tier_a/evidence/v3-primary/v3-hypotheses.json]
+
+  - id: FIND-075
+    finding: "Across sessions, trust does not survive a store but confidentiality and minted authority can. In a pre-registered, deterministic two-session study through a real gateway, all eight predictions held: attacker text stored in one session was untrusted when a later session read it back, so a payment to the account it named was refused; a secret written into a store whose write tool had no confidentiality ceiling came back in the next session labelled at the store's lower read level and reached an internal chat; and a bank account written without approval became authority in the next session through a declared mint. VAIS does not persist labels, so these depend on how the tools that write a store are configured relative to those that read it, which the monitor cannot see."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [experiments/cross-session/PREREGISTRATION.md, experiments/cross-session/RESULTS.md, experiments/cross-session/harness.py, experiments/cross-session/results.json]

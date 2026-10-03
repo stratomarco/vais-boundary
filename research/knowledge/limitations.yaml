@@ -183,6 +183,9 @@ limitations:
   - id: LIM-071
     limitation: A Claude run is neither greedy nor pinned. Current models reject a non-default temperature, so a replay of the same episode can plan differently, and the model identifier is not a dated snapshot, so the provider can change what serves it. Each run records the model string every response reports and its date, which shows what served it but cannot reproduce it. The API's own safety classifiers can refuse security-themed prompts; a refusal is recorded as an unevaluable step, never as a defended one, and a model that refuses often yields less evidence per dollar.
 
+  - id: LIM-074
+    limitation: "VAIS does not persist labels: a value an upstream store returns is labelled by the reading tool's result policy, whatever was known about it when it was written. Trust cannot be laundered this way, but confidentiality and minted authority can, from one session into a later one (FIND-075). The check DEC-070 adds covers only stores the operator declares in the MCP profile, only stores behind the profile's tools, not stores an application keeps itself, and its ceilings act on the gateway's session-coarse labels, so they can refuse writes that carry nothing confidential."
+
   - id: LIM-073
     limitation: "The library path labels a whole planned turn before running any of it, so a value the application mints during a turn, such as a bank account read from the vendor master, is not yet authority for later calls in the same turn, and an action using it is refused until the model proposes it again. The gateway labels each call on arrival and accepts it in the same turn. The library is the stricter of the two, so this costs utility, not safety; it is the one decision the accounts-payable gateway replay found looser at the gateway (FIND-073)."
 

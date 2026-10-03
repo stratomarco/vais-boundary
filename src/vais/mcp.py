@@ -172,9 +172,21 @@ class MCPToolBinding:
     result_policy: MCPResultPolicy = field(default_factory=MCPResultPolicy)
     effect: MCPEffectMapping = field(default_factory=MCPEffectMapping)
     mints: tuple[MCPMintSpec, ...] = ()
+    # Stores this tool writes to and reads from, by name, so a configuration that would carry
+    # data or authority from one session into another can be found (DEC-070, vais.stores).
+    writes: tuple[str, ...] = ()
+    reads: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "mints", tuple(self.mints))
+        for label in ("writes", "reads"):
+            raw = tuple(getattr(self, label))
+            if any(not isinstance(store, str) or not store.strip() for store in raw):
+                raise ValueError(f"{label} must contain non-empty store names")
+            names = tuple(unicodedata.normalize("NFC", store) for store in raw)
+            if len(set(names)) != len(names):
+                raise ValueError(f"{label} must not repeat a store")
+            object.__setattr__(self, label, names)
         for label, value in {
             "server_id": self.server_id,
             "tool_name": self.tool_name,
@@ -456,6 +468,10 @@ class MCPProtectedClient:
         self.session = session
         self.profile = profile
         self.monitor = monitor
+        from .stores import store_flow_problems  # declared stores, checked as the gateway does (DEC-070)
+        problems = store_flow_problems(profile, monitor.policy)
+        if problems:
+            raise PolicyValidationError("unsafe store flows: " + "; ".join(problems))
         self.approval_store = approval_store
         self.audit = audit
         self.ledger = ledger
@@ -820,7 +836,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             tool_raw = _mapping(tool_raw, tool_path)
             _known_keys(
                 tool_raw,
-                {"canonical_tool", "result_confidentiality", "effect", "mints"},
+                {"canonical_tool", "result_confidentiality", "effect", "mints", "writes", "reads"},
                 tool_path,
             )
             canonical = tool_raw.get("canonical_tool")
@@ -887,6 +903,12 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                     _fail(confirm_path, str(exc))
 
             mints = _parse_mints(tool_raw.get("mints", []), f"{tool_path}.mints")
+            stores = {}
+            for label in ("writes", "reads"):
+                raw_stores = tool_raw.get(label, [])
+                if not isinstance(raw_stores, list):
+                    _fail(f"{tool_path}.{label}", "must be a list of store names")
+                stores[label] = tuple(_string(store, f"{tool_path}.{label}") for store in raw_stores)
             try:
                 binding = MCPToolBinding(
                     server_id=server_id,
@@ -895,6 +917,8 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                     result_policy=MCPResultPolicy(result_conf),
                     effect=MCPEffectMapping(effect_kind, fields, acknowledge, confirm),
                     mints=mints,
+                    writes=stores["writes"],
+                    reads=stores["reads"],
                 )
             except ValueError as exc:
                 _fail(tool_path, str(exc))

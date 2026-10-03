@@ -114,6 +114,28 @@ the value. With `state:` set, minted values survive a restart like the rest of t
 Declaring a mint trusts the minting server as part of the application (LIM-070): a compromised
 minting server can mint whatever it likes for those arguments.
 
+## Stores shared across sessions
+
+The gateway labels a value when it is read, by the reading tool's result policy. It does not
+remember what was known about the value when another session wrote it. Trust cannot be
+laundered this way, since every read is untrusted, but confidentiality and minted authority
+can (FIND-075). A profile can declare the stores each tool writes and reads:
+
+```yaml
+servers:
+  notes:
+    tools:
+      write: {effect: {kind: note_written}, writes: [notes]}
+      read:  {effect: {kind: note_read}, result_confidentiality: internal, reads: [notes]}
+```
+
+The gateway then refuses to start (DEC-070) unless, for every declared store:
+- every argument of every writer has a `max_confidentiality` no higher than the store's lowest
+  reader returns, and the writer rejects undeclared arguments;
+- every writer of a store that a minting tool reads requires an exact approval.
+
+Stores that are not declared are not checked (LIM-074).
+
 ## Quick start
 
 The files are in [`examples/gateway/`](../examples/gateway/); the upstream is the repository's
@@ -211,3 +233,5 @@ account, the agent in another with network access to the gateway's port and noth
   a value budget the operator declares. Neither has currency or unit semantics (LIM-072).
 - A value an application creates during the session becomes authority only through a declared
   mint, which trusts the minting server (LIM-068, LIM-070).
+- Labels are not persisted. Only declared stores are checked for carrying confidentiality or minted
+  authority into a later session (LIM-074).

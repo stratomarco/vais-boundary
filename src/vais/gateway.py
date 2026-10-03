@@ -520,6 +520,11 @@ class Gateway:
                     f"{name!r} reads its effect back from server {confirm.server_id!r}, which has no upstream session")
             tools[name] = ExposedTool(name, binding)
         self._tools = tools
+        # Declared stores must not carry data or authority from one session into another (DEC-070).
+        from .stores import store_flow_problems
+        problems = store_flow_problems(profile, monitor.policy)
+        if problems:
+            raise PolicyValidationError("unsafe store flows: " + "; ".join(problems))
 
     # The agent sees only the tools its contract allows. This narrows what the model is
     # offered; it is not the authorization, which the monitor makes on every call.
