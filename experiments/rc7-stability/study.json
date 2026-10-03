@@ -1,0 +1,174 @@
+{
+  "schema": "vais-rc7-stability-v1",
+  "registration": "experiments/rc7-stability/PREREGISTRATION.md",
+  "rc7_code": "F:/vais-rc7 @ 77eb7e7 (0.12.0rc7)",
+  "runtime": {
+    "context_length": 8192,
+    "gpu": "max",
+    "parallel": 1,
+    "base_url": "http://localhost:1234/v1",
+    "max_tokens": 2048,
+    "timeout_seconds": 120.0,
+    "transport_retries": 1,
+    "truncation_retry_tokens": 4096,
+    "temperature": 0.0,
+    "episodes": 12
+  },
+  "flags": [
+    "--fail-on-target-failure",
+    "--fail-on-reasoning-mode-mismatch",
+    "--fail-on-protected-violation"
+  ],
+  "arms": [
+    {
+      "id": "qwen3-0.6b",
+      "lmstudio_model": "qwen/qwen3-0.6b",
+      "model_key": "qwen3-0.6b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 484219808,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/qwen3-0.6b-full.jsonl"
+    },
+    {
+      "id": "llama-3.2-1b-instruct",
+      "lmstudio_model": "meta-llama/llama-3.2-1b-instruct",
+      "model_key": "llama-3.2-1b-instruct",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 807690688,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/llama-3.2-1b-instruct-full.jsonl"
+    },
+    {
+      "id": "gemma-3-1b-it",
+      "lmstudio_model": "google/gemma-3-1b-it",
+      "model_key": "gemma-3-1b-it",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 806058240,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/gemma-3-1b-it-full.jsonl"
+    },
+    {
+      "id": "lfm2.5-1.2b-instruct",
+      "lmstudio_model": "liquidai/lfm2.5-1.2b-instruct",
+      "model_key": "lfm2.5-1.2b-instruct",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 730896736,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/lfm2.5-1.2b-instruct-full.jsonl"
+    },
+    {
+      "id": "smollm3-3b",
+      "lmstudio_model": "huggingfacetb/smollm3-3b",
+      "model_key": "smollm3-3b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 1915305216,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/smollm3-3b-full.jsonl"
+    },
+    {
+      "id": "phi-4-mini-instruct",
+      "lmstudio_model": "microsoft/phi-4-mini-instruct",
+      "model_key": "phi-4-mini-instruct",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 2491874400,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/phi-4-mini-instruct-full.jsonl"
+    },
+    {
+      "id": "qwen3-4b-instruct",
+      "lmstudio_model": "qwen/qwen3-4b-instruct-2507",
+      "model_key": "qwen/qwen3-4b-2507",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 2497459753,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/qwen3-4b-instruct-full.jsonl"
+    },
+    {
+      "id": "mistral-7b-instruct",
+      "lmstudio_model": "mistralai/mistral-7b-instruct-v0.3",
+      "model_key": "mistral-7b-instruct-v0.3",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 4372812000,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/mistral-7b-instruct-full.jsonl"
+    },
+    {
+      "id": "qwen2.5-7b-instruct",
+      "lmstudio_model": "qwen/qwen2.5-7b-instruct",
+      "model_key": "qwen2.5-7b-instruct",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 4683073952,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/qwen2.5-7b-instruct-full.jsonl"
+    },
+    {
+      "id": "llama-3.1-8b-instruct",
+      "lmstudio_model": "meta-llama/llama-3.1-8b-instruct",
+      "model_key": "meta-llama-3.1-8b-instruct",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 4920739168,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/llama-3.1-8b-instruct-full.jsonl"
+    },
+    {
+      "id": "granite-4.1-8b",
+      "lmstudio_model": "ibm-granite/granite-4.1-8b",
+      "model_key": "granite-4.1-8b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 5347914400,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/granite-4.1-8b-full.jsonl"
+    },
+    {
+      "id": "deepseek-r1-distill-llama-8b",
+      "lmstudio_model": "deepseek/deepseek-r1-distill-llama-8b",
+      "model_key": "deepseek-r1-distill-llama-8b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 4920736320,
+      "reasoning": "on",
+      "disable_thinking": false,
+      "rc7_records": "evidence/rc7/rc7/deepseek-r1-distill-llama-8b-full.jsonl"
+    },
+    {
+      "id": "qwen3.5-9b",
+      "lmstudio_model": "qwen/qwen3.5-9b",
+      "model_key": "qwen/qwen3.5-9b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 6548927711,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/qwen3.5-9b-full.jsonl"
+    },
+    {
+      "id": "gemma-4-12b",
+      "lmstudio_model": "google/gemma-4-12b",
+      "model_key": "google/gemma-4-12b",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 7556572366,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/gemma-4-12b-full.jsonl"
+    },
+    {
+      "id": "phi-4",
+      "lmstudio_model": "microsoft/phi-4",
+      "model_key": "phi-4",
+      "quantization": "Q4_K_M",
+      "rc7_size_bytes": 9053114560,
+      "reasoning": "off",
+      "disable_thinking": true,
+      "rc7_records": "evidence/rc7/rc7/phi-4-full.jsonl"
+    }
+  ]
+}
