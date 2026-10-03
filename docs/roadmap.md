@@ -16,9 +16,9 @@ record, kept as it was written.*
 
 ## This round: completing the VAIS evidence
 
-1. **Cross-session flows.** Content stored by one task and read back by a later task under a new
-   contract. Every reference scenario so far is a single task, although the threat model lists
-   persistent memory and retrieval stores among adversary inputs.
+1. **Cross-session flows: done** (FIND-075, DEC-070). Trust does not survive a store, but
+   confidentiality and minted authority can; profiles can now declare their stores, and the
+   gateway refuses to start while a declared store is unsafe. `experiments/cross-session/`.
 2. **Stability of the RC7 result.** A pre-registered rerun of a subset of the frozen panel, to
    measure run-to-run variation before small cross-model differences are interpreted.
 3. **A stronger attacker against a frontier model.** Neither available attacker moved Claude
