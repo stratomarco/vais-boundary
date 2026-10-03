@@ -1,12 +1,61 @@
 # Roadmap
 
+*Current state, updated 2026-10-03. Everything below "Completed in v0.11.0" is the earlier
+record, kept as it was written.*
+
+## Where the project is
+
+- **Released:** v0.12.0rc15. On `main` since then, unreleased:
+  - caps on an amount for each allowed value (DEC-069);
+  - the gateway replay for the accounts-payable application (FIND-073);
+  - the Tier-A guardrail cost study (FIND-074).
+- **Releases are held** until there is substantially more to ship. The next may be 0.13 rather
+  than another release candidate.
+- **Every study is listed with its result in `research/knowledge/findings.yaml`.** The
+  pre-registered ones live under `experiments/`.
+
+## This round: completing the VAIS evidence
+
+1. **Cross-session flows.** Content stored by one task and read back by a later task under a new
+   contract. Every reference scenario so far is a single task, although the threat model lists
+   persistent memory and retrieval stores among adversary inputs.
+2. **Stability of the RC7 result.** A pre-registered rerun of a subset of the frozen panel, to
+   measure run-to-run variation before small cross-model differences are interpreted.
+3. **A stronger attacker against a frontier model.** Neither available attacker moved Claude
+   Sonnet 5.5 (FIND-067, FIND-068), so enforcement on a frontier model is untested in effect.
+4. **One evidence index:** every study with its registration commit, result, bounds and the
+   location of its raw records.
+
+## Next round: detection rules against equivalent variants
+
+Operating-system telemetry and community Sigma rules, for four ATT&CK techniques, in a separate
+repository for detection engineers. Its telemetry fidelity gate is pre-registered. Real execution
+of every variant is preferred over synthesised telemetry.
+
+## Open bounded work, after these rounds
+
+- externally anchored, append-only audit storage (LIM-037)
+- approval and session state coordinated across machines (LIM-057)
+- a framework adapter with a dry-run mode
+- a general declassification adapter that recovers the utility conservative lineage costs (LIM-023)
+- application-specific MCP effect-reconciliation adapters
+- broader parser differential testing and cross-runtime canonicalization vectors
+- an independent security review, and independent reproduction on a separately managed machine
+- structured-output runaway behaviour, without weakening target-failure gates
+- `reasoning_effort=none` verified across a model panel, keeping the observed-reasoning fail gate
+- cryptographic model-file identity when the runtime exposes a portable digest
+
+Done since this list was first written: CI across Python 3.11 to 3.14 with and without the `mcp`
+extra; the RC7 evidence report, published with the releases; the private remote backup; and
+multi-process approval coordination on one machine (0.12.0rc13).
+
 ## Completed in v0.11.0
 
 - TCB canonicalization, recursive immutability and type-confusion hardening
 - scoped consume-once approvals and policy-v4 undeclared-argument rejection
 - audit hash chaining and MCP indeterminate/retry identity semantics
 
-## Next bounded work
+## Next bounded work, as listed after v0.11.0 (superseded by the sections above)
 
 - externally anchored/append-only audit storage
 - distributed approval coordination across machines (multi-process on one machine is done in 0.12.0rc13; LIM-057)
