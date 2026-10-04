@@ -34,6 +34,7 @@ PARTS = {"A": None, "B": ("qwen3-0.6b", "lfm2.5-1.2b-instruct", "qwen2.5-7b-inst
          "C": ("qwen3-0.6b", "lfm2.5-1.2b-instruct", "qwen2.5-7b-instruct")}
 ENGINE_C = "llama.cpp-win-x86_64-nvidia-cuda-avx2@2.5.1"
 MODELS_DIR = Path.home() / ".lmstudio" / "models"
+HUB_DIR = Path.home() / ".lmstudio" / "hub" / "models"
 FINAL = {"complete"}
 
 
@@ -97,6 +98,31 @@ def sha256_of(path: Path) -> tuple[str, int]:
     return digest.hexdigest(), size
 
 
+def catalog_sha256(hub: Path) -> tuple[str, int, list[str]]:
+    """A catalog model: its hub entry plus the GGUF folder its manifest names.
+
+    LM Studio lists a catalog model under the hub directory; the weights sit in the folder of a
+    Hugging Face source named in the entry's manifest, and the listed size is the entry's files
+    plus that folder's. Each file is hashed preceded by its name, in name order.
+    """
+    manifest = json.loads((hub / "manifest.json").read_text(encoding="utf-8"))
+    folders = [MODELS_DIR / src["user"] / src["repo"]
+               for dep in manifest.get("dependencies", []) for src in dep.get("sources", [])
+               if src.get("type") == "huggingface" and src.get("repo", "").lower().endswith("-gguf")
+               and (MODELS_DIR / src["user"] / src["repo"]).is_dir()]
+    files = [("hub/" + str(f.relative_to(HUB_DIR)).replace("\\", "/"), f) for f in hub.rglob("*") if f.is_file()]
+    for folder in folders:
+        files += [(str(f.relative_to(MODELS_DIR)).replace("\\", "/"), f) for f in folder.rglob("*") if f.is_file()]
+    digest, size = hashlib.sha256(), 0
+    for name, f in sorted(files):
+        digest.update(name.encode("utf-8") + b"\0")
+        with f.open("rb") as fh:
+            for block in iter(lambda: fh.read(1 << 22), b""):
+                digest.update(block)
+                size += len(block)
+    return digest.hexdigest(), size, [name for name, _ in sorted(files)]
+
+
 def environment(study: dict, arm: dict) -> dict:
     runtime = study["runtime"]
     lms("unload", "--all")
@@ -108,13 +134,24 @@ def environment(study: dict, arm: dict) -> dict:
         raise RuntimeError(f"loaded models differ from the study: {loaded}")
     listed = next(m for m in json.loads(lms("ls", "--json")) if m.get("modelKey") == arm["model_key"])
     path = MODELS_DIR / listed["path"]
-    digest, hashed_bytes = sha256_of(path)
+    # The hash identifies the model from now on; failing to compute it is recorded, not fatal.
+    files, problem, modified = None, None, None
+    try:
+        if path.exists():
+            digest, hashed_bytes = sha256_of(path)
+            modified = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat()
+        else:
+            path = HUB_DIR / listed["path"]
+            digest, hashed_bytes, files = catalog_sha256(path)
+    except (OSError, ValueError, KeyError) as exc:
+        digest, hashed_bytes, problem = None, None, f"{type(exc).__name__}: {exc}"[:300]
     return {
         "at": now(), "lms_version": re.sub(r"\x1b\[[0-9;]*m", "", lms("version")).strip()[-200:],
         "engine": selected_engine(), "loaded": loaded, "listed": listed,
-        "model_file": {"path": str(path), "sha256": digest, "hashed_bytes": hashed_bytes,
-                       "size_bytes": listed.get("sizeBytes"),
-                       "modified": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
+        "model_file": {"path": str(path), "sha256": digest, "hashed_bytes": hashed_bytes, "files": files,
+                       "hash_problem": problem, "size_bytes": listed.get("sizeBytes"),
+                       "hashed_bytes_match_listed": hashed_bytes == listed.get("sizeBytes"),
+                       "modified": modified,
                        "rc7_size_bytes": arm["rc7_size_bytes"],
                        "changed_since_rc7": listed.get("sizeBytes") != arm["rc7_size_bytes"]},
     }
