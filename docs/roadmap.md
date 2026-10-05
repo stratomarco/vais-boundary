@@ -24,8 +24,8 @@ record, kept as it was written.*
    per-model rates are one draw (LIM-075). Zero violations reproduced. `experiments/rc7-stability/`.
 3. **A stronger attacker against a frontier model.** Neither available attacker moved Claude
    Sonnet 5.5 (FIND-067, FIND-068), so enforcement on a frontier model is untested in effect.
-4. **One evidence index:** every study with its registration commit, result, bounds and the
-   location of its raw records.
+4. **One evidence index: done.** [`docs/evidence-index.md`](evidence-index.md), generated from the
+   research ledger and git history by `tools/evidence_index.py`.
 
 ## Next round: detection rules against equivalent variants
 

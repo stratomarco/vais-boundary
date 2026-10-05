@@ -179,6 +179,8 @@ See the [benchmark protocol](docs/v0.12-rc-benchmark.md), [completed RC7 report]
 
 ## Published bounded evidence
 
+Every study VAIS reports, with its registration commit, findings, bounds and raw-record location, is listed in the generated [evidence index](docs/evidence-index.md).
+
 The completed RC7 campaign, frozen by RC8 without relabeling its evidence, recorded:
 
 - 14 of 15 models completing the common full stage;
