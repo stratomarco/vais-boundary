@@ -19,8 +19,9 @@ record, kept as it was written.*
 1. **Cross-session flows: done** (FIND-075, DEC-070). Trust does not survive a store, but
    confidentiality and minted authority can; profiles can now declare their stores, and the
    gateway refuses to start while a declared store is unsafe. `experiments/cross-session/`.
-2. **Stability of the RC7 result.** A pre-registered rerun of a subset of the frozen panel, to
-   measure run-to-run variation before small cross-model differences are interpreted.
+2. **Stability of the RC7 result: done** (FIND-076). Exactly reproducible on a fixed inference
+   engine; across llama.cpp versions per-model rates moved by up to 11.7 points, so RC7's
+   per-model rates are one draw (LIM-075). Zero violations reproduced. `experiments/rc7-stability/`.
 3. **A stronger attacker against a frontier model.** Neither available attacker moved Claude
    Sonnet 5.5 (FIND-067, FIND-068), so enforcement on a frontier model is untested in effect.
 4. **One evidence index:** every study with its registration commit, result, bounds and the

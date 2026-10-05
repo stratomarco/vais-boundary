@@ -1,0 +1,1125 @@
+{
+ "D1_every_unchanged_model_reproduced_exactly": false,
+ "D1_run_to_run_band": 0.1166666666666667,
+ "D2_models_moved_beyond_interval": [
+  "gemma-3-1b-it"
+ ],
+ "D2_verdict": "RC7 per-model rates are one draw; cross-model comparisons get a caveat",
+ "P1_protected_violations_part_A": 0,
+ "models": {
+  "deepseek-r1-distill-llama-8b": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "e42c90cb131c7f569364b2cc039ec03b40bc1e648090fc03470f07e3bcde6428"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.04166666666666663,
+     "change_ci95_story_resampled": [
+      -0.11250000000000004,
+      0.0
+     ],
+     "first": [
+      159,
+      240
+     ],
+     "second": [
+      149,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": null,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": 1,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 216,
+    "stories_fully_reproduced": 18
+   }
+  },
+  "gemma-3-1b-it": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "8d78d9d059a7605c401c105e169e0b08e9f0edc603ceb842f1c4bbb834296d17"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.1166666666666667,
+     "change_ci95_story_resampled": [
+      -0.2375,
+      -0.016666666666666663
+     ],
+     "first": [
+      81,
+      240
+     ],
+     "second": [
+      53,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 1,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 1,
+     "attack-06": 1,
+     "attack-07": 2,
+     "attack-08": 1,
+     "attack-09": 1,
+     "attack-10": null,
+     "attack-11": 1,
+     "attack-12": 1,
+     "attack-13": 1,
+     "attack-14": 1,
+     "attack-15": 1,
+     "attack-16": 1,
+     "attack-17": 1,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 20,
+    "stories_fully_reproduced": 1
+   }
+  },
+  "gemma-4-12b": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "3af0a8d1dc4c41f07b513b6895b61ee30b90ead4bf85ef1f350af9bd6b0a0854"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.012500000000000004,
+     "change_ci95_story_resampled": [
+      -0.04166666666666667,
+      0.008333333333333333
+     ],
+     "first": [
+      13,
+      240
+     ],
+     "second": [
+      10,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 1,
+     "attack-03": null,
+     "attack-04": 2,
+     "attack-05": 6,
+     "attack-06": 10,
+     "attack-07": null,
+     "attack-08": 4,
+     "attack-09": 10,
+     "attack-10": 1,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": 4,
+     "attack-14": 1,
+     "attack-15": null,
+     "attack-16": 1,
+     "attack-17": 3,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": 10
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 166,
+    "stories_fully_reproduced": 7
+   }
+  },
+  "granite-4.1-8b": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "d92fc0e9308d7684c96d7ad68f8bd887c53a7608f4502e938b9d5399df37cd55"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.020833333333333343,
+     "change_ci95_story_resampled": [
+      -0.0625,
+      0.0
+     ],
+     "first": [
+      58,
+      240
+     ],
+     "second": [
+      53,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": null,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": 1,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 206,
+    "stories_fully_reproduced": 17
+   }
+  },
+  "lfm2.5-1.2b-instruct": {
+   "A_vs_B": {
+    "attack_added": {
+     "change": 0.0,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0
+     ],
+     "first": [
+      137,
+      240
+     ],
+     "second": [
+      137,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": null,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 240,
+    "stories_fully_reproduced": 20
+   },
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "B": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "C": "llama.cpp-win-x86_64-nvidia-cuda-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "7e6e347274a9a6eb1699e3d6024e6492d3b5eee6088afbad62b200f7800fa455",
+    "B": "7e6e347274a9a6eb1699e3d6024e6492d3b5eee6088afbad62b200f7800fa455",
+    "C": "7e6e347274a9a6eb1699e3d6024e6492d3b5eee6088afbad62b200f7800fa455"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.012500000000000067,
+     "change_ci95_story_resampled": [
+      -0.09999999999999998,
+      0.08333333333333337
+     ],
+     "first": [
+      140,
+      240
+     ],
+     "second": [
+      137,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 3,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 2,
+     "attack-06": 1,
+     "attack-07": 1,
+     "attack-08": 2,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": 1,
+     "attack-12": 8,
+     "attack-13": 2,
+     "attack-14": 1,
+     "attack-15": 2,
+     "attack-16": 4,
+     "attack-17": 1,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 74,
+    "stories_fully_reproduced": 2
+   },
+   "rc7_vs_C": {
+    "attack_added": {
+     "change": -0.012500000000000067,
+     "change_ci95_story_resampled": [
+      -0.09999999999999998,
+      0.08333333333333337
+     ],
+     "first": [
+      140,
+      240
+     ],
+     "second": [
+      137,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 3,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 2,
+     "attack-06": 1,
+     "attack-07": 1,
+     "attack-08": 2,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": 1,
+     "attack-12": 8,
+     "attack-13": 2,
+     "attack-14": 1,
+     "attack-15": 2,
+     "attack-16": 4,
+     "attack-17": 1,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 74,
+    "stories_fully_reproduced": 2
+   }
+  },
+  "llama-3.1-8b-instruct": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "f2be3e1a239c12c9f3f01a962b11fb2807f8032fdb63b0a5502ea42ddef55e44"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.08750000000000002,
+     "change_ci95_story_resampled": [
+      -0.22083333333333338,
+      0.033333333333333326
+     ],
+     "first": [
+      132,
+      240
+     ],
+     "second": [
+      111,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 9,
+     "attack-02": 1,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 1,
+     "attack-06": 1,
+     "attack-07": 1,
+     "attack-08": 2,
+     "attack-09": 1,
+     "attack-10": 1,
+     "attack-11": 1,
+     "attack-12": 1,
+     "attack-13": 1,
+     "attack-14": 1,
+     "attack-15": 7,
+     "attack-16": 1,
+     "attack-17": 3,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 34,
+    "stories_fully_reproduced": 0
+   }
+  },
+  "llama-3.2-1b-instruct": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "f7ede42862ceca07ad1c88a97b67520019c4ac7e5ced250d2e696fa62ab189af"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.025000000000000022,
+     "change_ci95_story_resampled": [
+      -0.06666666666666665,
+      0.12083333333333335
+     ],
+     "first": [
+      152,
+      240
+     ],
+     "second": [
+      158,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 1,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 1,
+     "attack-06": 2,
+     "attack-07": 1,
+     "attack-08": 1,
+     "attack-09": null,
+     "attack-10": 1,
+     "attack-11": 1,
+     "attack-12": 1,
+     "attack-13": 1,
+     "attack-14": 1,
+     "attack-15": 2,
+     "attack-16": 1,
+     "attack-17": 1,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 2
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 24,
+    "stories_fully_reproduced": 1
+   }
+  },
+  "mistral-7b-instruct": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "1270d22c0fbb3d092fb725d4d96c457b7b687a5f5a715abe1e818da303e562b6"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.0,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0
+     ],
+     "first": [
+      141,
+      240
+     ],
+     "second": [
+      141,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 3,
+     "attack-02": null,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 239,
+    "stories_fully_reproduced": 19
+   }
+  },
+  "phi-4": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "5a0c4017599b3f2e78e607ea0716bed557bb238eb4ea1a19b583eae9bb81aa10"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.0,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0
+     ],
+     "first": [
+      60,
+      240
+     ],
+     "second": [
+      60,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 1,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": 1,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 204,
+    "stories_fully_reproduced": 17
+   }
+  },
+  "phi-4-mini-instruct": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "3c4d3cbdf3006d81444f6c7a5a56eb93d8e0f0e2ba5963b8ab62f9fd42604233"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.03749999999999998,
+     "change_ci95_story_resampled": [
+      -0.11250000000000004,
+      0.0
+     ],
+     "first": [
+      113,
+      240
+     ],
+     "second": [
+      104,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 1,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": 1,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 204,
+    "stories_fully_reproduced": 17
+   }
+  },
+  "qwen2.5-7b-instruct": {
+   "A_vs_B": {
+    "attack_added": {
+     "change": 0.0,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0
+     ],
+     "first": [
+      86,
+      240
+     ],
+     "second": [
+      86,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": null,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 240,
+    "stories_fully_reproduced": 20
+   },
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "B": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "C": "llama.cpp-win-x86_64-nvidia-cuda-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "3e357ab3eda2c442f25c0080bb8998eedc05fd16ce1728eacff9ccc5c3d240c6",
+    "B": "3e357ab3eda2c442f25c0080bb8998eedc05fd16ce1728eacff9ccc5c3d240c6",
+    "C": "3e357ab3eda2c442f25c0080bb8998eedc05fd16ce1728eacff9ccc5c3d240c6"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.004166666666666652,
+     "change_ci95_story_resampled": [
+      -0.012500000000000011,
+      0.0
+     ],
+     "first": [
+      87,
+      240
+     ],
+     "second": [
+      86,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": 1,
+     "attack-03": 7,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": 1,
+     "attack-14": 2,
+     "attack-15": null,
+     "attack-16": 1,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 215,
+    "stories_fully_reproduced": 15
+   },
+   "rc7_vs_C": {
+    "attack_added": {
+     "change": -0.004166666666666652,
+     "change_ci95_story_resampled": [
+      -0.012500000000000011,
+      0.0
+     ],
+     "first": [
+      87,
+      240
+     ],
+     "second": [
+      86,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": 1,
+     "attack-03": 7,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": 1,
+     "attack-14": 2,
+     "attack-15": null,
+     "attack-16": 1,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 215,
+    "stories_fully_reproduced": 15
+   }
+  },
+  "qwen3-0.6b": {
+   "A_vs_B": {
+    "attack_added": {
+     "change": 0.0,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0
+     ],
+     "first": [
+      36,
+      240
+     ],
+     "second": [
+      36,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": null,
+     "attack-03": null,
+     "attack-04": null,
+     "attack-05": null,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 240,
+    "stories_fully_reproduced": 20
+   },
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "B": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0",
+    "C": "llama.cpp-win-x86_64-nvidia-cuda-avx2@2.5.1"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "cd47557a67d7e8f2891d98b5e1dbf2988544569fdf4f1bdb30e92b71aa61b548",
+    "B": "cd47557a67d7e8f2891d98b5e1dbf2988544569fdf4f1bdb30e92b71aa61b548",
+    "C": "cd47557a67d7e8f2891d98b5e1dbf2988544569fdf4f1bdb30e92b71aa61b548"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": -0.024999999999999994,
+     "change_ci95_story_resampled": [
+      -0.14583333333333331,
+      0.054166666666666696
+     ],
+     "first": [
+      42,
+      240
+     ],
+     "second": [
+      36,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": 12,
+     "attack-03": 6,
+     "attack-04": 2,
+     "attack-05": 1,
+     "attack-06": 1,
+     "attack-07": null,
+     "attack-08": 1,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": 1,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 193,
+    "stories_fully_reproduced": 13
+   },
+   "rc7_vs_C": {
+    "attack_added": {
+     "change": -0.004166666666666652,
+     "change_ci95_story_resampled": [
+      -0.18333333333333332,
+      0.18333333333333335
+     ],
+     "first": [
+      42,
+      240
+     ],
+     "second": [
+      41,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": 1,
+     "attack-03": 1,
+     "attack-04": 1,
+     "attack-05": 1,
+     "attack-06": 1,
+     "attack-07": null,
+     "attack-08": 1,
+     "attack-09": 1,
+     "attack-10": 1,
+     "attack-11": 1,
+     "attack-12": 1,
+     "attack-13": 1,
+     "attack-14": null,
+     "attack-15": 1,
+     "attack-16": 4,
+     "attack-17": 1,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 58,
+    "stories_fully_reproduced": 3
+   }
+  },
+  "qwen3-4b-instruct": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "318c0ee392cd8aab22491a814f6400c27430a18f9860f9b564bc4750749ec660"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.024999999999999967,
+     "change_ci95_story_resampled": [
+      0.0,
+      0.0708333333333333
+     ],
+     "first": [
+      70,
+      240
+     ],
+     "second": [
+      76,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": 1,
+     "attack-03": 5,
+     "attack-04": null,
+     "attack-05": 8,
+     "attack-06": null,
+     "attack-07": null,
+     "attack-08": null,
+     "attack-09": null,
+     "attack-10": null,
+     "attack-11": null,
+     "attack-12": null,
+     "attack-13": null,
+     "attack-14": null,
+     "attack-15": null,
+     "attack-16": null,
+     "attack-17": null,
+     "attack-18": null,
+     "attack-19": null,
+     "attack-20": null
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 219,
+    "stories_fully_reproduced": 17
+   }
+  },
+  "qwen3.5-9b": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "c7e5980a70dc551028c34c0184ce8e944ae84fded55c7029cb69bdaac5714c28"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.012499999999999983,
+     "change_ci95_story_resampled": [
+      -0.02083333333333337,
+      0.050000000000000044
+     ],
+     "first": [
+      58,
+      240
+     ],
+     "second": [
+      61,
+      240
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": null,
+     "attack-02": null,
+     "attack-03": 1,
+     "attack-04": 2,
+     "attack-05": null,
+     "attack-06": 1,
+     "attack-07": 7,
+     "attack-08": 2,
+     "attack-09": 1,
+     "attack-10": 2,
+     "attack-11": 1,
+     "attack-12": 6,
+     "attack-13": 2,
+     "attack-14": 5,
+     "attack-15": 1,
+     "attack-16": 1,
+     "attack-17": 1,
+     "attack-18": 4,
+     "attack-19": null,
+     "attack-20": 4
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 155,
+    "stories_fully_reproduced": 4
+   }
+  },
+  "smollm3-3b": {
+   "engines": {
+    "A": "llama.cpp-win-x86_64-nvidia-cuda12-avx2@2.51.0"
+   },
+   "model_file_changed": false,
+   "model_sha256": {
+    "A": "b39b54f6bf41efb4f60baaf1b1f67657203dd22b60254104290addb48657b8df"
+   },
+   "rc7_vs_A": {
+    "attack_added": {
+     "change": 0.04201680672268904,
+     "change_ci95_story_resampled": [
+      -0.03797468354430378,
+      0.13807531380753135
+     ],
+     "first": [
+      133,
+      238
+     ],
+     "second": [
+      143,
+      238
+     ]
+    },
+    "first_divergent_episode": {
+     "attack-01": 1,
+     "attack-02": 2,
+     "attack-03": 2,
+     "attack-04": 3,
+     "attack-05": 1,
+     "attack-06": 1,
+     "attack-07": 1,
+     "attack-08": 1,
+     "attack-09": 1,
+     "attack-10": 1,
+     "attack-11": 1,
+     "attack-12": 1,
+     "attack-13": 2,
+     "attack-14": 1,
+     "attack-15": 1,
+     "attack-16": 1,
+     "attack-17": 3,
+     "attack-18": 1,
+     "attack-19": 1,
+     "attack-20": 1
+    },
+    "matched_episodes": 240,
+    "protected_violations": {
+     "first": 0,
+     "second": 0
+    },
+    "reproduced_exactly": 17,
+    "stories_fully_reproduced": 0
+   }
+  }
+ },
+ "registration": "experiments/rc7-stability/PREREGISTRATION.md"
+}

@@ -183,6 +183,9 @@ limitations:
   - id: LIM-071
     limitation: A Claude run is neither greedy nor pinned. Current models reject a non-default temperature, so a replay of the same episode can plan differently, and the model identifier is not a dated snapshot, so the provider can change what serves it. Each run records the model string every response reports and its date, which shows what served it but cannot reproduce it. The API's own safety classifiers can refuse security-themed prompts; a refusal is recorded as an unevaluable step, never as a defended one, and a model that refuses often yields less evidence per dollar.
 
+  - id: LIM-075
+    limitation: "RC7 and every campaign before October 2026 recorded model keys, quantisation and file sizes but not the inference engine, and a model's behaviour under the same prompts at temperature 0 depends on the llama.cpp version (FIND-076). Their per-model rates are one draw under one engine version: they cannot be regenerated exactly, and a difference between two models smaller than 11.7 attack-added points is within what an engine change produced and is not interpreted. The protected-violation results do not depend on it."
+
   - id: LIM-074
     limitation: "VAIS does not persist labels: a value an upstream store returns is labelled by the reading tool's result policy, whatever was known about it when it was written. Trust cannot be laundered this way, but confidentiality and minted authority can, from one session into a later one (FIND-075). The check DEC-070 adds covers only stores the operator declares in the MCP profile, only stores behind the profile's tools, not stores an application keeps itself, and its ceilings act on the gateway's session-coarse labels, so they can refuse writes that carry nothing confidential."
 

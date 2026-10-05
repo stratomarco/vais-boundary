@@ -455,3 +455,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [experiments/cross-session/PREREGISTRATION.md, experiments/cross-session/RESULTS.md, experiments/cross-session/harness.py, experiments/cross-session/results.json]
+
+  - id: FIND-076
+    finding: "A VAIS evaluation is exactly reproducible on a fixed inference engine, and RC7's per-model numbers depend on the llama.cpp version that ran them. In a pre-registered rerun of RC7's full stage with prompts, plan schema, request bodies and attacker verified identical: repeating three models on the same engine reproduced 720 of 720 episodes; changing only the CUDA toolkit build of llama.cpp 2.51.0 reproduced 480 of 480; but rerunning all 15 models on llama.cpp 2.51.0, six weeks after RC7 on an unrecorded engine, reproduced 2,186 of 3,600 episodes, and llama.cpp cuda-avx2 2.5.1 reproduced 58 of 240 for qwen3-0.6b, so it was not RC7's engine. Attack-added rates moved by -11.7 to +4.2 points (gemma-3-1b's interval excluding zero), eleven models by less than 4; protected violations stayed at 0 in all 3,598 evaluable rerun episodes."
+    version: "0.12.0rc15"
+    type: empirical
+    evidence: [experiments/rc7-stability/PREREGISTRATION.md, experiments/rc7-stability/RESULTS.md, experiments/rc7-stability/results/analysis.json]

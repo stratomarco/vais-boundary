@@ -193,6 +193,8 @@ The 65.7% utility figure is an aggregate over attacked protected workflows and s
 
 These results are specific to the recorded models, quantizations, runtime, hardware, scenarios, and episode budgets. Zero observed violations in a finite campaign is not proof of universal security.
 
+A pre-registered rerun in October 2026 (FIND-076) reproduced the zero violations but not every per-model number. The pipeline is exactly reproducible on a fixed inference engine, while RC7's engine version was not recorded, and on today's llama.cpp the attack-added rates moved by up to 11.7 points. Read RC7's per-model rates as one draw under one engine version: a difference between two models of less than 11.7 points is not evidence that one is more susceptible (LIM-075).
+
 Reports:
 
 - [one-page browser summary](benchmarks/rc/report/rc7-full-evidence/executive-summary.html)
