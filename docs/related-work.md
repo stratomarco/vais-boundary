@@ -102,6 +102,10 @@ PHANTOM-B is Adam Shostack's STRIDE-analogous mnemonic for the LLM parts of a sy
 
 White paper: https://shostack.org/files/papers/PHANTOM-B_Whitepaper_Shostack.pdf
 
+## Production guardrail frameworks
+
+NeMo Guardrails, Guardrails AI, OpenAI Guardrails, LlamaFirewall, Llama Guard, Granite Guardian, Invariant Guardrails, Amazon Bedrock Guardrails and AgentCore Policy, Azure Prompt Shields, Google Model Armor and Lakera Guard are assessed in [`guardrail-frameworks.md`](guardrail-frameworks.md), from their documentation as of 2026-10-19. Most judge text probabilistically, which VAIS does not attempt and composes with. Deterministic checks on tool calls are now common; the nearest system to VAIS is AgentCore Policy, with deterministic, session-aware rules at a gateway. VAIS's distinctive contribution is enforcement on the provenance of each argument value, including values the model derived from what it read, with confidentiality flows and minted authority.
+
 ## VAIS hypothesis
 
 The empirical hypothesis remains:
