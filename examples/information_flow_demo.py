@@ -8,20 +8,20 @@ from pathlib import Path
 
 from vais import (
     AuditTrail,
-    BehavioralIntegrityGate,
     ConfidentialityLevel,
-    DeclarativeVerifiableReward,
     PlannedAction,
     ProtectedExecutor,
     ReferenceMonitor,
     SandboxExecutor,
-    SecurityEvaluationHarness,
     TaskContract,
     TrustedValue,
     derive_value,
     load_invariants,
     load_policy,
 )
+from vais.behavioral_gate import BehavioralIntegrityGate
+from vais.harness import SecurityEvaluationHarness
+from vais.reward import DeclarativeVerifiableReward
 
 ROOT = Path(__file__).resolve().parents[1]
 policy = load_policy(ROOT / "policies" / "default.yaml")

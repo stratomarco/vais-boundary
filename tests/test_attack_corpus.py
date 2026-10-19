@@ -1,6 +1,6 @@
 import pytest
 
-from vais import CorpusAttacker, load_attack_corpus
+from vais.adaptive import CorpusAttacker, load_attack_corpus
 from vais.scenarios import default_scenarios
 
 

@@ -22,9 +22,7 @@ from mcp.client.stdio import stdio_client
 from vais import (
     ArgumentPolicy,
     ConfidentialityLevel,
-    LMStudioTarget,
     MCPProtectedClient,
-    OpenAICompatibleConfig,
     PlannedAction,
     Policy,
     ReferenceMonitor,
@@ -33,6 +31,7 @@ from vais import (
     TrustedValue,
     load_mcp_profile,
 )
+from vais.openai_compatible import LMStudioTarget, OpenAICompatibleConfig
 from vais.scenarios import email_recipient_hijack_scenario
 
 

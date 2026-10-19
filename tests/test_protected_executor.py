@@ -7,14 +7,13 @@ from vais import (
     Provenance,
     ReferenceMonitor,
     SandboxExecutor,
-    SecurityInvariant,
     TaskContract,
     TrustLevel,
     TrustedValue,
     Value,
-    VerifiableReward,
     load_policy,
 )
+from vais.reward import SecurityInvariant, VerifiableReward
 
 ROOT = Path(__file__).resolve().parents[1]
 

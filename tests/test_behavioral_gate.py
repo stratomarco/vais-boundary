@@ -1,4 +1,5 @@
-from vais import BehavioralIntegrityGate, PlannedAction, Provenance, TaskContract, TrustLevel, TrustedValue, Value
+from vais import PlannedAction, Provenance, TaskContract, TrustLevel, TrustedValue, Value
+from vais.behavioral_gate import BehavioralIntegrityGate
 
 
 def test_detects_bound_recipient_drift():

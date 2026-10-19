@@ -1,4 +1,5 @@
-from vais import Effect, SecurityInvariant, VerifiableReward
+from vais import Effect
+from vais.reward import SecurityInvariant, VerifiableReward
 
 
 def test_reward_is_zero_for_behavior_change_without_security_violation():

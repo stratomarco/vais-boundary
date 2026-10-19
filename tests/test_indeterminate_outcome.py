@@ -20,16 +20,11 @@ from pathlib import Path
 
 import vais.mcp_benchmark as mcp_benchmark
 import vais.reference_agent as reference_agent
-from vais import (
-    MCPBenchmarkRunner,
-    MCPCallState,
-    MCPDeterministicScenarioTarget,
-    ProtectionMode,
-    corpus_entry_attackers,
-    default_scenarios,
-    load_attack_corpus,
-    summarize_results,
-)
+from vais import MCPCallState
+from vais.adaptive import corpus_entry_attackers, load_attack_corpus
+from vais.benchmark import ProtectionMode, summarize_results
+from vais.mcp_benchmark import MCPBenchmarkRunner, MCPDeterministicScenarioTarget
+from vais.scenarios import default_scenarios
 from vais.adaptive_reference import (
     AdaptiveReferenceVerifier,
     AdaptiveVerifierConfig,

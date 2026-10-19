@@ -1,6 +1,4 @@
 from vais import (
-    AttackObjectiveSpec,
-    AttackObjectiveType,
     PlannedAction,
     Provenance,
     TaskContract,
@@ -9,6 +7,7 @@ from vais import (
     Value,
     action_fingerprint,
 )
+from vais.objectives import AttackObjectiveSpec, AttackObjectiveType
 from vais.scenarios import default_scenarios
 
 

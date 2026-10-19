@@ -1,22 +1,21 @@
 from pathlib import Path
 
 from vais import (
-    BehavioralIntegrityGate,
     DecisionType,
     PlannedAction,
     ProtectedExecutor,
     Provenance,
     ReferenceMonitor,
     SandboxExecutor,
-    SecurityEvaluationHarness,
-    SecurityInvariant,
     TaskContract,
     TrustLevel,
     TrustedValue,
     Value,
-    VerifiableReward,
     load_policy,
 )
+from vais.behavioral_gate import BehavioralIntegrityGate
+from vais.harness import SecurityEvaluationHarness
+from vais.reward import SecurityInvariant, VerifiableReward
 
 ROOT = Path(__file__).resolve().parents[1]
 

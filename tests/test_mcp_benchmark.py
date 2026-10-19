@@ -3,18 +3,16 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from vais import (
+from vais import TrustLevel
+from vais.adaptive import corpus_entry_attackers, load_attack_corpus
+from vais.benchmark import ProtectionMode, summarize_results
+from vais.mcp_benchmark import (
     MCPBenchmarkRunner,
     MCPDeterministicScenarioTarget,
-    ProtectionMode,
-    TrustLevel,
-    corpus_entry_attackers,
     default_mcp_benchmark_profile,
-    default_scenarios,
-    load_attack_corpus,
     mcp_ingress_value,
-    summarize_results,
 )
+from vais.scenarios import default_scenarios
 
 
 def _bundled_corpus():

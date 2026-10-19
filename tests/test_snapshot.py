@@ -1,14 +1,9 @@
 import json
 from pathlib import Path
 
-from vais import (
-    BenchmarkRunner,
-    corpus_entry_attackers,
-    DeterministicScenarioTarget,
-    default_scenarios,
-    load_attack_corpus,
-    summarize_results,
-)
+from vais.adaptive import corpus_entry_attackers, DeterministicScenarioTarget, load_attack_corpus
+from vais.benchmark import BenchmarkRunner, summarize_results
+from vais.scenarios import default_scenarios
 
 ROOT = Path(__file__).resolve().parents[1]
 

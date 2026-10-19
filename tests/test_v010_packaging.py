@@ -1,7 +1,8 @@
 from pathlib import Path
 import tomllib
 
-from vais import REFERENCE_BASELINE_VERSION, __version__
+from vais import __version__
+from vais.adaptive_reference import REFERENCE_BASELINE_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 

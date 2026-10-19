@@ -4,7 +4,6 @@ import pytest
 
 from vais import (
     ConfidentialityLevel,
-    DeclarativeVerifiableReward,
     Effect,
     PolicyValidationError,
     Provenance,
@@ -13,6 +12,7 @@ from vais import (
     TrustedValue,
     load_invariants,
 )
+from vais.reward import DeclarativeVerifiableReward
 
 ROOT = Path(__file__).resolve().parents[1]
 
