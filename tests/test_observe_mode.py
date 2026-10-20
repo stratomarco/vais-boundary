@@ -107,6 +107,18 @@ def test_an_approval_is_neither_requested_nor_consumed(tmp_path):
     assert not (tmp_path / "pending").exists()
 
 
+def test_observing_leaves_an_operators_grant_for_enforcement(tmp_path):
+    from vais.gateway import label_agent_action
+    gateway, upstream, clock = make(tmp_path, observe_until=NOW + DAY)
+    contract = gateway.registry.lookup(TOKEN)
+    arguments = {"payee": "vendor-9", "amount": 500}
+    gateway.approval_store.grant(label_agent_action("mcp:ops:pay", arguments, contract, ConfidentialityLevel.PUBLIC), contract)
+    call(gateway, "ops.pay", arguments)
+    assert events(gateway, "observe_only_decision")[0]["decision"] == "would_require_approval"
+    clock.now = NOW + DAY  # enforcing now: the grant is still there to use
+    assert call(gateway, "ops.pay", arguments).kind is GatewayOutcomeKind.ALLOWED
+
+
 def test_only_calls_enforcement_would_allow_count_against_limits(tmp_path):
     gateway, upstream, _ = make(tmp_path, observe_until=NOW + DAY)
     bound = {"recipient": "ir-team@acme.test", "body": "x"}

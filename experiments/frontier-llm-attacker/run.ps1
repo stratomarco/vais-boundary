@@ -25,7 +25,7 @@ function Load-Attacker {
 function Run-Step([string]$name, [string[]]$scenarios, [int]$episodes) {
     $scenarioArgs = @()
     foreach ($s in $scenarios) { $scenarioArgs += @("--scenario", $s) }
-    & $python -m vais adaptive-reference-anthropic `
+    & $python -m vais lab adaptive-reference-anthropic `
         --target-model claude-sonnet-5-5 --target-thinking between_tools --target-reasoning-mode off `
         --target-max-tokens 16000 --target-max-retries 8 --timeout 600 `
         --attacker-model frontier-attacker --attacker-base-url http://localhost:1234/v1 `

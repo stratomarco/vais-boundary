@@ -42,12 +42,12 @@ def test_version_flags(capsys):
     with raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert "vais 0.12.0rc15" in capsys.readouterr().out
+    assert "vais 1.0.0" in capsys.readouterr().out
 
 
 def test_version_subcommand_remains_compatible(capsys):
     assert main(["version"]) == 0
-    assert capsys.readouterr().out.strip() == "0.12.0rc15"
+    assert capsys.readouterr().out.strip() == "1.0.0"
 
 
 def test_the_top_level_is_the_boundary_and_lab_holds_the_tooling(capsys):
@@ -60,11 +60,10 @@ def test_the_top_level_is_the_boundary_and_lab_holds_the_tooling(capsys):
     assert _lab_commands() and not (_lab_commands() & CORE_COMMANDS)
 
 
-def test_the_old_tooling_form_still_runs_but_warns(capsys):
-    assert main(["mcp-demo"]) == 0
+def test_the_pre_1_0_tooling_form_is_refused_with_a_pointer(capsys):
+    assert main(["mcp-demo"]) == 2
     captured = capsys.readouterr()
-    assert "VAIS PROTECTED" in captured.out
-    assert "`vais lab mcp-demo`" in captured.err and "removed in 1.0" in captured.err
+    assert captured.out == "" and "`vais lab mcp-demo`" in captured.err
 
 
 def test_boundary_commands_do_not_warn(capsys):

@@ -113,7 +113,7 @@ def stage_command(study: dict, arm: dict, stage: str, out: Path) -> list[str]:
     runtime, attacker, target = study["runtime"], study["attacker"], study["target"]
     config = study[stage]
     argv = [
-        sys.executable, "-m", "vais", "adaptive-reference-lmstudio",
+        sys.executable, "-m", "vais", "lab", "adaptive-reference-lmstudio",
         "--application", study["application"],
         "--target-model", arm["identifier"],
         "--target-reasoning-mode", arm["reasoning"],

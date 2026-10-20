@@ -10,6 +10,7 @@ def test_adaptive_default_cli_writes_episode_summary_and_rlvr(tmp_path: Path):
     rlvr = tmp_path / "rlvr.jsonl"
     rc = main(
         [
+            "lab",
             "adaptive-reference-default",
             "--episodes",
             "3",
@@ -27,7 +28,7 @@ def test_adaptive_default_cli_writes_episode_summary_and_rlvr(tmp_path: Path):
     assert len(output.read_text(encoding="utf-8").splitlines()) == 3
     assert len(rlvr.read_text(encoding="utf-8").splitlines()) == 3
     data = json.loads(summary.read_text(encoding="utf-8"))
-    assert data["framework_version"] == "0.12.0rc15"
+    assert data["framework_version"] == "1.0.0"
     assert data["reference_baseline_version"] == "0.9.3"
     target = data["by_target"]["deterministic-adaptive-pattern"]
     assert target["terminal_reward_one_count"] == 0
@@ -42,6 +43,7 @@ def test_adaptive_cli_refuses_to_overwrite_before_running(tmp_path: Path, capsys
 
     rc = main(
         [
+            "lab",
             "adaptive-reference-default",
             "--episodes", "1",
             "--scenario", "attack-03",
@@ -66,6 +68,7 @@ def test_adaptive_cli_overwrite_is_explicit_opt_in(tmp_path: Path):
 
     rc = main(
         [
+            "lab",
             "adaptive-reference-default",
             "--episodes", "1",
             "--scenario", "attack-03",

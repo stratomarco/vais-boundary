@@ -1,54 +1,45 @@
 # Roadmap
 
-*Current state, updated 2026-10-03. Everything below "Completed in v0.11.0" is the earlier
+*Current state, updated 2026-10-20. Everything below "Completed in v0.11.0" is the earlier
 record, kept as it was written.*
 
 ## Where the project is
 
-- **Released:** v0.12.0rc15. On `main` since then, unreleased:
-  - caps on an amount for each allowed value (DEC-069);
-  - the gateway replay for the accounts-payable application (FIND-073);
-  - the Tier-A guardrail cost study (FIND-074).
-- **Releases are held** until there is substantially more to ship. The next may be 0.13 rather
-  than another release candidate.
-- **Every study is listed with its result in `research/knowledge/findings.yaml`.** The
-  pre-registered ones live under `experiments/`.
+- **Released: v1.0.0.** 1.0 is the boundary: the reference monitor, contracts, provenance labels,
+  approvals, session rules, declared stores, audit, revocation, and the MCP gateway with mints.
+  Its public interface, command line and file formats are fixed for 1.x ([`formats.md`](formats.md)).
+  The benchmark and research tooling that produced the evidence stays in the repository, under
+  `vais lab`.
+- **What 1.0 does not claim** is in [`threat-model.md`](threat-model.md): no independent security
+  review, state coordinated on one machine, enforcement under a frontier model untested in
+  effect, evidence bounded to what was recorded.
+- **Every study** is listed in [`evidence-index.md`](evidence-index.md) with its registration,
+  findings and bounds.
 
-## This round: completing the VAIS evidence
+## After 1.0
 
-1. **Cross-session flows: done** (FIND-075, DEC-070). Trust does not survive a store, but
-   confidentiality and minted authority can; profiles can now declare their stores, and the
-   gateway refuses to start while a declared store is unsafe. `experiments/cross-session/`.
-2. **Stability of the RC7 result: done** (FIND-076). Exactly reproducible on a fixed inference
-   engine; across llama.cpp versions per-model rates moved by up to 11.7 points, so RC7's
-   per-model rates are one draw (LIM-075). Zero violations reproduced. `experiments/rc7-stability/`.
+1. **What the nearest system can express.** Amazon Bedrock AgentCore Policy is the closest system
+   to VAIS ([`guardrail-frameworks.md`](guardrail-frameworks.md)). Its policy language, Dogwood,
+   is open source, so whether VAIS's recorded attack scenarios can be written as Dogwood policies
+   can be measured locally. Pre-registered.
+2. **One complete reference workflow, then a pilot.** Take one consequential workflow end to end:
+   trusted authorization, a model-proposed action, enforcement before the effect, real tool
+   execution and independent verification against the backend, with an evidence packet another
+   developer can reproduce, and a handoff for a scoped external pilot.
 3. **A stronger attacker against a frontier model.** Neither available attacker moved Claude
    Sonnet 5.5 (FIND-067, FIND-068), so enforcement on a frontier model is untested in effect.
-4. **One evidence index: done.** [`docs/evidence-index.md`](evidence-index.md), generated from the
-   research ledger and git history by `tools/evidence_index.py`.
+4. **Detection rules against equivalent variants.** Operating-system telemetry and community Sigma
+   rules for four ATT&CK techniques, in a separate repository; its fidelity gate is
+   pre-registered. Whether and when it resumes is open.
 
-## Next round: detection rules against equivalent variants
-
-Operating-system telemetry and community Sigma rules, for four ATT&CK techniques, in a separate
-repository for detection engineers. Its telemetry fidelity gate is pre-registered. Real execution
-of every variant is preferred over synthesised telemetry.
-
-## Open bounded work, after these rounds
+## Open bounded work, in 1.x when needed
 
 - externally anchored, append-only audit storage (LIM-037)
 - approval and session state coordinated across machines (LIM-057)
 - a framework adapter with a dry-run mode
 - a general declassification adapter that recovers the utility conservative lineage costs (LIM-023)
 - application-specific MCP effect-reconciliation adapters
-- broader parser differential testing and cross-runtime canonicalization vectors
 - an independent security review, and independent reproduction on a separately managed machine
-- structured-output runaway behaviour, without weakening target-failure gates
-- `reasoning_effort=none` verified across a model panel, keeping the observed-reasoning fail gate
-- cryptographic model-file identity when the runtime exposes a portable digest
-
-Done since this list was first written: CI across Python 3.11 to 3.14 with and without the `mcp`
-extra; the RC7 evidence report, published with the releases; the private remote backup; and
-multi-process approval coordination on one machine (0.12.0rc13).
 
 ## Completed in v0.11.0
 

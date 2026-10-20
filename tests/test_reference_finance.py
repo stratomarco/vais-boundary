@@ -310,7 +310,7 @@ def test_a_summary_refuses_to_mix_applications():
 def _cli(tmp_path, *args):
     from vais.cli import main
 
-    return main([*args, "--output", str(tmp_path / "out.jsonl"), "--summary", str(tmp_path / "summary.json")])
+    return main(["lab", *args, "--output", str(tmp_path / "out.jsonl"), "--summary", str(tmp_path / "summary.json")])
 
 
 def test_the_cli_runs_the_application_deterministically(tmp_path):
@@ -326,7 +326,7 @@ def test_adaptive_records_name_the_application(tmp_path):
     from vais.cli import main
 
     code = main([
-        "adaptive-reference-default", "--application", "accounts-payable", "--scenario", "attack-01", "--episodes", "2",
+        "lab", "adaptive-reference-default", "--application", "accounts-payable", "--scenario", "attack-01", "--episodes", "2",
         "--output", str(tmp_path / "a.jsonl"), "--summary", str(tmp_path / "s.json"), "--rlvr-output", str(tmp_path / "r.jsonl"),
     ])
     assert code == 0

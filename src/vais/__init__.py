@@ -7,12 +7,9 @@ holds it and checks that no core module imports the benchmark and research tooli
 
 That tooling (reference agents, attackers, scenarios, campaign runners, rewards) stays in this
 package, in its own modules, for the evidence it produced: import it from those modules, for
-example ``from vais.benchmark import BenchmarkRunner``. Its names are still reachable from
-``vais`` itself, with a ``DeprecationWarning``, until 1.0.
+example ``from vais.benchmark import BenchmarkRunner``. Since 1.0 they are not reachable from
+``vais`` itself.
 """
-
-from importlib import import_module
-import warnings
 
 from ._version import __version__
 from .approvals import ApprovalGrant, ApprovalStore
@@ -141,52 +138,3 @@ __all__ = [
     "label_agent_action",
     "load_gateway_contract",
 ]
-
-# Benchmark and research names that ``vais`` used to publish, and the module that holds each.
-_MOVED = {
-    **dict.fromkeys((
-        "AttackCandidate", "AttackObservation", "Attacker", "CorpusAttacker", "CorpusEntryAttacker",
-        "DeterministicScenarioTarget", "ReplayAttacker", "ScenarioStaticAttacker", "TargetAgent",
-        "corpus_entry_attackers", "load_attack_corpus"), "adaptive"),
-    **dict.fromkeys((
-        "AdaptiveCandidate", "AdaptiveCampaignResult", "AdaptiveEpisodeResult", "AdaptiveObservation",
-        "AdaptiveReferenceVerifier", "AdaptiveVerifierConfig", "FixedMutationSearchAttacker",
-        "LMStudioAdaptiveAttacker", "MutationSearchAttacker", "PatternAdaptiveReferenceTarget",
-        "REFERENCE_BASELINE_VERSION", "TERMINAL_REWARD_DEFINITION", "adaptive_configuration_hash",
-        "independent_adaptive_violations", "selected_attack_workflows", "summarize_adaptive_campaigns",
-        "terminal_security_reward", "violated_security_invariants", "write_adaptive_results_jsonl",
-        "write_rlvr_trajectories"), "adaptive_reference"),
-    **dict.fromkeys(("BehavioralIntegrityGate", "DriftFinding"), "behavioral_gate"),
-    **dict.fromkeys((
-        "BenchmarkRunner", "EpisodeResult", "ProtectionMode", "stable_hash", "summarize_results",
-        "write_results_jsonl"), "benchmark"),
-    **dict.fromkeys(("EvaluationResult", "SecurityEvaluationHarness"), "harness"),
-    **dict.fromkeys((
-        "MCPBenchmarkRunner", "MCPDeterministicScenarioTarget", "RecordingMCPSession",
-        "clean_mcp_content", "default_mcp_benchmark_profile", "mcp_ingress_value"), "mcp_benchmark"),
-    **dict.fromkeys(("AttackObjectiveFinding", "AttackObjectiveSpec", "AttackObjectiveType"), "objectives"),
-    **dict.fromkeys(("LMStudioTarget", "OpenAICompatibleConfig", "OpenAICompatibleTarget"), "openai_compatible"),
-    **dict.fromkeys((
-        "DeterministicReferenceTarget", "ReferenceAgentRunner", "ReferenceMode", "ReferencePrincipal",
-        "ReferenceState", "ReferenceTraceStep", "ReferenceWorkflow", "ReferenceWorkflowResult",
-        "SelectiveReferenceTarget", "TraceInvariantResult", "attack_workflows", "clean_workflows",
-        "reference_workflows", "summarize_reference_results", "write_reference_results_jsonl"),
-        "reference_agent"),
-    "ReferenceAgentLMStudioTarget": "reference_agent_lmstudio",
-    **dict.fromkeys(("DeclarativeVerifiableReward", "SecurityInvariant", "VerifiableReward"), "reward"),
-    **dict.fromkeys(("ExpectedEffect", "Scenario", "default_scenarios"), "scenarios"),
-    **dict.fromkeys(("GenerationMetadata", "TargetRunResult", "TargetStatus"), "targeting"),
-}
-
-
-def __getattr__(name: str):
-    module = _MOVED.get(name)
-    if module is None:
-        raise AttributeError(f"module 'vais' has no attribute {name!r}")
-    warnings.warn(
-        f"vais.{name} is benchmark or research tooling, not part of the boundary's public interface; "
-        f"import it from vais.{module}. The top-level name will be removed in 1.0.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return getattr(import_module(f"{__name__}.{module}"), name)

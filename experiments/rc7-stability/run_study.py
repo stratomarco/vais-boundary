@@ -160,7 +160,7 @@ def environment(study: dict, arm: dict) -> dict:
 def command(study: dict, arm: dict, out: Path) -> list[str]:
     """RC7's full-stage command (benchmarks/rc/full-plan.ps1), with this study's output paths."""
     r = study["runtime"]
-    argv = [sys.executable, "-m", "vais", "adaptive-reference-lmstudio", "--target-model", arm["lmstudio_model"],
+    argv = [sys.executable, "-m", "vais", "lab", "adaptive-reference-lmstudio", "--target-model", arm["lmstudio_model"],
             "--target-reasoning-mode", arm["reasoning"]]
     if arm["disable_thinking"]:
         argv.append("--target-disable-thinking")

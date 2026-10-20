@@ -279,7 +279,7 @@ def _cli(tmp_path, *extra):
     from vais.cli import main
 
     return main([
-        "adaptive-reference-anthropic", "--scenario", "attack-01", "--episodes", "1",
+        "lab", "adaptive-reference-anthropic", "--scenario", "attack-01", "--episodes", "1",
         "--output", str(tmp_path / "out.jsonl"), "--summary", str(tmp_path / "summary.json"),
         "--rlvr-output", str(tmp_path / "rlvr.jsonl"), *extra,
     ])

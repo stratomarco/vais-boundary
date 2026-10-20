@@ -92,11 +92,47 @@ def test_importing_vais_loads_no_tooling():
     assert loaded <= CORE, sorted(loaded - CORE)
 
 
-@pytest.mark.parametrize("name,module", sorted(vais._MOVED.items()))
-def test_moved_names_still_resolve_with_a_deprecation_warning(name, module):
-    with pytest.warns(DeprecationWarning, match=rf"vais\.{module}"):
-        obj = getattr(vais, name)
-    assert obj is getattr(import_module(f"vais.{module}"), name)
+# The benchmark and research names `vais` published before 1.0, and the module that holds each.
+MOVED = {
+    **dict.fromkeys((
+        "AttackCandidate", "AttackObservation", "Attacker", "CorpusAttacker", "CorpusEntryAttacker",
+        "DeterministicScenarioTarget", "ReplayAttacker", "ScenarioStaticAttacker", "TargetAgent",
+        "corpus_entry_attackers", "load_attack_corpus"), "adaptive"),
+    **dict.fromkeys((
+        "AdaptiveCandidate", "AdaptiveCampaignResult", "AdaptiveEpisodeResult", "AdaptiveObservation",
+        "AdaptiveReferenceVerifier", "AdaptiveVerifierConfig", "FixedMutationSearchAttacker",
+        "LMStudioAdaptiveAttacker", "MutationSearchAttacker", "PatternAdaptiveReferenceTarget",
+        "REFERENCE_BASELINE_VERSION", "TERMINAL_REWARD_DEFINITION", "adaptive_configuration_hash",
+        "independent_adaptive_violations", "selected_attack_workflows", "summarize_adaptive_campaigns",
+        "terminal_security_reward", "violated_security_invariants", "write_adaptive_results_jsonl",
+        "write_rlvr_trajectories"), "adaptive_reference"),
+    **dict.fromkeys(("BehavioralIntegrityGate", "DriftFinding"), "behavioral_gate"),
+    **dict.fromkeys((
+        "BenchmarkRunner", "EpisodeResult", "ProtectionMode", "stable_hash", "summarize_results",
+        "write_results_jsonl"), "benchmark"),
+    **dict.fromkeys(("EvaluationResult", "SecurityEvaluationHarness"), "harness"),
+    **dict.fromkeys((
+        "MCPBenchmarkRunner", "MCPDeterministicScenarioTarget", "RecordingMCPSession",
+        "clean_mcp_content", "default_mcp_benchmark_profile", "mcp_ingress_value"), "mcp_benchmark"),
+    **dict.fromkeys(("AttackObjectiveFinding", "AttackObjectiveSpec", "AttackObjectiveType"), "objectives"),
+    **dict.fromkeys(("LMStudioTarget", "OpenAICompatibleConfig", "OpenAICompatibleTarget"), "openai_compatible"),
+    **dict.fromkeys((
+        "DeterministicReferenceTarget", "ReferenceAgentRunner", "ReferenceMode", "ReferencePrincipal",
+        "ReferenceState", "ReferenceTraceStep", "ReferenceWorkflow", "ReferenceWorkflowResult",
+        "SelectiveReferenceTarget", "TraceInvariantResult", "attack_workflows", "clean_workflows",
+        "reference_workflows", "summarize_reference_results", "write_reference_results_jsonl"),
+        "reference_agent"),
+    "ReferenceAgentLMStudioTarget": "reference_agent_lmstudio",
+    **dict.fromkeys(("DeclarativeVerifiableReward", "SecurityInvariant", "VerifiableReward"), "reward"),
+    **dict.fromkeys(("ExpectedEffect", "Scenario", "default_scenarios"), "scenarios"),
+    **dict.fromkeys(("GenerationMetadata", "TargetRunResult", "TargetStatus"), "targeting"),
+}
+
+
+@pytest.mark.parametrize("name,module", sorted(MOVED.items()))
+def test_tooling_names_live_in_their_modules_and_not_at_the_top_level(name, module):
+    assert hasattr(import_module(f"vais.{module}"), name)
+    assert not hasattr(vais, name)
     assert name not in PUBLIC and module not in CORE
 
 

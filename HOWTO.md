@@ -60,7 +60,7 @@ Create and activate a virtual environment, then install the exact wheel file:
 
 ```powershell
 python -m pip install --force-reinstall `
-  ".\dist\rc15-final\verifiable_ai_security-0.12.0rc15-py3-none-any.whl"
+  ".\dist\1.0.0-final\vais_boundary-1.0.0-py3-none-any.whl"
 ```
 
 Release candidates up to 0.12.0rc15 are named `verifiable_ai_security-*`; from 1.0 the wheel is `vais_boundary-*`. Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.

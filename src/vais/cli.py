@@ -612,9 +612,9 @@ def _lab_commands() -> frozenset[str]:
 def main(argv: Sequence[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] in _lab_commands():
-        print(f"vais: `vais {argv[0]}` is deprecated; use `vais lab {argv[0]}`. "
-              "The top-level form will be removed in 1.0.", file=sys.stderr)
-        argv = ["lab", *argv]
+        # Removed in 1.0; say where the command went rather than "invalid choice".
+        print(f"vais: `{argv[0]}` is benchmark or research tooling; run `vais lab {argv[0]}`.", file=sys.stderr)
+        return 2
     args = _parser().parse_args(argv)
 
     if args.command == "validate-policy":

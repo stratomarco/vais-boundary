@@ -497,6 +497,7 @@ def _stage_argv(
         sys.executable,
         "-m",
         "vais",
+        "lab",
         "adaptive-reference-lmstudio",
         "--target-model",
         model["lmstudio_model"],
