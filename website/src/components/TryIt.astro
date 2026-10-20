@@ -1,6 +1,6 @@
 ---
 // Try it in two minutes. The commands are the ones timed on a fresh clone (about ten
-// seconds end to end on the maintainer's machine); the output is `vais mcp-demo`'s,
+// seconds end to end on the maintainer's machine); the output is `vais lab mcp-demo`'s,
 // identical on 0.12.0rc12 and rc13.
 const repo = 'https://github.com/stratomarco/vais-boundary';
 const platforms = [
@@ -13,7 +13,7 @@ const platforms = [
       'cd vais-boundary',
       'py -3 -m venv .venv',
       '.\\.venv\\Scripts\\python.exe -m pip install -e .',
-      '.\\.venv\\Scripts\\vais.exe mcp-demo',
+      '.\\.venv\\Scripts\\vais.exe lab mcp-demo',
     ],
   },
   {
@@ -25,7 +25,7 @@ const platforms = [
       'cd vais-boundary',
       'python3 -m venv .venv',
       '.venv/bin/python -m pip install -e .',
-      '.venv/bin/vais mcp-demo',
+      '.venv/bin/vais lab mcp-demo',
     ],
   },
 ];
@@ -74,12 +74,12 @@ Security property: the MCP data can influence the model, but it cannot grant its
       <ol class="next">
         <li><b>Clone</b> the repository.</li>
         <li><b>Install</b> it into a virtual environment.</li>
-        <li><b>Run</b> <code>vais mcp-demo</code> and compare the two runs.</li>
+        <li><b>Run</b> <code>vais lab mcp-demo</code> and compare the two runs.</li>
       </ol>
     </div>
 
     <figure class="terminal">
-      <figcaption>Output of <code>vais mcp-demo</code></figcaption>
+      <figcaption>Output of <code>vais lab mcp-demo</code></figcaption>
       <pre>{output}</pre>
     </figure>
   </div>

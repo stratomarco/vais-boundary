@@ -104,7 +104,7 @@ def build_campaign_plan(manifest: dict[str, Any], stage: str) -> str:
         stem = f"{model['id']}-{stage}"
         reasoning_mode = str(model.get("reasoning_mode", "off"))
         reasoning_control = str(model.get("reasoning_control", "adapter_request"))
-        parts = ["vais adaptive-reference-lmstudio `",
+        parts = ["vais lab adaptive-reference-lmstudio `",
                  f"  --target-model \"{model['lmstudio_model']}\" `",
                  f"  --target-reasoning-mode {reasoning_mode} `"]
         if reasoning_control == "adapter_request":

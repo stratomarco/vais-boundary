@@ -23,7 +23,7 @@ jobs:
       - run: python -m pytest
       - run: python -m vais validate-policy policies/default.yaml
       - run: python -m vais validate-invariants invariants/default.yaml
-      - run: python -m vais benchmark-default --mode protected --fail-on-protected-violation --fail-on-clean-utility-loss --fail-on-target-failure --output results/ci-protected.jsonl
+      - run: python -m vais lab benchmark-default --mode protected --fail-on-protected-violation --fail-on-clean-utility-loss --fail-on-target-failure --output results/ci-protected.jsonl
 
   # The gateway's MCP transport tests need the mcp extra and are skipped without it, so the
   # matrix above never ran them. This job installs it and fails if they are skipped anyway.

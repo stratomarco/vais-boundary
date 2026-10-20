@@ -4,6 +4,7 @@ import argparse
 from collections.abc import Sequence
 import json
 from pathlib import Path
+import sys
 
 from .invariants import load_invariants
 from .policy import load_policy
@@ -49,11 +50,17 @@ def _add_common_benchmark_args(parser: argparse.ArgumentParser, *, default_outpu
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="vais",
-        description="VAIS deterministic enforcement and adaptive security verification tools.",
+        description="VAIS Boundary: a deterministic reference monitor and gateway for the actions an AI agent proposes.",
     )
     from ._version import __version__
     parser.add_argument("--version", "-V", action="version", version=f"vais {__version__}")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+    lab = subparsers.add_parser(
+        "lab",
+        help="benchmark and research tooling: campaigns, reports, the research ledger (not part of the boundary)",
+        description="Benchmark and research tooling that produced VAIS's evidence. Not part of the boundary's public interface.",
+    )
+    lab_commands = lab.add_subparsers(dest="command", required=True, metavar="LAB_COMMAND")
 
     policy = subparsers.add_parser("validate-policy", help="strictly validate a policy YAML file")
     policy.add_argument("path")
@@ -63,13 +70,13 @@ def _parser() -> argparse.ArgumentParser:
     )
     invariants.add_argument("path")
 
-    benchmark = subparsers.add_parser(
+    benchmark = lab_commands.add_parser(
         "benchmark-default",
         help="run the deterministic five-scenario adaptive-verification smoke benchmark",
     )
     _add_common_benchmark_args(benchmark, default_output="results/default-benchmark.jsonl")
 
-    models = subparsers.add_parser(
+    models = lab_commands.add_parser(
         "list-lmstudio-models",
         help="list models and capabilities from LM Studio's native model catalog",
     )
@@ -87,7 +94,7 @@ def _parser() -> argparse.ArgumentParser:
         help="print native catalog entries as JSON instead of model IDs",
     )
 
-    lmstudio = subparsers.add_parser(
+    lmstudio = lab_commands.add_parser(
         "benchmark-lmstudio",
         help="run the five-scenario benchmark against one or more real LM Studio models",
     )
@@ -135,7 +142,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     _add_common_benchmark_args(lmstudio, default_output="results/lmstudio-benchmark.jsonl")
 
-    mcp_default = subparsers.add_parser(
+    mcp_default = lab_commands.add_parser(
         "benchmark-mcp-default",
         help=(
             "run the 125-case MCP-path benchmark against deterministic harness targets; "
@@ -147,7 +154,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     mcp_default.set_defaults(attack_corpus="bundled:v0.8-mcp")
 
-    mcp_lmstudio = subparsers.add_parser(
+    mcp_lmstudio = lab_commands.add_parser(
         "benchmark-mcp-lmstudio",
         help=(
             "run the MCP-path security benchmark against one or more LM Studio models; "
@@ -200,13 +207,13 @@ def _parser() -> argparse.ArgumentParser:
     )
     mcp_profile.add_argument("path")
 
-    subparsers.add_parser(
+    lab_commands.add_parser(
         "mcp-demo",
         help="run the deterministic VAIS MCP security-boundary demonstration",
     )
 
 
-    reference_default = subparsers.add_parser(
+    reference_default = lab_commands.add_parser(
         "reference-agent-default",
         help=(
             "run the v0.9.3 stateful incident-response reference system against "
@@ -226,7 +233,7 @@ def _parser() -> argparse.ArgumentParser:
         help="also print the machine-readable summary",
     )
 
-    reference_lmstudio = subparsers.add_parser(
+    reference_lmstudio = lab_commands.add_parser(
         "reference-agent-lmstudio",
         help=(
             "run the v0.9.3 stateful incident-response reference system against "
@@ -267,7 +274,7 @@ def _parser() -> argparse.ArgumentParser:
         help="also print the machine-readable summary",
     )
 
-    adaptive_default = subparsers.add_parser(
+    adaptive_default = lab_commands.add_parser(
         "adaptive-reference-default",
         help=(
             "run v0.10 adaptive verification against the frozen v0.9.3 reference "
@@ -286,7 +293,7 @@ def _parser() -> argparse.ArgumentParser:
     adaptive_default.add_argument("--overwrite", action="store_true", help="replace existing output artifacts")
     adaptive_default.add_argument("--fail-on-protected-violation", action="store_true", help="return exit code 2 if adaptive verification discovers a protected invariant violation")
 
-    adaptive_lmstudio = subparsers.add_parser(
+    adaptive_lmstudio = lab_commands.add_parser(
         "adaptive-reference-lmstudio",
         help=(
             "run v0.10 adaptive verification against real LM Studio reference-agent "
@@ -331,7 +338,7 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
 
-    adaptive_anthropic = subparsers.add_parser(
+    adaptive_anthropic = lab_commands.add_parser(
         "adaptive-reference-anthropic",
         help=(
             "run adaptive verification against a Claude reference-agent target through the "
@@ -377,7 +384,7 @@ def _parser() -> argparse.ArgumentParser:
             help="reference application to run; default incident-response, the application all earlier evidence used",
         )
 
-    audit_results = subparsers.add_parser(
+    audit_results = lab_commands.add_parser(
         "audit-results",
         help="offline reclassify stored episode JSONL using current measurement semantics",
     )
@@ -389,7 +396,7 @@ def _parser() -> argparse.ArgumentParser:
         help="also print the full machine-readable audit JSON",
     )
 
-    research_build = subparsers.add_parser(
+    research_build = lab_commands.add_parser(
         "research-build",
         help="build the VAIS Research Evidence Base from historical release/experiment roots",
     )
@@ -411,20 +418,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     research_build.add_argument("--json", action="store_true", help="print build result as JSON")
 
-    research_summary_parser = subparsers.add_parser(
+    research_summary_parser = lab_commands.add_parser(
         "research-summary", help="summarize an existing VAIS Research Evidence Base database"
     )
     research_summary_parser.add_argument("--db", default="research/db/vais-research.sqlite")
     research_summary_parser.add_argument("--json", action="store_true")
 
-    research_query_parser = subparsers.add_parser(
+    research_query_parser = lab_commands.add_parser(
         "research-query", help="query claims/findings/decisions/limitations and experiment metrics"
     )
     research_query_parser.add_argument("term")
     research_query_parser.add_argument("--db", default="research/db/vais-research.sqlite")
     research_query_parser.add_argument("--limit", type=int, default=20)
 
-    research_doctor_parser = subparsers.add_parser(
+    research_doctor_parser = lab_commands.add_parser(
         "research-doctor", help="audit research-evidence integrity, archive duplication and claim coverage"
     )
     research_doctor_parser.add_argument("--db", default="research/db/vais-research.sqlite")
@@ -432,18 +439,18 @@ def _parser() -> argparse.ArgumentParser:
     research_doctor_parser.add_argument("--json", action="store_true", help="print the full machine-readable doctor report")
     research_doctor_parser.add_argument("--strict", action="store_true", help="return exit code 2 for unexpected unresolved evidence, hash mismatches, or evidence-less supported claims/findings")
 
-    rc_plan = subparsers.add_parser("rc-benchmark-plan", help="validate the frozen RC model panel and write staged PowerShell campaign commands")
+    rc_plan = lab_commands.add_parser("rc-benchmark-plan", help="validate the frozen RC model panel and write staged PowerShell campaign commands")
     rc_plan.add_argument("--manifest", default=None, help="manifest path; defaults to the packaged v0.12 panel")
     rc_plan.add_argument("--stage", choices=("preflight", "qualification", "screening", "full"), required=True)
     rc_plan.add_argument("--output", required=True)
 
-    rc_report = subparsers.add_parser("rc-report", help="aggregate completed adaptive summaries and render the RC report bundle")
+    rc_report = lab_commands.add_parser("rc-report", help="aggregate completed adaptive summaries and render the RC report bundle")
     rc_report.add_argument("--manifest", default=None, help="manifest path; defaults to the packaged v0.12 panel")
     rc_report.add_argument("--stage", choices=("preflight", "qualification", "screening", "full"), default="full")
     rc_report.add_argument("--summary", action="append", default=[], help="one single-target adaptive summary; repeat as needed")
     rc_report.add_argument("--output-dir", default="results/rc/report")
 
-    evidence_report = subparsers.add_parser(
+    evidence_report = lab_commands.add_parser(
         "benchmark-report",
         help="verify an immutable benchmark checkpoint and render explanatory public-safe reports",
     )
@@ -458,7 +465,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     evidence_report.add_argument("--output-dir", default="results/rc/report")
 
-    benchmark_all = subparsers.add_parser(
+    benchmark_all = lab_commands.add_parser(
         "benchmark",
         help="validate, run or resume the frozen local LM Studio model panel and render reports",
     )
@@ -588,7 +595,26 @@ def _write_and_check(args, results) -> int:
     return 0
 
 
+# The boundary's commands. Everything else is benchmark or research tooling under ``vais lab``.
+CORE_COMMANDS = frozenset({
+    "validate-policy", "validate-invariants", "validate-mcp-profile", "check-invariants", "audit-verify",
+    "gateway", "gateway-approve", "gateway-revoke", "gateway-token", "version",
+})
+
+
+def _lab_commands() -> frozenset[str]:
+    parser = _parser()
+    top = next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
+    lab = next(a for a in top.choices["lab"]._actions if isinstance(a, argparse._SubParsersAction))
+    return frozenset(lab.choices)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in _lab_commands():
+        print(f"vais: `vais {argv[0]}` is deprecated; use `vais lab {argv[0]}`. "
+              "The top-level form will be removed in 1.0.", file=sys.stderr)
+        argv = ["lab", *argv]
     args = _parser().parse_args(argv)
 
     if args.command == "validate-policy":

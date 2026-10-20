@@ -18,9 +18,9 @@ The canonical knowledge is deliberately plain text (`knowledge/*.yaml` (includin
 From a VAIS source checkout:
 
 ```powershell
-vais research-build --history-root F:\ --research-dir .\research
-vais research-summary --db .\research\db\vais-research.sqlite
-vais research-doctor --db .\research\db\vais-research.sqlite
+vais lab research-build --history-root F:\ --research-dir .\research
+vais lab research-summary --db .\research\db\vais-research.sqlite
+vais lab research-doctor --db .\research\db\vais-research.sqlite
 ```
 
 With `--history-root`, the scanner inspects only immediate sibling directories whose names look like VAIS version checkouts (for example `vais-v03`, `vais-v09`, `vais-v0.10`) and then indexes relevant artifacts inside those version roots. It does not crawl unrelated top-level directories on the drive. Common virtual-environment/cache directories and generated research indexes/databases are excluded. Use repeated `--root` only for explicit extra VAIS directories or source artifacts such as the capstone manuscript.
@@ -28,8 +28,8 @@ With `--history-root`, the scanner inspects only immediate sibling directories w
 ## Query
 
 ```powershell
-vais research-query "attack objective" --db .\research\db\vais-research.sqlite
-vais research-query "Gemma" --db .\research\db\vais-research.sqlite
+vais lab research-query "attack objective" --db .\research\db\vais-research.sqlite
+vais lab research-query "Gemma" --db .\research\db\vais-research.sqlite
 ```
 
 The generated evidence indexes are:
@@ -47,8 +47,8 @@ Do not commit private/sensitive raw experiment data merely because the scanner c
 Historical VAIS folders intentionally contain repeated source, summary and result artifacts. These copies remain indexed for provenance, but they are not additional scientific repetitions. `research-summary` reports both raw archive records and content-addressed counts, while `research-doctor` audits duplicates and evidence-link integrity.
 
 ```powershell
-vais research-doctor --db .\research\db\vais-research.sqlite
-vais research-doctor --db .\research\db\vais-research.sqlite --strict
+vais lab research-doctor --db .\research\db\vais-research.sqlite
+vais lab research-doctor --db .\research\db\vais-research.sqlite --strict
 ```
 
 Sources marked `artifact_expected_external` (for example the capstone manuscript and author essays) may remain outside the public repository. Their expected SHA-256 values are retained in `knowledge/sources.yaml`; add local copies with `research-build --root <path>` when you want those source links resolved. Unexpected missing project evidence and hash mismatches are integrity failures.

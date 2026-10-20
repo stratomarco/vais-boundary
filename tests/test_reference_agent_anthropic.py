@@ -269,7 +269,7 @@ def test_without_the_sdk_the_error_says_how_to_install_it(monkeypatch):
 def test_the_cli_exposes_the_command_with_safe_defaults():
     from vais.cli import _parser
 
-    args = _parser().parse_args(["adaptive-reference-anthropic", "--episodes", "1"])
+    args = _parser().parse_args(["lab", "adaptive-reference-anthropic", "--episodes", "1"])
     assert args.target_model is None and args.target_thinking == "adaptive"
     assert args.attacker_base_url == "http://localhost:1234/v1"
     assert not hasattr(args, "api_key") and not hasattr(args, "target_api_key")

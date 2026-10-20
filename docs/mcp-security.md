@@ -211,7 +211,7 @@ pip install -e ".[dev,mcp]"
 python .\examples\mcp_lmstudio_agent_demo.py --model "qwen/qwen3.5-9b" --reasoning-mode off
 ```
 
-The script remains the smallest live integration demonstration. v0.8 additionally provides `vais benchmark-mcp-lmstudio`, which transports the full 125-case corpus as untrusted MCP tool-result content and executes outbound actions through the protected/unprotected MCP client paths.
+The script remains the smallest live integration demonstration. v0.8 additionally provides `vais lab benchmark-mcp-lmstudio`, which transports the full 125-case corpus as untrusted MCP tool-result content and executes outbound actions through the protected/unprotected MCP client paths.
 
 ## Protected and unprotected assessment paths
 

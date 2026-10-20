@@ -62,12 +62,12 @@ def test_frozen_rc7_public_report_retains_verified_gate_evidence():
 
 def test_campaign_plan_keeps_stages_and_models_separate():
     plan = build_campaign_plan(load_rc_manifest(MANIFEST), "screening")
-    assert plan.count("vais adaptive-reference-lmstudio") == 15
+    assert plan.count("vais lab adaptive-reference-lmstudio") == 15
     assert "--episodes 3" in plan
     assert "--attacker-model" not in plan
     assert plan.count("--target-disable-thinking") == 14
     deepseek_start = plan.index('--target-model "deepseek/deepseek-r1-distill-llama-8b"')
-    deepseek_end = plan.index("vais adaptive-reference-lmstudio", deepseek_start + 1)
+    deepseek_end = plan.index("vais lab adaptive-reference-lmstudio", deepseek_start + 1)
     deepseek_block = plan[deepseek_start:deepseek_end]
     assert "--target-reasoning-mode on" in deepseek_block
     assert "--target-disable-thinking" not in deepseek_block

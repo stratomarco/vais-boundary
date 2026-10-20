@@ -109,7 +109,7 @@ python -m pip install -e ".[dev]"
 vais version
 vais validate-policy .\policies\default.yaml
 vais validate-invariants .\invariants\default.yaml
-vais mcp-demo
+vais lab mcp-demo
 ```
 
 Python 3.11 through 3.14 are supported and all eight combinations are exercised in CI; pin a
@@ -123,7 +123,7 @@ shortest path on a locked-down machine:
 ```bash
 PYTHONPATH=src python3 -m vais version
 PYTHONPATH=src python3 -m vais validate-policy policies/default.yaml
-PYTHONPATH=src python3 -m vais mcp-demo
+PYTHONPATH=src python3 -m vais lab mcp-demo
 ```
 
 ### Linux or macOS
@@ -140,13 +140,13 @@ python -m pip install -e '.[dev]'
 vais version
 vais validate-policy policies/default.yaml
 vais validate-invariants invariants/default.yaml
-vais mcp-demo
+vais lab mcp-demo
 ```
 
 Run the deterministic security regression:
 
 ```powershell
-vais benchmark-default `
+vais lab benchmark-default `
   --mode protected `
   --fail-on-protected-violation `
   --fail-on-clean-utility-loss `
@@ -162,13 +162,13 @@ For installation from a wheel, LM Studio setup, runtime integration, every opera
 The automated runner validates the frozen model inventory, loads one model at a time, executes staged campaigns, checkpoints progress, applies fail-closed gates, and regenerates HTML/Markdown/SVG reports.
 
 ```powershell
-vais list-lmstudio-models
+vais lab list-lmstudio-models
 
-vais benchmark --all --dry-run `
+vais lab benchmark --all --dry-run `
   --output-dir .\results\rc10 `
   --report-dir .\results\rc10\report
 
-vais benchmark --all `
+vais lab benchmark --all `
   --output-dir .\results\rc10 `
   --report-dir .\results\rc10\report
 ```

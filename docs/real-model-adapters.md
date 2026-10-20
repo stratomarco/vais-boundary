@@ -26,19 +26,19 @@ The model catalog can expose architecture, quantization, parameter string, maxim
 Start the LM Studio server and list the native catalog:
 
 ```powershell
-vais list-lmstudio-models
+vais lab list-lmstudio-models
 ```
 
 For full metadata:
 
 ```powershell
-vais list-lmstudio-models --json
+vais lab list-lmstudio-models --json
 ```
 
 Then run one target:
 
 ```powershell
-vais benchmark-lmstudio `
+vais lab benchmark-lmstudio `
   --model "qwen/qwen3.5-9b" `
   --reasoning-mode off `
   --max-tokens 2048 `
@@ -52,7 +52,7 @@ vais benchmark-lmstudio `
 Compare multiple model families in one run by repeating `--model`:
 
 ```powershell
-vais benchmark-lmstudio `
+vais lab benchmark-lmstudio `
   --model "qwen/qwen3.5-9b" `
   --model "google/gemma-4-12b" `
   --max-tokens 2048 `
@@ -65,7 +65,7 @@ Only use a shared `--reasoning-mode` label when it accurately describes all targ
 
 ## Anthropic API adapter (Claude)
 
-`vais adaptive-reference-anthropic` runs the reference-agent campaign with a Claude model as the target, through the Anthropic Messages API (P1b-2, DEC-065). The attacker, when one is used, is still a local LM Studio model; the RC stages use the deterministic mutation search and need no attacker model.
+`vais lab adaptive-reference-anthropic` runs the reference-agent campaign with a Claude model as the target, through the Anthropic Messages API (P1b-2, DEC-065). The attacker, when one is used, is still a local LM Studio model; the RC stages use the deterministic mutation search and need no attacker model.
 
 Install the optional SDK and give it a credential in the environment. VAIS never takes the key as an argument and never records it:
 
@@ -86,7 +86,7 @@ The model sees the same prompt as an LM Studio target and returns the same plan,
 A preflight run measures the real cost per call before a full stage:
 
 ```powershell
-vais adaptive-reference-anthropic `
+vais lab adaptive-reference-anthropic `
   --target-model claude-opus-5-5 --target-effort low --target-reasoning-mode low `
   --scenario attack-01 --episodes 1 `
   --output .\results\api\opus-5-5-preflight.jsonl `

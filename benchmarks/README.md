@@ -35,7 +35,7 @@ Real-model results should normally be written under `results/` and preserved wit
 Example:
 
 ```powershell
-vais benchmark-lmstudio `
+vais lab benchmark-lmstudio `
   --model "qwen/qwen3.5-9b" `
   --reasoning-mode off `
   --attack-corpus .\benchmarks\attacks\default.jsonl `

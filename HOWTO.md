@@ -86,9 +86,9 @@ python -m vais version
 
 | Goal | Mode | Start with |
 |---|---|---|
-| Understand whether hostile context changes behavior or creates unsafe effects | **ASSESS** | `vais benchmark-default` or a real-model benchmark |
+| Understand whether hostile context changes behavior or creates unsafe effects | **ASSESS** | `vais lab benchmark-default` or a real-model benchmark |
 | Put a deterministic boundary around consequential actions | **ENFORCE** | policies, task contracts, `ProtectedExecutor`, or `MCPProtectedClient` |
-| Continuously attack and independently verify the boundary | **VERIFY** | protected CI gate, reference-agent campaigns, or `vais benchmark --all` |
+| Continuously attack and independently verify the boundary | **VERIFY** | protected CI gate, reference-agent campaigns, or `vais lab benchmark --all` |
 
 The modes share the same trust model. ASSESS measures, ENFORCE mediates before effects, and VERIFY checks observable effects independently.
 
@@ -107,7 +107,7 @@ Run the minimal demonstrations:
 ```powershell
 python .\examples\email_agent_demo.py
 python .\examples\information_flow_demo.py
-vais mcp-demo
+vais lab mcp-demo
 ```
 
 No email, payment, cloud action, or external MCP call is performed by these demonstrations. The sandbox records security-relevant effects locally.
@@ -123,7 +123,7 @@ python -m pytest
 ### Deterministic framework regression
 
 ```powershell
-vais benchmark-default `
+vais lab benchmark-default `
   --output .\results\default.jsonl `
   --summary .\results\default-summary.json
 ```
@@ -133,7 +133,7 @@ This intentionally compares unsafe and protected paths. Observable failures in t
 ### Stateful reference-system regression
 
 ```powershell
-vais reference-agent-default `
+vais lab reference-agent-default `
   --output .\results\reference-agent.jsonl `
   --summary .\results\reference-agent-summary.json
 ```
@@ -153,13 +153,13 @@ lms load qwen3-0.6b `
   --parallel 1 `
   --yes
 
-vais list-lmstudio-models
+vais lab list-lmstudio-models
 ```
 
 Then run a small adaptive campaign:
 
 ```powershell
-vais adaptive-reference-lmstudio `
+vais lab adaptive-reference-lmstudio `
   --target-model "qwen/qwen3-0.6b" `
   --target-reasoning-mode off `
   --target-disable-thinking `
@@ -260,7 +260,7 @@ python .\examples\mcp_live_demo.py
 ### CI security gate
 
 ```powershell
-vais benchmark-default `
+vais lab benchmark-default `
   --mode protected `
   --fail-on-protected-violation `
   --fail-on-clean-utility-loss `
@@ -273,7 +273,7 @@ For this command, exit code `2` means a protected invariant violation, `3` means
 ### Deterministic adaptive campaign
 
 ```powershell
-vais adaptive-reference-default `
+vais lab adaptive-reference-default `
   --episodes 12 `
   --scenario attack-09 `
   --output .\results\adaptive.jsonl `
@@ -293,7 +293,7 @@ Target failures are never counted as successful defense.
 ### Audit existing results without new inference
 
 ```powershell
-vais audit-results .\results\existing.jsonl `
+vais lab audit-results .\results\existing.jsonl `
   --output .\results\existing-audit.json
 ```
 
@@ -308,7 +308,7 @@ Use a new output directory for a new framework version or manifest. Do not mix t
 ```powershell
 lms server start
 
-vais benchmark --all --dry-run `
+vais lab benchmark --all --dry-run `
   --output-dir .\results\rc8 `
   --report-dir .\results\rc8\report
 ```
@@ -318,7 +318,7 @@ The dry run checks the server, every expected model key, quantization, manifest,
 ### Run or resume all models
 
 ```powershell
-vais benchmark --all `
+vais lab benchmark --all `
   --output-dir .\results\rc8 `
   --report-dir .\results\rc8\report
 ```
@@ -338,7 +338,7 @@ Do not delete or edit `benchmark-state.json` or recorded artifacts during a camp
 ### Run selected panel models
 
 ```powershell
-vais benchmark `
+vais lab benchmark `
   --model qwen3-0.6b `
   --model deepseek-r1-distill-llama-8b `
   --output-dir .\results\rc8-selected `
@@ -394,7 +394,7 @@ Run `py -0p`, select an installed Python 3.11–3.14 version, or install one fro
 
 ### LM Studio model not found
 
-Run `lms ls` and `vais list-lmstudio-models`. Load the downloaded model by its local model key, then assign the exact API identifier expected by the VAIS manifest.
+Run `lms ls` and `vais lab list-lmstudio-models`. Load the downloaded model by its local model key, then assign the exact API identifier expected by the VAIS manifest.
 
 ### Reasoning-mode mismatch
 

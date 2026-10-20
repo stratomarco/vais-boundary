@@ -197,10 +197,10 @@ This is harness validation, not evidence about real models.
 ## Running it
 
 ```powershell
-vais reference-agent-default --application accounts-payable
-vais adaptive-reference-default --application accounts-payable
-vais adaptive-reference-lmstudio --application accounts-payable --target-model "<model>" ...
-vais adaptive-reference-anthropic --application accounts-payable --target-model claude-sonnet-5-5 ...
+vais lab reference-agent-default --application accounts-payable
+vais lab adaptive-reference-default --application accounts-payable
+vais lab adaptive-reference-lmstudio --application accounts-payable --target-model "<model>" ...
+vais lab adaptive-reference-anthropic --application accounts-payable --target-model claude-sonnet-5-5 ...
 ```
 
 ## Changes before the campaign (baseline 1.1, 2026-09-30)
