@@ -87,7 +87,8 @@ STUDIES = (
     Study("What AgentCore Policy's language can express of VAIS's decisions", ("experiments/dogwood-expressibility",),
           "deterministic; generated from the reference workflows, outputs in the repository",
           registrations=("experiments/dogwood-expressibility/PREREGISTRATION.md",),
-          note="Registered; not yet run."),
+          results=("experiments/dogwood-expressibility/RESULTS.md",),
+          note="Round 1 as registered; round 2 exploratory, with the application's own mints declared."),
 )
 
 

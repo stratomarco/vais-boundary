@@ -18,10 +18,10 @@ record, kept as it was written.*
 
 ## After 1.0
 
-1. **What the nearest system can express.** Amazon Bedrock AgentCore Policy is the closest system
-   to VAIS ([`guardrail-frameworks.md`](guardrail-frameworks.md)). Its policy language, Dogwood,
-   is open source, so whether VAIS's recorded attack scenarios can be written as Dogwood policies
-   can be measured locally. Pre-registered.
+1. **What the nearest system can express: done** (FIND-077). On VAIS's 93 reference workflows a
+   Dogwood policy, AgentCore Policy's language, made every decision VAIS made once its authority
+   sources were declared, and VAIS's positioning was narrowed accordingly (DEC-073).
+   `experiments/dogwood-expressibility/`.
 2. **One complete reference workflow, then a pilot.** Take one consequential workflow end to end:
    trusted authorization, a model-proposed action, enforcement before the effect, real tool
    execution and independent verification against the backend, with an evidence packet another

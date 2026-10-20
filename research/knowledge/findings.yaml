@@ -461,3 +461,9 @@ findings:
     version: "0.12.0rc15"
     type: empirical
     evidence: [experiments/rc7-stability/PREREGISTRATION.md, experiments/rc7-stability/RESULTS.md, experiments/rc7-stability/results/analysis.json]
+
+  - id: FIND-077
+    finding: "On VAIS's 93 deterministic reference workflows, a Dogwood policy (the language of Amazon Bedrock AgentCore Policy, reference interpreter 1.1.0) written from the same configuration made every decision VAIS made. In a pre-registered replay of each workflow's unprotected trace, with the task supplied to Dogwood as trusted events, both engines refused all 41 attacks, each at the same call, and neither let an attack through. In the registered round Dogwood was never looser and was stricter on 34 of 225 agent calls, refusing 9 of 52 benign workflows, all because the policy generator omitted the accounts-payable application's own mints; in an exploratory round with those mints it completed all 52 benign workflows, and its 10 remaining stricter calls all followed a refused payment in an attack trace. The registered prediction that delegation attacks are not expressible did not hold: their harmful calls were ordinary calls outside the task. The claim of a decision AgentCore's language cannot make is not supported on this corpus."
+    version: "1.0.0"
+    type: empirical
+    evidence: [experiments/dogwood-expressibility/PREREGISTRATION.md, experiments/dogwood-expressibility/RESULTS.md, experiments/dogwood-expressibility/results/summary.json, experiments/dogwood-expressibility/results/round2/summary.json]

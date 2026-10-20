@@ -76,19 +76,28 @@ are self-reported, so they are noted here and not assessed.
    - **Evidence.** VAIS publishes pre-registered adversarial studies against its boundary. No
      comparable public evaluation of AgentCore Policy was found.
 
+   **Measured since, on VAIS's own corpus (FIND-077, `experiments/dogwood-expressibility/`).** A
+   Dogwood policy written from VAIS's configuration made every decision VAIS made on its 93
+   reference workflows: authority checked by equality with declared sources, confidentiality
+   ceilings as a session high-water mark, minted authority as declared correlations, approvals,
+   call limits and budgets. Both refused all 41 attacks at the same call. So the first three
+   differences above are differences in how a policy is written, not in what it can decide on
+   that corpus; deployment and evidence stand as stated. The study's bounds are LIM-077.
+
 ## Consequences for VAIS
 
 - **Scope.** VAIS should not add content moderation, topic control or grounding checks. These
   frameworks do that, and VAIS composes with them: a text guardrail on the conversation, VAIS on
   the actions.
-- **Claims.** The distinctive claim is narrower than "deterministic enforcement of tool calls":
-  it is **deterministic enforcement on the provenance of each argument value**, including values
-  the model derived from what it read, with confidentiality flows and minted authority, in an
-  open, locally run implementation with published adversarial evidence. Positioning should say
-  so, and name AgentCore Policy as the nearest system.
-- **A possible study, not scheduled.** Dogwood is open source, so whether VAIS's recorded attack
-  scenarios can be expressed as Dogwood policies could be measured locally, without AWS. That
-  would turn the comparison above from documentation into evidence.
+- **Claims (DEC-073).** VAIS does not claim decisions AgentCore Policy's language cannot make;
+  on VAIS's own corpus it made them all (FIND-077). What VAIS offers is:
+  - labels carried from each value's source through model output, without declaring every
+    source (in the study, one undeclared source cost legitimate work until it was declared);
+  - an open library and gateway that run anywhere;
+  - a frozen 1.x interface and file formats;
+  - published, pre-registered adversarial evidence.
+- **The study is done.** It turned the comparison above from documentation into evidence, and the
+  evidence narrowed the claim, as its registration said it would.
 
 ## Sources
 

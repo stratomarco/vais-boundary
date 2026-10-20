@@ -1,0 +1,56 @@
+{
+ "accounts-payable": {
+  "attacks": {
+   "vais_refuses__dogwood_refuses": 21
+  },
+  "attacks_where_engines_differ": [],
+  "benign": {
+   "clean": {
+    "dogwood_completes": 6,
+    "dogwood_refused": [],
+    "vais_completes": 6,
+    "workflows": 6
+   },
+   "control": {
+    "dogwood_completes": 21,
+    "dogwood_refused": [],
+    "vais_completes": 21,
+    "workflows": 21
+   }
+  },
+  "calls": {
+   "agree": 137,
+   "dogwood_errors": 0,
+   "dogwood_looser": 0,
+   "dogwood_stricter": 10,
+   "total": 147
+  }
+ },
+ "incident-response": {
+  "attacks": {
+   "vais_refuses__dogwood_refuses": 20
+  },
+  "attacks_where_engines_differ": [],
+  "benign": {
+   "clean": {
+    "dogwood_completes": 5,
+    "dogwood_refused": [],
+    "vais_completes": 5,
+    "workflows": 5
+   },
+   "control": {
+    "dogwood_completes": 20,
+    "dogwood_refused": [],
+    "vais_completes": 20,
+    "workflows": 20
+   }
+  },
+  "calls": {
+   "agree": 78,
+   "dogwood_errors": 0,
+   "dogwood_looser": 0,
+   "dogwood_stricter": 0,
+   "total": 78
+  }
+ }
+}

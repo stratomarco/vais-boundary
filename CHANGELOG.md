@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **What AgentCore Policy's language can express of VAIS's decisions (FIND-077, DEC-073).** A
+  pre-registered study replayed VAIS's 93 reference workflows through a Dogwood policy (AgentCore
+  Policy's language, reference interpreter 1.1.0) generated from the same configuration. Both
+  engines refused all 41 attacks at the same call. In the registered round Dogwood refused 9 of 52
+  benign workflows because the generator left out the accounts-payable application's own mints;
+  with them, it completed all 52. The claim of a decision AgentCore's language cannot make is not
+  supported on this corpus, so the README, `related-work.md` and `guardrail-frameworks.md` now
+  state the narrower claim. Bounds in LIM-077. `experiments/dogwood-expressibility/`.
+
 ## 1.0.0 - 2026-10-20
 
 VAIS 1.0 is the boundary: a deterministic reference monitor and gateway for the actions an AI
