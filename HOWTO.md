@@ -63,7 +63,7 @@ python -m pip install --force-reinstall `
   ".\dist\rc15-final\verifiable_ai_security-0.12.0rc15-py3-none-any.whl"
 ```
 
-Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.
+Release candidates up to 0.12.0rc15 are named `verifiable_ai_security-*`; from 1.0 the wheel is `vais_boundary-*`. Use the wheel path supplied with the release. Do not install a similarly named file from an unverified location. Compare it with the release `SHA256SUMS` before use.
 
 ### Verify the installation
 

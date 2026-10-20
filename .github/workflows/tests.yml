@@ -65,10 +65,10 @@ jobs:
 
       - name: Install built wheel with dependencies
         run: |
-          python -m pip install --force-reinstall wheelhouse/verifiable_ai_security-*.whl
+          python -m pip install --force-reinstall wheelhouse/vais_boundary-*.whl
           python -m pip check
 
       - name: Verify installed package
         run: |
-          python -c "from importlib.metadata import version; import vais; assert vais.__version__ == version('verifiable-ai-security'); policy = vais.load_default_policy(); assert policy.default_action == 'deny'; assert policy.tools"
+          python -c "from importlib.metadata import version; import vais; assert vais.__version__ == version('vais-boundary'); policy = vais.load_default_policy(); assert policy.default_action == 'deny'; assert policy.tools"
           vais version

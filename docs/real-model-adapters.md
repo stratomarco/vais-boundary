@@ -70,7 +70,7 @@ Only use a shared `--reasoning-mode` label when it accurately describes all targ
 Install the optional SDK and give it a credential in the environment. VAIS never takes the key as an argument and never records it:
 
 ```powershell
-pip install "verifiable-ai-security[anthropic]"
+pip install "vais-boundary[anthropic]"
 $env:ANTHROPIC_API_KEY = "<your key>"   # or `ant auth login`
 ```
 

@@ -45,7 +45,11 @@ The revised expansion keeps the established `VAIS` identity while making the roo
 
 ## Compatibility and historical record
 
-The command remains `vais`, the Python import remains `vais`, and the current distribution name remains `verifiable-ai-security`. Renaming those identifiers would add migration cost without improving the security model.
+The command remains `vais` and the Python import remains `vais`.
+
+**The distribution name changed for 1.0 (2026-10-20).** Through 0.12.0rc15 the installable distribution was `verifiable-ai-security`; from 1.0 it is `vais-boundary`, matching the project name. The earlier reason to keep the old name was migration cost, and that cost turned out to be small: neither name had been published on PyPI, so only this repository's documentation and CI referred to it. Wheels and source archives of the published release candidates keep the old name (`verifiable_ai_security-0.12.0rcN-*`).
+
+A known risk remains: an unrelated PyPI project named `vais` may also install a top-level `vais` module, so installing both in one environment could clash. Renaming the import is a larger change and is not part of 1.0.
 
 Published releases, benchmark reports and frozen evidence retain the names recorded when they were produced. They should not be rewritten because their exact provenance is part of the evidence base.
 

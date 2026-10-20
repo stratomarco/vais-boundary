@@ -3,7 +3,7 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "verifiable-ai-security"
+name = "vais-boundary"
 version = "0.12.0rc15"
 description = "VAIS Boundary: verifiable authority and invariant security for AI applications and agents."
 readme = "README.md"

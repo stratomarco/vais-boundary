@@ -94,7 +94,7 @@ def _sdk():
         import anthropic
     except ImportError as exc:  # pragma: no cover - exercised by the missing-SDK test
         raise AnthropicConfigurationError(
-            "the Anthropic target needs the SDK: pip install 'verifiable-ai-security[anthropic]'"
+            "the Anthropic target needs the SDK: pip install 'vais-boundary[anthropic]'"
         ) from exc
     return anthropic
 
