@@ -1,6 +1,6 @@
 # Related work and positioning
 
-VAIS should not be presented as the first deterministic prompt-injection defense. Its intended contribution is the combination of **explicit task authority, deterministic enforcement, observable security invariants and adaptive verification**.
+VAIS should not be presented as the first deterministic prompt-injection defense, or the first deterministic control of agent tool calls: schema checks, allow lists and session-aware policy engines exist, and the nearest, Amazon Bedrock AgentCore Policy, enforces deterministic, session-aware rules at a gateway ([`guardrail-frameworks.md`](guardrail-frameworks.md)). VAIS's contribution is narrower: **deterministic enforcement on the provenance of each argument value**, including values the model derived from what it read, with confidentiality flows and minted authority, in an open, locally run implementation, together with observable security invariants and published, pre-registered adversarial evidence.
 
 ## CaMeL and capability-based control/data separation
 

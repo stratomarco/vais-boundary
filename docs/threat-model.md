@@ -1,5 +1,13 @@
 # Threat model
 
+## What 1.0 covers
+
+This threat model is about the boundary: the names `vais` publishes (`vais.__all__`), the
+commands at the top level of `vais` (the gateway and its operator commands, the validators,
+`check-invariants` and `audit-verify`), and the file formats in [`formats.md`](formats.md). The
+benchmark and research tooling under `vais lab` produced VAIS's evidence; it is not part of
+the boundary and is not covered here.
+
 ## Protected assets
 
 - system/developer instructions;
@@ -71,5 +79,34 @@ Recorded in the research ledger rather than here, so they carry evidence and sta
 - protecting applications that deliberately give the model unrestricted credentials outside VAIS;
 - mediating the agent's final text answer or any reasoning trace. VAIS mediates tool calls only, so an application that displays or logs model text must treat it as a separate egress channel (LIM-051);
 - detecting an MCP server that performs an effect other than the one requested (LIM-049).
+
+## What VAIS leaves to other layers
+
+VAIS decides whether a proposed action may run, from the provenance of its arguments, the task
+contract and the session's history. It does not judge what text says. A deployment that needs
+the following uses another layer for them, alongside VAIS:
+
+- content safety, topic control, personal-data detection and grounding of the model's text:
+  the guardrail frameworks assessed in [`guardrail-frameworks.md`](guardrail-frameworks.md);
+- authentication of users, clients and MCP servers, such as OAuth for MCP;
+- isolation of the agent and its tools: sandboxes, network egress controls, separate credentials;
+- operational monitoring and incident response.
+
+## Limitations 1.0 ships with
+
+Stated here so a reader does not have to infer them from what is missing:
+
+- **No independent security review** of the code or the design has been done.
+- **State is coordinated on one machine.** Approvals, the session ledger and revocations hold
+  across processes on one host with a local disk, not across machines (LIM-057).
+- **Enforcement under a frontier model is untested in effect.** Neither available attacker moved
+  Claude Sonnet 5.5 (FIND-067, FIND-068), so its zero protected violations show the boundary was
+  not needed, not that it held. A stronger attacker against a frontier model (E3) has not run.
+- **Evidence is bounded to what was recorded:** the models, quantisations, runtime, hardware,
+  scenarios and episode budgets of each study. Per-model rates also depend on the inference
+  engine's version (FIND-076, LIM-075). Zero observed violations in a finite campaign is not
+  proof of universal security.
+- **It is not a production-ready authorization service.** The known gaps above, and the research
+  ledger's limitations, apply.
 
 These boundaries must remain explicit so successful demos are not mistaken for stronger guarantees than the code actually provides.

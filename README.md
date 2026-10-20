@@ -8,6 +8,8 @@ VAIS places a deterministic security boundary between an AI agent and consequent
 
 VAIS is not an AI judge and does not use another model as the root of trust.
 
+**Where it fits.** VAIS decides on the actions an agent proposes, from where each argument came from: provenance labels that follow values through the model's own output, the task contract and the session's history. Text guardrails, such as NeMo Guardrails, Llama Guard or Bedrock Guardrails, judge what the text says; VAIS does not, and works alongside them. Deterministic, session-aware control of tool calls also exists elsewhere; the nearest system is Amazon Bedrock AgentCore Policy. What VAIS adds is enforcement on argument provenance, with confidentiality flows and minted authority, in an open library and gateway with published adversarial evidence. See [`docs/guardrail-frameworks.md`](docs/guardrail-frameworks.md) and [`docs/threat-model.md`](docs/threat-model.md).
+
 ## Why the name
 
 **VAIS Boundary** names the mechanism rather than making a broad claim that an AI system is secure:
@@ -18,7 +20,7 @@ VAIS is not an AI judge and does not use another model as the root of trust.
 - **Security**: the protected property is intentionally narrow—adversarial model influence must not create an unauthorized external effect.
 - **Boundary**: the trusted mechanism sits between model-generated proposals and consequential tools, then verifies what happened after execution.
 
-The `vais` command and Python package remain stable. Earlier releases and frozen evidence may use the original *Verifiable AI Security* expansion; those historical artifacts are not rewritten. See the [complete naming rationale](docs/naming.md).
+The `vais` command and the `vais` Python import remain stable; from 1.0 the installable distribution is `vais-boundary`. Earlier releases and frozen evidence may use the original *Verifiable AI Security* expansion; those historical artifacts are not rewritten. See the [complete naming rationale](docs/naming.md).
 
 ![VAIS cross-model RC7 benchmark evidence](benchmarks/rc/report/rc7-full-evidence/benchmark-table.svg)
 
@@ -216,6 +218,7 @@ VAIS is not:
 
 - a proof of noninterference or universal prompt-injection prevention;
 - a production-ready authorization service;
+- independently security-reviewed (no external review has been done yet);
 - a replacement for sandboxing, identity infrastructure, server-side authorization, or operational monitoring;
 - a guarantee that every integration adapter preserves provenance correctly;
 - evidence that a model is safe merely because it refused an attack;
@@ -230,6 +233,9 @@ The protected executor must be the only route to consequential tools. Integratio
 | [`HOWTO.md`](HOWTO.md) | Installation, operating modes, commands, outputs, and troubleshooting |
 | [`docs/architecture.md`](docs/architecture.md) | Components and trust boundaries |
 | [`docs/integration.md`](docs/integration.md) | Security requirements for real integrations |
+| [`docs/threat-model.md`](docs/threat-model.md) | What 1.0 protects, assumes, leaves to other layers, and ships without |
+| [`docs/formats.md`](docs/formats.md) | The file formats frozen for 1.0 and the compatibility rules |
+| [`docs/guardrail-frameworks.md`](docs/guardrail-frameworks.md) | Fourteen guardrail frameworks compared with VAIS |
 | [`docs/security-invariants.md`](docs/security-invariants.md) | Effect-level invariant model |
 | [`docs/mcp-security.md`](docs/mcp-security.md) | MCP mediation and indeterminate-effect semantics |
 | [`docs/v0.12-rc-benchmark.md`](docs/v0.12-rc-benchmark.md) | Cross-model benchmark protocol |
