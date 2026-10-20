@@ -1,0 +1,209 @@
+{
+  "schema": "vais-release-review-v1",
+  "release_version": "1.0.0",
+  "date": "2026-10-20",
+  "project_identity": {
+    "name": "VAIS Boundary",
+    "expansion": "Verifiable Authority & Invariant Security",
+    "repository": "https://github.com/stratomarco/vais-boundary",
+    "distribution": "vais-boundary",
+    "command": "vais",
+    "author": "Marco Constantino",
+    "contact": "stratomarco@proton.me",
+    "license": "Apache-2.0"
+  },
+  "bounded_status": "1.0 is the boundary: the reference monitor, contracts, provenance labels, approvals, session rules, declared stores, audit, revocation and the MCP gateway with mints. Its public interface (61 names), command line (ten boundary commands, tooling under vais lab) and file formats are fixed for 1.x, with samples and a decisions snapshot each 1.x release must reproduce (DEC-071). The gateway gains an observe-only mode that expires by itself within 14 days (DEC-072). It is also the first release of the work since 0.12.0rc15: caps per allowed value (DEC-069), declared stores (DEC-070) and FIND-072 to FIND-076. It is not a production-ready authorization service, has had no independent security review, coordinates state on one machine only, and its enforcement under a frontier model is untested in effect.",
+  "breaking_changes": [
+    {
+      "name": "distribution",
+      "before": "verifiable-ai-security",
+      "after": "vais-boundary; import and command stay vais"
+    },
+    {
+      "name": "top-level exports",
+      "before": "128 names, 76 of them benchmark and research tooling",
+      "after": "61 boundary names; tooling imported from its own module"
+    },
+    {
+      "name": "tooling commands",
+      "before": "vais <command> for 20 tooling commands",
+      "after": "vais lab <command>; the old spelling exits with code 2 and names the new one"
+    }
+  ],
+  "material_findings": [
+    {
+      "id": "FIND-072",
+      "status": "counterfactual_replay",
+      "summary": "The caps per invoice of DEC-069 refuse each of the gap rerun's three overpayments at the overpaying payment; no clean run gains a refusal and nothing refused is newly allowed."
+    },
+    {
+      "id": "FIND-073",
+      "status": "verification",
+      "summary": "The gateway decided 6,499 of 6,500 finance-campaign traces and 480 of 480 rerun traces as the library did; the one difference held a payment for approval one turn earlier than the library."
+    },
+    {
+      "id": "FIND-074",
+      "status": "pre_registered",
+      "summary": "Tier-A v3: VAIS_RESOLVE caught 41 of 41 validated attacks; the one guardrail within ten points dropped 58 of 120 legitimate documents; 197 of 197 across four runs."
+    },
+    {
+      "id": "FIND-075",
+      "status": "pre_registered_addressed_by_DEC-070",
+      "summary": "Trust does not survive a store, but confidentiality and minted authority can; declared stores are now checked at startup."
+    },
+    {
+      "id": "FIND-076",
+      "status": "pre_registered",
+      "summary": "Exactly reproducible on a fixed inference engine; across llama.cpp versions per-model rates moved by up to 11.7 points; zero protected violations reproduced."
+    }
+  ],
+  "new_mechanisms": [
+    {
+      "id": "DEC-069",
+      "name": "caps per allowed value",
+      "default": "off; per contract",
+      "decisions": [
+        "DEC-069"
+      ]
+    },
+    {
+      "id": "DEC-070",
+      "name": "declared stores checked at startup",
+      "default": "off; profiles without declarations behave as before",
+      "decisions": [
+        "DEC-070"
+      ]
+    },
+    {
+      "id": "DEC-071",
+      "name": "the 1.0 boundary: interface, command line, distribution name, frozen formats",
+      "default": "always",
+      "decisions": [
+        "DEC-071"
+      ]
+    },
+    {
+      "id": "DEC-072",
+      "name": "gateway observe-only mode with a required expiry",
+      "default": "off; gateway configuration version 2 only",
+      "decisions": [
+        "DEC-072"
+      ]
+    }
+  ],
+  "scoring_changes": [],
+  "limitations_published": [
+    "LIM-073",
+    "LIM-074",
+    "LIM-075",
+    "LIM-076"
+  ],
+  "limitations_narrowed": [
+    "LIM-072"
+  ],
+  "limitations_closed": [],
+  "open_surfaces": [
+    {
+      "id": "DEC-072",
+      "status": "by_design",
+      "summary": "While observe-only mode lasts, at most 14 days, calls VAIS would refuse are forwarded."
+    },
+    {
+      "id": "FIND-067/FIND-068",
+      "status": "untested_in_effect",
+      "summary": "No available attacker moved Claude Sonnet 5.5, so enforcement under a frontier model is untested in effect."
+    },
+    {
+      "id": "LIM-057",
+      "status": "open",
+      "summary": "Approvals, ledgers and revocations are coordinated on one machine only."
+    },
+    {
+      "id": "carried",
+      "status": "open",
+      "summary": "S13 on the library path; LIM-035, LIM-044, LIM-048, LIM-051; stores that are not declared (LIM-074)."
+    }
+  ],
+  "review": {
+    "reference_monitor_decision_function": "extended by DEC-069 for contracts that declare caps per value; otherwise unchanged, per the regenerated snapshots and the frozen decisions snapshot",
+    "contracts": "extended; value_budgets; every contract field frozen in a sample",
+    "mcp_profiles": "extended; writes and reads, checked at startup (DEC-070)",
+    "gateway": "extended; observe-only mode in configuration version 2; version 1 unchanged and rejects the key",
+    "public_interface_and_command_line": "narrowed to the boundary (DEC-071); no decision logic changed",
+    "unchanged": "approvals, provenance lattice, canonicalization, audit, revocation, session ledger, config loading, benchmark scoring, apart from the format freeze"
+  },
+  "validation": {
+    "source_tests": "1206 passed with the mcp extra, the 6 gateway transport tests included; 1200 passed and 1 skipped without it",
+    "fresh_source_zip_tests": "1200 passed, 1 skipped (mcp extra absent)",
+    "ci": "all 13 jobs pass on 5647bfd: Ubuntu and Windows, Python 3.11 to 3.14, with and without the mcp extra, and the wheel smoke test",
+    "mutation_check": "22 mutants across every 1.0 mechanism, 22 killed (interface 4, command line 3, formats 5, observe mode and its configuration 10); one survived until a test was added for it",
+    "policy_validation": "schema 4, 4 tools",
+    "invariant_validation": "7 invariants",
+    "protected_smoke_default": "20/20 valid security episodes, 0% target failure rate",
+    "protected_smoke_mcp": "500/500 valid security episodes, 0% target failure rate",
+    "snapshots": "regenerated identical except framework_version and the adaptive configuration hash that covers it",
+    "frozen_formats": "every sample in tests/data/formats-1.0 loads and the decisions snapshot reproduces",
+    "isolated_wheel_install": "passed offline (PyYAML 6.0.3 supplied locally, the wheel installed with --no-index --no-deps), pip check clean; 12 of 12 probes pass: distribution and version, the 61-name interface, no tooling loaded on import, tooling only from its modules, the command-line split, the old spelling refused, the default policy, a policy v6 and full contract, observe mode's expiry rules, configuration v1 and v2, the packaged ledger, and the boundary commands",
+    "source_zip_reproducible": true,
+    "wheel_reproducible": true,
+    "wheel_reproducible_note": "with SOURCE_DATE_EPOCH set to the commit time",
+    "sdist_reproducible": false,
+    "campaign_selftest": "passed on all three targets",
+    "campaign_real_verdicts": 0,
+    "campaign_note": "seed 16, 120 seconds per target, 1,007,361 executions, no fault bucket",
+    "experiments_website_campaigns_excluded": true,
+    "secret_scan": "no credential patterns and no email address in tracked files",
+    "privacy_note": "experiments/p1b4/study.json names a local evidence path containing the maintainer's Windows username, public since the P1b-4 pre-registration; website articles link to the author's public Medium profile, as in 0.12.0rc15",
+    "research_evidence_hash_mismatches": 0,
+    "known_unexpected_unresolved_portable_references": 23,
+    "research_doctor_ok": false,
+    "research_doctor_note": "the same 23 unexpected unresolved references as a clean RC9 tree, so 1.0 adds none"
+  },
+  "frozen_benchmark_evidence": {
+    "execution_version": "0.12.0rc7",
+    "models_planned": 15,
+    "models_completed": 14,
+    "models_gate_failed": 1,
+    "evaluable_staged_episodes": 4603,
+    "target_failure_episodes": 2,
+    "protected_invariant_violations": 0,
+    "report_evidence_manifest_sha256": "0e2b82e74428d7f472b79996c700292322c4f89f431b4862a1a183e2bedf7e1d",
+    "carried_byte_identical_from_rc9": true,
+    "interpretation": "Zero observed violations is bounded evidence for the recorded campaign, not proof of universal security. SmolLM3 remains visibly gate-failed and its two target failures remain unevaluated. Its per-model rates are one draw under an unrecorded inference-engine version (FIND-076, LIM-075); its zero protected violations reproduced on llama.cpp 2.51.0. 1.0 does not extend this evidence.",
+    "carrier_before_rc12": "0.12.0rc11"
+  },
+  "lab_experiment_evidence": {
+    "location": "experiments/tier_a",
+    "packaged": false,
+    "pre_registrations": 3,
+    "pre_registered_primaries_evaluable": 1,
+    "interpretation": "The v1 and v2 primaries were not evaluable; v3's was, and its three hypotheses held (FIND-074). Results describe one application, one tool and two agent models (LIM-076)."
+  },
+  "new_experiment_evidence": {
+    "value_budget_replay": {
+      "location": "experiments/value-budget-replay",
+      "pre_registered": false,
+      "finding": "FIND-072"
+    },
+    "gateway_replay_finance": {
+      "location": "experiments/gateway-equivalence",
+      "pre_registered": false,
+      "finding": "FIND-073"
+    },
+    "tier_a_v3": {
+      "location": "experiments/tier_a",
+      "pre_registered": true,
+      "finding": "FIND-074"
+    },
+    "cross_session": {
+      "location": "experiments/cross-session",
+      "pre_registered": true,
+      "finding": "FIND-075"
+    },
+    "rc7_stability": {
+      "location": "experiments/rc7-stability",
+      "pre_registered": true,
+      "finding": "FIND-076"
+    }
+  }
+}
