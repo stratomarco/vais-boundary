@@ -23,7 +23,10 @@ This module does not import the MCP SDK. ``vais.gateway_server`` connects it to 
 """
 from __future__ import annotations
 
+import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 import hashlib
 import json
@@ -31,6 +34,7 @@ import os
 from pathlib import Path
 import re
 import threading
+import time
 from typing import Any, Mapping
 
 
@@ -46,6 +50,7 @@ from .mcp import (
     MCPProtectedClient,
     MCPToolBinding,
     MCPToolSession,
+    MCPUnprotectedClient,
     _confidentiality,
     _fail,
     _known_keys,
@@ -458,6 +463,10 @@ def exposed_name(binding: MCPToolBinding) -> str:
 
 # --- the gateway ---------------------------------------------------------------------
 
+# Observe-only mode cannot be configured to last longer than this (1.0 track, step 5).
+OBSERVE_MAX_SECONDS = 14 * 24 * 3600
+
+
 class Gateway:
     """Decide and forward calls for agents that hold a session token and nothing else.
 
@@ -471,6 +480,13 @@ class Gateway:
     single-use contract approvals and the confidentiality high-water mark survive a restart
     and hold across gateways on one machine sharing the directory. Without it they live in
     this process's memory (LIM-063).
+
+    ``observe_until`` (seconds since the epoch) runs the gateway in observe-only mode until
+    that moment: every call is decided as if enforcing and the decision is audited as
+    ``would_<decision>``, but the call is forwarded whatever the decision. It must be at most
+    ``OBSERVE_MAX_SECONDS`` ahead, so the mode cannot be left on by accident; when it passes,
+    the gateway enforces without a restart. Unauthenticated calls, tools the contract does
+    not allow and malformed arguments are refused in either mode.
     """
 
     def __init__(
@@ -487,7 +503,17 @@ class Gateway:
         reason_disclosure: str = "decision",
         state_dir: str | Path | None = None,
         call_timeout: float | None = None,
+        observe_until: float | None = None,
+        clock: Callable[[], float] | None = None,
     ) -> None:
+        self._clock = clock or time.time
+        if observe_until is not None:
+            if isinstance(observe_until, bool) or not isinstance(observe_until, (int, float)):
+                raise PolicyValidationError("observe_until must be a time in seconds since the epoch")
+            if observe_until - self._clock() > OBSERVE_MAX_SECONDS:
+                raise PolicyValidationError("observe_until must be at most 14 days ahead; observe-only "
+                                            "mode forwards calls VAIS would refuse")
+        self.observe_until = float(observe_until) if observe_until is not None else None
         if reason_disclosure not in ("decision", "reasons"):
             raise ValueError("reason_disclosure must be 'decision' or 'reasons'")
         self.profile = profile
@@ -525,6 +551,13 @@ class Gateway:
         problems = store_flow_problems(profile, monitor.policy)
         if problems:
             raise PolicyValidationError("unsafe store flows: " + "; ".join(problems))
+        if self.observe_until is not None:
+            self.audit.record("observe_only_configured", details={
+                "observe_until": _iso(self.observe_until), "active": self.observing()})
+
+    def observing(self) -> bool:
+        """True while observe-only mode is configured and has not expired."""
+        return self.observe_until is not None and self._clock() < self.observe_until
 
     # The agent sees only the tools its contract allows. This narrows what the model is
     # offered; it is not the authorization, which the monitor makes on every call.
@@ -583,6 +616,9 @@ class Gateway:
                               decision=DecisionType.DENY.value, reasons=("malformed_arguments",))
             return self._refusal(GatewayOutcomeKind.DENIED, ("malformed_arguments",))
 
+        if self.observing():
+            return await self._observe(binding, action, contract, state)
+
         client = MCPProtectedClient(
             server_id=binding.server_id,
             session=self.sessions[binding.server_id],
@@ -606,6 +642,36 @@ class Gateway:
         if record.decision.type is DecisionType.REQUIRE_APPROVAL:
             request = self._request_approval(action, contract)
             return self._refusal(GatewayOutcomeKind.APPROVAL_REQUIRED, record.decision.reasons, request)
+        return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
+
+    async def _observe(self, binding: MCPToolBinding, action: PlannedAction, contract: TaskContract,
+                       state: _SessionState) -> GatewayOutcome:
+        """Observe-only: audit what enforcement would decide, then forward the call anyway.
+
+        The decision is made against the session ledger with no approval store, so the ledger
+        records only the calls enforcement would have allowed (budgets and single use then
+        behave as they would) and observing never consumes an operator's grant.
+        """
+        decision = self.monitor.evaluate(action, contract, ledger=state.ledger)
+        identity = {"principal_id": contract.principal_id, "session_id": contract.session_id,
+                    "tenant_id": contract.tenant_id, "capability_id": contract.capability_id}
+        self.audit.record("observe_only_decision", tool=action.tool, decision=f"would_{decision.type.value}",
+                          reasons=decision.reasons, details={**identity, "observe_until": _iso(self.observe_until)})
+        call = MCPUnprotectedClient(server_id=binding.server_id, session=self.sessions[binding.server_id],
+                                    profile=self.profile).execute(action)
+        try:
+            record = await (asyncio.wait_for(call, self.call_timeout) if self.call_timeout else call)
+        except asyncio.TimeoutError:
+            record = None
+        state_name = record.call_state.value if record is not None else MCPCallState.INDETERMINATE.value
+        self.audit.record("observe_only_dispatch", tool=action.tool, details={**identity, "call_state": state_name})
+        if record is not None and record.call_state is MCPCallState.OBSERVED:
+            state.context.observe(binding.result_policy.confidentiality)
+            self._mint(binding, record.result.data if record.result else None, state, contract)
+            return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
+        if record is None or record.call_state is MCPCallState.INDETERMINATE:
+            return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,
+                                  "the call was dispatched and failed; its effect is unknown")
         return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
 
     def _mint(self, binding: MCPToolBinding, result: Any, state: _SessionState, contract: TaskContract) -> None:
@@ -746,3 +812,7 @@ def _plain(value: Any) -> Any:
     if isinstance(value, (tuple, list, frozenset, set)):
         return [_plain(item) for item in value]
     return value
+
+
+def _iso(seconds: float | None) -> str | None:
+    return None if seconds is None else datetime.fromtimestamp(seconds, timezone.utc).isoformat()

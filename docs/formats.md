@@ -19,7 +19,7 @@ ignored.
 | Policy | 1 to 6 | `vais.load_policy` | `policy-v1.yaml` to `policy-v6.yaml` |
 | Invariants | 1 | `vais.load_invariants` | `invariants-v1.yaml` |
 | MCP integration profile | 1 | `vais.load_mcp_profile` | `mcp-profile-v1.yaml`, `mcp-profile-v1-full.yaml` |
-| Gateway configuration | 1 | `vais.gateway_server.load_gateway_config` | `gateway/gateway.yaml` |
+| Gateway configuration | 1, 2 | `vais.gateway_server.load_gateway_config` | `gateway/gateway.yaml`, `gateway/gateway-v2.yaml` |
 | Gateway contract | 1 | `vais.load_gateway_contract` | `contract-v1.yaml` |
 
 What each policy version added:
@@ -32,6 +32,8 @@ What each policy version added:
 | 4 | fail-closed: `default_action` must be `deny`, undeclared arguments are rejected |
 | 5 | `max_calls` |
 | 6 | `untrusted_origin` |
+
+Gateway configuration version 2 adds one key, `observe_until`, for observe-only mode ([`gateway.md`](gateway.md)); version 1 files keep their meaning and reject it.
 
 `mcp-profile-v1-full.yaml` uses every binding feature: effect mapping, `acknowledge`, a read-back
 `confirm`, `mints`, and declared stores (`writes`, `reads`; DEC-070). `contract-v1.yaml` uses every

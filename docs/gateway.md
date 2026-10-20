@@ -188,6 +188,33 @@ call limits, single-use approvals and what the session has read survive a restar
 gateway processes on one machine sharing the directory act as one. Without it they live in the
 gateway's memory and a restart starts every session fresh (LIM-063).
 
+## Observe-only mode
+
+Before enforcing on an agent you already run, you can watch what VAIS would do. A version 2
+configuration takes `observe_until`, a date and time with a timezone:
+
+```yaml
+version: 2
+observe_until: 2026-11-01T00:00:00Z
+```
+
+Until then, every call is decided exactly as when enforcing, against the session's ledger, and
+the audit records the decision as `would_allow`, `would_deny` or `would_require_approval`, with
+its reasons. The call is then forwarded whatever the decision. The ledger records only the calls
+enforcement would have allowed, so call limits, budgets and single use behave as they would;
+no approval request is written and no grant is consumed.
+
+It is built so it cannot be left on by accident:
+
+- `observe_until` must be at most 14 days after the gateway starts, or the gateway refuses to start;
+- when it passes, the gateway enforces from the next call, without a restart;
+- `vais gateway` prints a warning on every start while the mode is active, and the audit records
+  the configured expiry.
+
+Unauthenticated calls, tools the contract does not expose and malformed arguments are refused in
+either mode. While observing, **nothing VAIS would refuse is stopped**: use it on test data or a
+workflow whose effects you can accept, and read the `would_deny` records before the expiry.
+
 ## What a deployment must guarantee
 
 The gateway makes complete mediation an architectural property **only if the deployment keeps

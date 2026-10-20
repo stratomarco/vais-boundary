@@ -41,6 +41,7 @@ def test_the_other_operator_files_load():
     full = load_mcp_profile(SAMPLES / "mcp-profile-v1-full.yaml")
     assert {b.canonical_tool for b in full.bindings if b.writes} == {"mcp:ap:create_invoice"}
     load_gateway_config(SAMPLES / "gateway" / "gateway.yaml")
+    assert load_gateway_config(SAMPLES / "gateway" / "gateway-v2.yaml").observe_until == 1_793_491_200.0
     _, contract = load_gateway_contract(SAMPLES / "contract-v1.yaml")
     assert contract.value_budgets and contract.allowed_values and contract.budgets
 

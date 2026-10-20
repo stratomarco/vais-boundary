@@ -31,16 +31,18 @@ from __future__ import annotations
 
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import date, datetime
 import json
 import os
 from pathlib import Path
 import re
+import sys
 from typing import Any, AsyncIterator
 
 
 from .approvals import ApprovalStore
 from .exceptions import PolicyValidationError
-from .gateway import ContractRegistry, Gateway, exposed_name
+from .gateway import OBSERVE_MAX_SECONDS, ContractRegistry, Gateway, exposed_name
 from .mcp import MCPProfile, _fail, _known_keys, _mapping, _string, load_mcp_profile
 from .monitor import ReferenceMonitor
 from .policy import Policy, load_policy
@@ -79,6 +81,29 @@ class GatewayConfig:
     state: Path | None = None
     revocations: Path | None = None
     call_timeout: float | None = None
+    # Observe-only until this time, in seconds since the epoch (version 2 only).
+    observe_until: float | None = None
+
+
+_KEYS_V1 = {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",
+            "audit", "state", "revocations", "reason_disclosure", "call_timeout", "upstreams"}
+# Version 2 adds observe-only mode; version 1 files keep their meaning (docs/formats.md).
+_KEYS_V2 = _KEYS_V1 | {"observe_until"}
+
+
+def _observe_until(value: Any, where: str) -> float:
+    """A date and time with a timezone, as YAML gives it or as a quoted ISO 8601 string."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            _fail(where, "must be an ISO 8601 date and time with a timezone, such as 2026-11-01T00:00:00Z")
+    if not isinstance(value, datetime) or isinstance(value, bool):
+        kind = "a date without a time" if isinstance(value, date) else "not a date and time"
+        _fail(where, f"must be a date and time with a timezone, such as 2026-11-01T00:00:00Z ({kind})")
+    if value.tzinfo is None or value.utcoffset() is None:
+        _fail(where, "must include a timezone, such as Z for UTC")
+    return value.timestamp()
 
 
 def load_gateway_config(path: str | Path) -> GatewayConfig:
@@ -90,10 +115,11 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
     except OSError as exc:
         raise PolicyValidationError(f"{location}: cannot read gateway configuration ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
-    _known_keys(raw, {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",
-                      "audit", "state", "revocations", "reason_disclosure", "call_timeout", "upstreams"}, location)
-    if raw.get("version") != 1 or isinstance(raw.get("version"), bool):
-        _fail(f"{location}.version", "must be 1")
+    version = raw.get("version")
+    if isinstance(version, bool) or version not in (1, 2):
+        _fail(f"{location}.version", "must be 1 or 2")
+    _known_keys(raw, _KEYS_V2 if version == 2 else _KEYS_V1, location)
+    observe_until = _observe_until(raw["observe_until"], f"{location}.observe_until") if "observe_until" in raw else None
 
     listen = _mapping(raw.get("listen", {}), f"{location}.listen")
     _known_keys(listen, {"host", "port", "path"}, f"{location}.listen")
@@ -154,6 +180,7 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         state=local("state") if "state" in raw else None,
         revocations=local("revocations") if "revocations" in raw else None,
         call_timeout=float(call_timeout) if call_timeout is not None else None,
+        observe_until=observe_until,
     )
 
 
@@ -295,7 +322,7 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
                 profile=profile, monitor=build_monitor(policy, config), registry=registry, sessions=sessions,
                 approval_store=ApprovalStore(config.approvals), pending_dir=config.pending,
                 audit_path=config.audit, reason_disclosure=config.reason_disclosure, state_dir=config.state,
-                call_timeout=config.call_timeout,
+                call_timeout=config.call_timeout, observe_until=config.observe_until,
             )
             async with server.session_manager.run():
                 yield
@@ -331,4 +358,11 @@ def serve(config_path: str | Path) -> None:
     import uvicorn
 
     config = load_gateway_config(config_path)
+    if config.observe_until is not None and config.observe_until <= datetime.now().timestamp():
+        print("vais gateway: observe_until has passed; the gateway enforces.", file=sys.stderr)
+    elif config.observe_until is not None:
+        until = datetime.fromtimestamp(config.observe_until).astimezone().isoformat(timespec="minutes")
+        print(f"vais gateway: OBSERVE-ONLY MODE until {until}. Calls VAIS would refuse are forwarded and "
+              "audited as would_deny or would_require_approval. Enforcement starts by itself at that time "
+              f"(at most {OBSERVE_MAX_SECONDS // 86400} days after it is configured).", file=sys.stderr)
     uvicorn.run(build_app(config), host=config.host, port=config.port, log_level="warning")

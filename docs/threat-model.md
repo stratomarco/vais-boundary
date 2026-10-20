@@ -106,6 +106,7 @@ Stated here so a reader does not have to infer them from what is missing:
   scenarios and episode budgets of each study. Per-model rates also depend on the inference
   engine's version (FIND-076, LIM-075). Zero observed violations in a finite campaign is not
   proof of universal security.
+- **Observe-only mode enforces nothing while it lasts.** A gateway configured with `observe_until` forwards calls VAIS would refuse, for at most 14 days after it starts, and then enforces by itself ([`gateway.md`](gateway.md)). Whoever can edit the gateway configuration can turn it on, as they could already change the policy.
 - **It is not a production-ready authorization service.** The known gaps above, and the research
   ledger's limitations, apply.
 
