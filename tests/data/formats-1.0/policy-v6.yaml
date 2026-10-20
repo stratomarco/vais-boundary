@@ -1,0 +1,21 @@
+# Frozen 1.0 sample: policy version 6 (adds untrusted_origin).
+version: 6
+default_action: deny
+tools:
+  mcp:ops:send_email:
+    allow: true
+    required_scope: email:send
+    max_calls: 2
+    untrusted_origin: require_approval
+    arguments:
+      recipient: {trust_required: trusted}
+      body: {max_confidentiality: internal}
+  mcp:ap:pay:
+    allow: true
+    required_scope: payments:write
+    exact_approval_required: true
+    untrusted_origin: deny
+    arguments:
+      amount: {}
+      invoice_id: {trust_required: trusted}
+    approval: {field: amount, greater_than: 1000}

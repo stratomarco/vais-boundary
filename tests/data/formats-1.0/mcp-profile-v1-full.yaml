@@ -1,0 +1,36 @@
+# Frozen 1.0 sample: MCP profile version 1 using every binding feature:
+# effect mapping, acknowledge, a read-back confirm, mints, and declared stores (DEC-070).
+version: 1
+servers:
+  ap:
+    default_confidentiality: internal
+    tools:
+      create_invoice:
+        canonical_tool: mcp:ap:create_invoice
+        result_confidentiality: internal
+        effect:
+          kind: invoice_created
+          argument_fields: {vendor: vendor, amount: amount}
+          acknowledge: {vendor: vendor}
+        mints:
+          - {from: result.invoice_id, to: [mcp:ap:pay.invoice_id]}
+        writes: [ledger]
+      pay:
+        canonical_tool: mcp:ap:pay
+        result_confidentiality: internal
+        effect:
+          kind: payment_sent
+          argument_fields: {invoice_id: invoice_id, amount: amount}
+          confirm:
+            server: ap
+            tool: get_payment
+            arguments: {invoice_id: effect.invoice_id}
+            expect: {amount: amount}
+        reads: [ledger]
+      get_payment:
+        canonical_tool: mcp:ap:get_payment
+        result_confidentiality: internal
+        effect:
+          kind: payment_read
+          argument_fields: {invoice_id: invoice_id}
+        reads: [ledger]

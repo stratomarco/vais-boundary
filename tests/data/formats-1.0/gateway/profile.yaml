@@ -1,0 +1,15 @@
+version: 1
+servers:
+  ops:
+    default_confidentiality: internal
+    tools:
+      get_incident:
+        canonical_tool: mcp:ops:get_incident
+        result_confidentiality: internal
+        effect: {kind: incident_read, argument_fields: {incident_id: incident_id}}
+      send_email:
+        canonical_tool: mcp:ops:send_email
+        result_confidentiality: internal
+        # The demo server's reply repeats the recipient, so the effect is acknowledged; a
+        # confirm block would read it back from a separate system of record (docs/gateway.md).
+        effect: {kind: email_sent, argument_fields: {recipient: recipient, body: body}, acknowledge: {recipient: recipient}}

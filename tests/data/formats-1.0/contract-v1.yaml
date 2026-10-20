@@ -1,0 +1,20 @@
+# Frozen 1.0 sample: gateway contract version 1, using every contract field.
+# The token is "frozen-sample-token"; token_sha256 is its SHA-256.
+version: 1
+token_sha256: 11b768adac134669c754c6e5772c8fb6d213d0ef30f1abb7b6c95ae8bc882a1a
+principal_id: clerk-1
+session_id: ap-batch-0042
+tenant_id: acme
+capability_id: payables
+allowed_tools: [mcp:ops:send_email, mcp:ap:pay]
+granted_scopes: [email:send, payments:write]
+bound_arguments:
+  mcp:ops:send_email: {recipient: ap-team@acme.example}
+allowed_values:
+  mcp:ap:pay: {invoice_id: {values: [INV-1001, INV-1002], once: true}}
+budgets:
+  mcp:ap:pay: {amount: 4650.00}
+value_budgets:
+  mcp:ap:pay: {amount: {per: invoice_id, limits: {INV-1001: 1250.00, INV-1002: 3400.00}}}
+not_before: 1700000000
+not_after: 4102444800

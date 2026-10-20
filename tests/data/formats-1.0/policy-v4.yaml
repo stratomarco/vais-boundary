@@ -1,0 +1,19 @@
+# Frozen 1.0 sample: policy version 4 (fail-closed: default deny, undeclared arguments rejected).
+version: 4
+default_action: deny
+tools:
+  mcp:ops:send_email:
+    allow: true
+    required_scope: email:send
+    reject_undeclared_arguments: true
+    arguments:
+      recipient: {trust_required: trusted}
+      body: {max_confidentiality: internal}
+  mcp:ap:pay:
+    allow: true
+    required_scope: payments:write
+    exact_approval_required: true
+    arguments:
+      amount: {}
+      invoice_id: {trust_required: trusted}
+    approval: {field: amount, greater_than: 1000}

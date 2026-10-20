@@ -1,0 +1,14 @@
+{
+  "action_fingerprint": "28d0b8aacd3828cb287b43f52f1dafb1b370ca026a194ad6c24cc226837fd69e",
+  "arguments": {
+    "amount": 5000,
+    "invoice_id": "INV-1002"
+  },
+  "capability_id": "payables",
+  "principal_id": "clerk-1",
+  "request_id": "frozen-sample-request",
+  "session_id": "ap-batch-0042",
+  "tenant_id": "acme",
+  "tool": "mcp:ap:pay",
+  "version": 1
+}

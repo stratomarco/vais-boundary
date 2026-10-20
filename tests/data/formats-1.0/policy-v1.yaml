@@ -1,0 +1,13 @@
+# Frozen 1.0 sample: policy version 1. Must load, and decide as in expected-decisions.json, in every 1.x release.
+version: 1
+default_action: deny
+tools:
+  mcp:ops:send_email:
+    allow: true
+    arguments:
+      recipient: {trust_required: trusted}
+  mcp:ap:pay:
+    allow: true
+    arguments:
+      amount: {}
+    approval: {field: amount, greater_than: 1000}

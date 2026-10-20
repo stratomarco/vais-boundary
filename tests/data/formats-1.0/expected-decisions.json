@@ -1,0 +1,320 @@
+{
+  "contract-v1 with policy-v6": {
+    "email_bound_recipient": [
+      "allow",
+      []
+    ],
+    "email_other_recipient": [
+      "deny",
+      [
+        "bound_argument_changed:recipient"
+      ]
+    ],
+    "pay_inv1001_1000": [
+      "allow",
+      []
+    ],
+    "pay_inv1001_again_200": [
+      "deny",
+      [
+        "allowed_value_already_used:invoice_id"
+      ]
+    ],
+    "pay_inv1002_900": [
+      "allow",
+      []
+    ],
+    "pay_inv1002_over_cap_3500": [
+      "deny",
+      [
+        "value_budget_exceeded:mcp:ap:pay:amount:invoice_id"
+      ]
+    ],
+    "pay_unlisted_invoice": [
+      "deny",
+      [
+        "argument_not_allowed:invoice_id"
+      ]
+    ]
+  },
+  "policies": {
+    "policy-v1": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "allow",
+        []
+      ],
+      "email_undeclared_argument": [
+        "allow",
+        []
+      ],
+      "email_untrusted_origin": [
+        "allow",
+        []
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "approval_required:mcp:ap:pay:amount"
+        ]
+      ],
+      "pay_under_threshold": [
+        "allow",
+        []
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    },
+    "policy-v2": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "deny",
+        [
+          "confidentiality_exceeds_limit:body:confidential>internal"
+        ]
+      ],
+      "email_undeclared_argument": [
+        "allow",
+        []
+      ],
+      "email_untrusted_origin": [
+        "allow",
+        []
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "approval_required:mcp:ap:pay:amount"
+        ]
+      ],
+      "pay_under_threshold": [
+        "allow",
+        []
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    },
+    "policy-v3": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "deny",
+        [
+          "confidentiality_exceeds_limit:body:confidential>internal"
+        ]
+      ],
+      "email_undeclared_argument": [
+        "allow",
+        []
+      ],
+      "email_untrusted_origin": [
+        "allow",
+        []
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "pay_under_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    },
+    "policy-v4": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "deny",
+        [
+          "confidentiality_exceeds_limit:body:confidential>internal"
+        ]
+      ],
+      "email_undeclared_argument": [
+        "deny",
+        [
+          "undeclared_argument:cc"
+        ]
+      ],
+      "email_untrusted_origin": [
+        "allow",
+        []
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "pay_under_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    },
+    "policy-v5": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "deny",
+        [
+          "confidentiality_exceeds_limit:body:confidential>internal"
+        ]
+      ],
+      "email_undeclared_argument": [
+        "deny",
+        [
+          "undeclared_argument:cc"
+        ]
+      ],
+      "email_untrusted_origin": [
+        "allow",
+        []
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "pay_under_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    },
+    "policy-v6": {
+      "email_bound_recipient": [
+        "allow",
+        []
+      ],
+      "email_confidential_body": [
+        "deny",
+        [
+          "confidentiality_exceeds_limit:body:confidential>internal"
+        ]
+      ],
+      "email_undeclared_argument": [
+        "deny",
+        [
+          "undeclared_argument:cc"
+        ]
+      ],
+      "email_untrusted_origin": [
+        "require_approval",
+        [
+          "approval_required:mcp:ops:send_email:untrusted_origin"
+        ]
+      ],
+      "email_untrusted_recipient": [
+        "deny",
+        [
+          "bound_argument_changed:recipient",
+          "bound_argument_not_trusted:recipient",
+          "untrusted_authority_argument:recipient"
+        ]
+      ],
+      "pay_over_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "pay_under_threshold": [
+        "require_approval",
+        [
+          "exact_approval_required:mcp:ap:pay"
+        ]
+      ],
+      "unknown_tool": [
+        "deny",
+        [
+          "tool_not_authorized:mcp:ops:delete_all"
+        ]
+      ]
+    }
+  }
+}

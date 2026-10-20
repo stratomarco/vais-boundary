@@ -1,0 +1,16 @@
+# Frozen 1.0 sample: policy version 2 (adds required_scope and max_confidentiality).
+version: 2
+default_action: deny
+tools:
+  mcp:ops:send_email:
+    allow: true
+    required_scope: email:send
+    arguments:
+      recipient: {trust_required: trusted}
+      body: {max_confidentiality: internal}
+  mcp:ap:pay:
+    allow: true
+    required_scope: payments:write
+    arguments:
+      amount: {}
+    approval: {field: amount, greater_than: 1000}
