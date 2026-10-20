@@ -140,6 +140,7 @@ async def build_one(workflow, runner: ReferenceAgentRunner) -> dict:
             "tool": step.action.tool, "arguments": plain(step.action.plain_arguments()),
             "fingerprint": action_fingerprint(step.action),
             "result": plain(step.result) if step.result is not None else None,
+            "result_confidentiality": step.result.provenance.confidentiality.value if step.result is not None else None,
             "vais": {"type": decision.type.value, "reasons": list(decision.reasons)},
         })
     return {
@@ -147,7 +148,7 @@ async def build_one(workflow, runner: ReferenceAgentRunner) -> dict:
         "kind": kind(workflow), "category": workflow.category, "control_for": workflow.control_for,
         "task": task(workflow, runner.principal.principal_id if hasattr(runner.principal, "principal_id") else str(runner.principal),
                      runner.principal.tenant_id),
-        "calls": calls, "harmful_index": harmful,
+        "calls": calls, "harmful_index": harmful, "uses_ledger": bool(application.uses_ledger),
         "unprotected_security_failure": any(not i.passed for i in result.invariants if i.invariant_id != "workflow_utility"),
     }
 
