@@ -84,6 +84,10 @@ STUDIES = (
           registrations=("experiments/cross-session/PREREGISTRATION.md",), results=("experiments/cross-session/RESULTS.md",)),
     Study("Stability of the RC7 result", ("experiments/rc7-stability",), f"{ARCHIVE} `evidence/0.12.0rc15/rc7-stability/`",
           registrations=("experiments/rc7-stability/PREREGISTRATION.md",), results=("experiments/rc7-stability/RESULTS.md",)),
+    Study("What AgentCore Policy's language can express of VAIS's decisions", ("experiments/dogwood-expressibility",),
+          "deterministic; generated from the reference workflows, outputs in the repository",
+          registrations=("experiments/dogwood-expressibility/PREREGISTRATION.md",),
+          note="Registered; not yet run."),
 )
 
 

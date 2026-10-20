@@ -25,6 +25,7 @@ the maintainer's backup of raw records too large for git, listed with checksums 
 | Tier A v3, the guardrail cost axis | `PREREGISTRATION-v3.md` f0fcf96 2026-10-03 | FIND-074 | LIM-076 | [RESULTS-v3.md](../experiments/tier_a/RESULTS-v3.md) | in the repository, `experiments/tier_a/evidence/v3-*` |
 | Cross-session flows | `PREREGISTRATION.md` 2b0e12f 2026-10-03 | FIND-075 | LIM-074 | [RESULTS.md](../experiments/cross-session/RESULTS.md) | deterministic; `experiments/cross-session/results.json` is in the repository |
 | Stability of the RC7 result | `PREREGISTRATION.md` 338515c 2026-10-03 | FIND-076 | LIM-075 | [RESULTS.md](../experiments/rc7-stability/RESULTS.md) | off-drive archive `evidence/0.12.0rc15/rc7-stability/` |
+| What AgentCore Policy's language can express of VAIS's decisions | `PREREGISTRATION.md` 6df88bc 2026-10-20 | none | none |  | deterministic; generated from the reference workflows, outputs in the repository |
 
 ## What each study found
 
@@ -107,3 +108,9 @@ Exploratory, not pre-registered.
 ### Stability of the RC7 result
 
 - **FIND-076** (0.12.0rc15): A VAIS evaluation is exactly reproducible on a fixed inference engine, and RC7's per-model numbers depend on the llama.cpp version that ran them. In a pre-registered rerun of RC7's full stage with prompts, plan schema, request bodies and attacker verified identical: repeating three models on the same engine reproduced 720 of 720 episodes; changing only the CUDA toolkit build of llama.cpp 2.51.0 reproduced 480 of 480; but rerunning all 15 models on llama.cpp 2.51.0, six weeks after RC7 on an unrecorded engine, reproduced 2,186 of 3,600 episodes, and llama.cpp cuda-avx2 2.5.1 reproduced 58 of 240 for qwen3-0.6b, so it was not RC7's engine. Attack-added rates moved by -11.7 to +4.2 points (gemma-3-1b's interval excluding zero), eleven models by less than 4; protected violations stayed at 0 in all 3,598 evaluable rerun episodes.
+
+### What AgentCore Policy's language can express of VAIS's decisions
+
+Registered; not yet run.
+
+- No ledger finding.
