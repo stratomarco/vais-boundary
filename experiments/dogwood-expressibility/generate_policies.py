@@ -53,6 +53,21 @@ MINTS = {
         ("payments.build_remittance", "text", "email.send_remittance", "advice_id"),
     ],
 }
+# Round 2 (exploratory, after the first replay; RESULTS.md): the mints exactly as the finance
+# application makes them in reference_finance._bind_result. The vendor master's bank account and
+# remittance contact become authority only from the record of the vendor the task binds; an
+# executed payment's payment_id, and a built remittance's advice, become authority for the next step.
+# (source, output field, target tool, target argument, vendor-conditioned)
+MINTS_ROUND2 = {
+    "incident-response": [(s, f, t, a, False) for s, f, t, a in MINTS["incident-response"]],
+    "accounts-payable": [
+        ("vendors.get", "bank_account_id", "payments.pay", "bank_account_id", True),
+        ("vendors.get", "remittance_contact", "email.send_remittance", "recipient", True),
+        ("payments.pay", "payment_id", "payments.build_remittance", "payment_id", False),
+        ("payments.build_remittance", "text", "email.send_remittance", "advice_id", False),
+    ],
+}
+
 TASK_EVENTS = {
     "TaskTool": {"tool": "String"},
     "TaskScope": {"scope": "String"},
@@ -124,7 +139,7 @@ def _ident(tool: str) -> str:
     return tool.replace(".", "_")
 
 
-def policy(application: str) -> str:
+def policy(application: str, round_: int = 1) -> str:
     ns, cfg, ifaces = NAMESPACE[application], config(application), interfaces(application)
     act = lambda name: f'{ns}::Action::"{name}"'  # noqa: E731
     ev = lambda name, kind, fields: f"{act(name)}::{kind}{{ {', '.join(f'{k}: {v}' for k, v in fields.items())} }}"  # noqa: E731
@@ -174,11 +189,23 @@ def policy(application: str) -> str:
         for arg in r["trusted_arguments"]:
             sources = [ev("TaskBind", "response", {"input.tool": f'"{tool}"', "input.arg": f'"{arg}"', "input.value": f"context.input.{arg}"}),
                        ev("TaskAllow", "response", {"input.tool": f'"{tool}"', "input.arg": f'"{arg}"', "input.value": f"context.input.{arg}", "input.once": "_"})]
-            for source, field, target, target_arg in MINTS[application]:
-                if (target, target_arg) == (tool, arg):
-                    sources.append(ev(source, "response", {f"output.{field}": f"context.input.{arg}"}))
+            conditions = [past(s) for s in sources]
+            if round_ == 1:
+                for source, field, target, target_arg in MINTS[application]:
+                    if (target, target_arg) == (tool, arg):
+                        conditions.append(past(ev(source, "response", {f"output.{field}": f"context.input.{arg}"})))
+            else:
+                for source, field, target, target_arg, by_vendor in MINTS_ROUND2[application]:
+                    if (target, target_arg) != (tool, arg):
+                        continue
+                    if not by_vendor:
+                        conditions.append(past(ev(source, "response", {f"output.{field}": f"context.input.{arg}"})))
+                        continue
+                    bound_vendor = ev("TaskBind", "response", {"input.tool": '"payments.pay"', "input.arg": '"vendor_id"', "input.value": "v"})
+                    record = ev(source, "response", {"output.vendor_id": "v", f"output.{field}": f"context.input.{arg}"})
+                    conditions.append(f"exists (v: String). ({past(bound_vendor)} && {past(record)})")
             rule("forbid", tool, f"when {{ context.input has {arg} }}",
-                 "when temporal { " + " && ".join(f"!{past(s)}" for s in sources) + " }")
+                 "when temporal { " + " && ".join(f"!{c}" if not c.startswith("exists") else f"!{c}" for c in conditions) + " }")
 
         for arg, ceiling in sorted(r["confidentiality_ceilings"].items()):
             for other, level in sorted(conf.items()):
@@ -225,11 +252,16 @@ def policy(application: str) -> str:
 
 
 def main() -> int:
-    (HERE / "policies").mkdir(exist_ok=True)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--round", type=int, choices=(1, 2), default=1)
+    round_ = parser.parse_args().round
+    out = HERE / "policies" if round_ == 1 else HERE / "policies" / "round2"
+    out.mkdir(parents=True, exist_ok=True)
     for application in NAMESPACE:
-        (HERE / "policies" / f"{application}.cedarschema").write_text(schema(application), encoding="utf-8")
-        (HERE / "policies" / f"{application}.dw").write_text(policy(application), encoding="utf-8")
-        print(application, "written")
+        (out / f"{application}.cedarschema").write_text(schema(application), encoding="utf-8")
+        (out / f"{application}.dw").write_text(policy(application, round_), encoding="utf-8")
+        print(application, "written to", out)
     return 0
 
 
