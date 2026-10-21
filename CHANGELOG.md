@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **The accounts-payable reference integration (DEC-075, LIM-079).** Step 3 of the workflow
+  integration, in `examples/ap_integration/`: the gateway as the only path between an agent and
+  the sandbox backend, with the task, the contract built from it, the policy, an MCP profile
+  version 2 in which every writing tool is consequential and keyed, an operator guide and the
+  workflow record. `verify.py` is an independent verifier: it imports no VAIS code, recomputes
+  the backend's receipt chain, and checks ten declared invariants and task completion against
+  the backend's own records. One of them is the bypass test: every backend change must match a
+  call the gateway dispatched, by idempotency key and receipt. Tested end to end over HTTP for
+  a clean run, an injected payment followed by recovery, and a lost reply retried once.
+  The audit's `effect_indeterminate` event now carries the call's idempotency key.
 - **Consequential tools, idempotency keys and correlation (DEC-074, FIND-078, LIM-078).** Step 2
   of the workflow integration. MCP profile version 2 adds three keys per tool; version 1 profiles
   keep their meaning.

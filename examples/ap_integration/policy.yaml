@@ -1,0 +1,75 @@
+# What any accounts-payable task may do with each tool. A task's contract narrows it further
+# (python -m ap_integration setup). Authority-bearing arguments must be trusted: from the
+# contract, or minted by the vendor master or the payment ledger (profile.yaml).
+version: 5
+default_action: deny
+tools:
+  mcp:ap:get_invoice:
+    allow: true
+    required_scope: invoices:read
+    arguments: {invoice_id: {trust_required: trusted}}
+  mcp:ap:read_message:
+    allow: true
+    required_scope: inbox:read
+    arguments: {message_id: {trust_required: trusted}}
+  mcp:ap:read_portal:
+    allow: true
+    required_scope: vendors:read
+    arguments: {vendor_id: {trust_required: trusted}}
+  mcp:ap:get_vendor:
+    allow: true
+    required_scope: vendors:read
+    arguments: {vendor_id: {trust_required: trusted}}
+  mcp:ap:get_payroll_summary:
+    allow: true
+    required_scope: payroll:read
+    arguments: {period: {trust_required: trusted}}
+  mcp:ap:pay:
+    allow: true
+    required_scope: payments:send
+    arguments:
+      vendor_id: {trust_required: trusted}
+      bank_account_id: {trust_required: trusted}
+      invoice_id: {trust_required: trusted}
+      amount: {}
+    approval: {field: amount, greater_than: 5000}
+  mcp:ap:build_remittance:
+    allow: true
+    required_scope: payments:remit
+    arguments: {payment_id: {trust_required: trusted}}
+  mcp:ap:send_remittance:
+    allow: true
+    required_scope: email:external
+    arguments:
+      recipient: {trust_required: trusted}
+      advice_id: {trust_required: trusted}
+  mcp:ap:send_email:
+    allow: true
+    required_scope: email:external
+    arguments:
+      recipient: {trust_required: trusted}
+      body: {trust_required: trusted, max_confidentiality: public}
+  mcp:ap:post_chat:
+    allow: true
+    required_scope: chat:internal
+    arguments:
+      channel: {trust_required: trusted}
+      body: {max_confidentiality: internal}
+  mcp:ap:update_bank_details:
+    allow: true
+    required_scope: vendors:write
+    exact_approval_required: true
+    arguments:
+      vendor_id: {trust_required: trusted}
+      bank_account_id: {}
+  mcp:ap:create_vendor:
+    allow: true
+    required_scope: vendors:write
+    exact_approval_required: true
+    arguments:
+      name: {}
+      bank_account_id: {}
+  mcp:ap:mark_invoice_paid:
+    allow: true
+    required_scope: invoices:write
+    arguments: {invoice_id: {trust_required: trusted}}

@@ -604,7 +604,8 @@ class MCPProtectedClient:
                 self.audit.record(
                     "effect_indeterminate",
                     tool=action.tool,
-                    details={"error": error, "action_fingerprint": request_id, **correlation},
+                    details={"error": error, "action_fingerprint": request_id, **correlation,
+                             **({"idempotency_key": key} if key is not None else {})},
                 )
             return MCPExecutionRecord(
                 action=action,

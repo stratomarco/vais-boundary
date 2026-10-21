@@ -62,7 +62,10 @@ a read API, served over MCP behind the gateway.
    - per-call correlation IDs, a configuration digest at gateway start, receipt digests and
      invariant verdicts in the audit (R8).
 3. **Reference integration:** gateway as the only path, configuration, an example contract,
-   policies, invariants, an operator guide, and the bypass test (R2).
+   policies, invariants, an operator guide, and the bypass test (R2). **Done** (DEC-075,
+   LIM-079): `examples/ap_integration/`, with the workflow record (`WORKFLOW.md`), the operator
+   guide (`README.md`), and a verifier that imports no VAIS code and checks the backend's own
+   records; tested end to end in `tests/test_ap_integration.py`.
 4. **Frozen evaluation:** pre-registered, with the attacks above plus transport failures after
    dispatch, retries, a bypass attempt and recovery after a denial.
 5. **Evidence packet and pilot handoff:** raw action and effect records, an independent

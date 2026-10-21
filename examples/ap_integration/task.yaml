@@ -1,0 +1,13 @@
+# The trusted task: what an authenticated accounts-payable clerk asked for, before the agent
+# reads anything. The contract (`python -m ap_integration setup`) and the verifier are both
+# built from this file, never from what the agent read. In a pilot it comes from the
+# identity provider and the approved payment batch, not from a file an operator types.
+version: 1
+batch_id: AP-RUN-2026-10-21
+requester: clerk-1
+tenant: acme
+vendor: V-100
+invoices:
+  INV-1001: "1250.00"
+  INV-1002: "3400.00"
+remittance: true

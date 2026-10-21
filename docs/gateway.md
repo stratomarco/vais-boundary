@@ -191,6 +191,11 @@ backend's own record.
 
 ## Quick start
 
+A complete worked deployment, with a backend, a task, a contract, a version 2 profile, an
+independent verifier and an operator guide, is the accounts-payable reference integration in
+[`examples/ap_integration/`](../examples/ap_integration/README.md). The quick start below is the
+smallest gateway.
+
 The files are in [`examples/gateway/`](../examples/gateway/); the upstream is the repository's
 deliberately vulnerable demo server. From that directory:
 

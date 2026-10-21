@@ -31,3 +31,6 @@ campaigns/reports/
 
 # Sandbox databases created by `python -m ap_sandbox init`
 examples/**/*.sqlite3*
+
+# The reference integration's run directory: backend, contracts, audit (python -m ap_integration setup)
+examples/ap_integration/run/

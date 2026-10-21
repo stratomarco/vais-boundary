@@ -1,0 +1,24 @@
+# The reference integration's gateway. Run from examples/:
+#   vais gateway --config ap_integration/gateway.yaml
+# Paths are relative to this file; run/ is created by `python -m ap_integration setup`.
+version: 1
+listen: {host: 127.0.0.1, port: 8766}
+policy: policy.yaml
+profile: profile.yaml
+contracts: run/contracts/
+approvals: run/approvals.json
+pending: run/pending/
+audit: run/audit.jsonl
+state: run/state/
+revocations: run/revocations.json
+reason_disclosure: decision
+call_timeout: 30
+upstreams:
+  ap:
+    stdio:
+      # The interpreter needs the mcp extra. The backend's key is resolved from the gateway's
+      # environment at startup and given to the backend only: the agent never holds it.
+      command: python
+      args: [-m, ap_sandbox.server, --db, ap_integration/run/ap.sqlite3]
+      cwd: ..
+      env: {AP_SANDBOX_KEY: "${env:AP_SANDBOX_KEY}"}

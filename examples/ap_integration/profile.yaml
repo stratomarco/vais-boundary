@@ -1,0 +1,89 @@
+# How the gateway reaches the sandbox backend's tools (MCP profile version 2, DEC-074).
+# Every tool that changes the backend is consequential and carries the gateway's idempotency
+# key, so each backend change can be matched to the gateway call that made it (verify.py).
+version: 2
+servers:
+  ap:
+    default_confidentiality: internal
+    tools:
+      get_invoice:
+        canonical_tool: mcp:ap:get_invoice
+        effect: {kind: invoice_read, argument_fields: {invoice_id: invoice_id}}
+      read_message:
+        canonical_tool: mcp:ap:read_message
+        effect: {kind: message_read, argument_fields: {message_id: message_id}}
+      read_portal:
+        canonical_tool: mcp:ap:read_portal
+        effect: {kind: portal_read, argument_fields: {vendor_id: vendor_id}}
+      get_vendor:
+        # The vendor master is the system of record for where a vendor is paid and who gets
+        # its remittance. Its reply makes those two values authority for this session only.
+        canonical_tool: mcp:ap:get_vendor
+        effect: {kind: vendor_read, argument_fields: {vendor_id: vendor_id}}
+        mints:
+          - {from: result.bank_account_id, to: [mcp:ap:pay.bank_account_id]}
+          - {from: result.remittance_contact, to: [mcp:ap:send_remittance.recipient]}
+      get_payroll_summary:
+        canonical_tool: mcp:ap:get_payroll_summary
+        result_confidentiality: secret
+        effect: {kind: payroll_read, argument_fields: {period: period}}
+      pay:
+        canonical_tool: mcp:ap:pay
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect:
+          kind: payment
+          argument_fields: {vendor_id: vendor_id, bank_account_id: bank_account_id, invoice_id: invoice_id, amount: amount, idempotency_key: idempotency_key}
+          acknowledge: {invoice_id: invoice_id, bank_account_id: bank_account_id}
+          confirm:
+            server: ap
+            tool: find_payment
+            arguments: {idempotency_key: effect.idempotency_key}
+            expect: {invoice_id: invoice_id, bank_account_id: bank_account_id}
+        mints:
+          - {from: result.payment_id, to: [mcp:ap:build_remittance.payment_id]}
+      build_remittance:
+        canonical_tool: mcp:ap:build_remittance
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: remittance_built, argument_fields: {payment_id: payment_id}, acknowledge: {payment_id: payment_id}}
+        mints:
+          - {from: result.advice_id, to: [mcp:ap:send_remittance.advice_id]}
+      send_remittance:
+        canonical_tool: mcp:ap:send_remittance
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: remittance_sent, argument_fields: {recipient: recipient, advice_id: advice_id}, acknowledge: {recipient: recipient}}
+      send_email:
+        canonical_tool: mcp:ap:send_email
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: email_sent, argument_fields: {recipient: recipient, body: body}, acknowledge: {recipient: recipient}}
+      post_chat:
+        canonical_tool: mcp:ap:post_chat
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: chat_posted, argument_fields: {channel: channel, body: body}}
+      update_bank_details:
+        canonical_tool: mcp:ap:update_bank_details
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: vendor_bank_changed, argument_fields: {vendor_id: vendor_id, bank_account_id: bank_account_id}}
+      create_vendor:
+        canonical_tool: mcp:ap:create_vendor
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: vendor_created, argument_fields: {name: name, bank_account_id: bank_account_id}}
+      mark_invoice_paid:
+        canonical_tool: mcp:ap:mark_invoice_paid
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect: {kind: invoice_marked_paid, argument_fields: {invoice_id: invoice_id}}
