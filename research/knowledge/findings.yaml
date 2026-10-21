@@ -467,3 +467,9 @@ findings:
     version: "1.0.0"
     type: empirical
     evidence: [experiments/dogwood-expressibility/PREREGISTRATION.md, experiments/dogwood-expressibility/RESULTS.md, experiments/dogwood-expressibility/results/summary.json, experiments/dogwood-expressibility/results/round2/summary.json]
+
+  - id: FIND-078
+    finding: "Sending payments through MCPProtectedClient to the accounts-payable sandbox backend with faults armed showed that an MCP tool error reply is a reply, not an exception, so VAIS 1.0 recorded such a call as observed with a requested effect and passed the error text on as its result, although the backend had made the payment (error_after_commit). A reply lost after commit (a hang past the call timeout, or the server process exiting) was correctly indeterminate. Nothing in 1.0 required reconciliation before an indeterminate call was retried, and no idempotency key reached the backend, so a retry after a lost reply paid twice at a backend without its own deduplication."
+    version: "1.0.0"
+    type: empirical
+    evidence: [examples/ap_sandbox/README.md, tests/test_ap_sandbox.py, tests/test_gateway_indeterminate.py]

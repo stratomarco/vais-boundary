@@ -32,6 +32,7 @@ from __future__ import annotations
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import date, datetime
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -83,6 +84,8 @@ class GatewayConfig:
     call_timeout: float | None = None
     # Observe-only until this time, in seconds since the epoch (version 2 only).
     observe_until: float | None = None
+    # The file this configuration was loaded from, for its digest in the audit.
+    source: Path | None = None
 
 
 _KEYS_V1 = {"version", "listen", "policy", "profile", "contracts", "approvals", "pending",
@@ -181,7 +184,45 @@ def load_gateway_config(path: str | Path) -> GatewayConfig:
         revocations=local("revocations") if "revocations" in raw else None,
         call_timeout=float(call_timeout) if call_timeout is not None else None,
         observe_until=observe_until,
+        source=Path(path).resolve(),
     )
+
+
+def agent_schema(schema: Any, binding: Any) -> Any:
+    """The upstream's input schema without the argument the gateway fills with an idempotency key.
+
+    The agent is never offered it, and a call that supplies it is refused (DEC-074).
+    """
+    reserved = getattr(binding, "idempotency_argument", None)
+    if reserved is None or not isinstance(schema, dict):
+        return schema
+    schema = dict(schema)
+    if isinstance(schema.get("properties"), dict):
+        schema["properties"] = {name: value for name, value in schema["properties"].items() if name != reserved}
+    if isinstance(schema.get("required"), list):
+        schema["required"] = [name for name in schema["required"] if name != reserved]
+    return schema
+
+
+def configuration_digests(config: GatewayConfig, *, policy_from_file: bool = True,
+                          profile_from_file: bool = True) -> dict[str, str]:
+    """SHA-256 digests of what the gateway runs with, for its audit (R8, DEC-074).
+
+    The policy, the profile, the configuration file when known, and the VAIS version. A policy
+    or profile the caller passed in, rather than one loaded from its file, is recorded as such.
+    Contracts change while the gateway runs, so each call records its own contract's digest.
+    """
+    from ._version import __version__
+
+    def digest(path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    digests = {"vais_version": __version__,
+               "policy_sha256": digest(config.policy) if policy_from_file else "supplied_by_caller",
+               "profile_sha256": digest(config.profile) if profile_from_file else "supplied_by_caller"}
+    if config.source is not None:
+        digests["configuration_sha256"] = digest(config.source)
+    return digests
 
 
 def build_monitor(policy: Policy, config: GatewayConfig) -> ReferenceMonitor:
@@ -266,6 +307,7 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
     from starlette.applications import Starlette
     from starlette.responses import JSONResponse
 
+    digests = configuration_digests(config, policy_from_file=policy is None, profile_from_file=profile is None)
     policy = policy or load_policy(config.policy)
     profile = profile or load_mcp_profile(config.profile)
     registry = ContractRegistry(config.contracts)
@@ -283,7 +325,7 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
             # Descriptions come from the upstream and reach the model as-is; they are data,
             # and no authority depends on them (LIM-049).
             listed.append(types.Tool(name=tool.name, description=upstream.description,
-                                     input_schema=upstream.input_schema))
+                                     input_schema=agent_schema(upstream.input_schema, tool.binding)))
         return types.ListToolsResult(tools=listed, cache_scope="private", ttl_ms=0)
 
     async def call_tool(ctx: Any, params: Any) -> Any:
@@ -319,6 +361,7 @@ def build_app(config: GatewayConfig, *, policy: Policy | None = None, profile: M
                         "which that upstream does not offer")
             state["tools"] = upstream_tools
             state["gateway"] = Gateway(
+                configuration=digests,
                 profile=profile, monitor=build_monitor(policy, config), registry=registry, sessions=sessions,
                 approval_store=ApprovalStore(config.approvals), pending_dir=config.pending,
                 audit_path=config.audit, reason_disclosure=config.reason_disclosure, state_dir=config.state,

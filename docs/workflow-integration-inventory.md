@@ -53,7 +53,9 @@ a read API, served over MCP behind the gateway.
    `examples/ap_sandbox/` (its README), tested in `tests/test_ap_sandbox.py`, including faults
    after commit sent through `MCPProtectedClient`.
 2. **Close the gaps in VAIS** that the requirements need, each a 1.x change under the format rules
-   (`formats.md`):
+   (`formats.md`). **Done** (DEC-074, FIND-078, LIM-078; `gateway.md`, consequential tools), except
+   invariant verdicts, which the step 3 verifier reports against the backend's records, joined to
+   the audit by call id and receipt:
    - reconciliation required before retrying an indeterminate high-consequence call (R5);
    - an MCP error reply from a high-consequence tool treated as uncertain, not observed (R5);
    - an idempotency key sent to backends that accept one (R6);

@@ -25,8 +25,9 @@ yet wired behind the gateway (step 3).
 - **Receipts.** Every change writes a receipt in the same transaction: an ID, a sequence number,
   a digest of the request, the result, a time, and the previous receipt's digest. An edit,
   deletion or reordering breaks the chain (`verify`).
-- **A read API.** `get_payment`, `list_payments` (by invoice or idempotency key), `get_receipt`
-  and `list_receipts`. Reconciliation after an uncertain call reads these.
+- **A read API.** `get_payment`, `find_payment` (by idempotency key), `list_payments` (by
+  invoice or idempotency key), `get_receipt` and `list_receipts`. Reconciliation after an
+  uncertain call reads these; the gateway's read-back uses `find_payment`.
 - **Faults.** An operator can arm a fault for the next matching writes:
 
   | Mode | Committed? | What the caller sees |
@@ -72,6 +73,7 @@ given.
 armed:
 - **A hang or a crash after commit:** VAIS records the call as `indeterminate`, while the backend
   has paid. Reconciliation and idempotency keys exist for this case.
-- **An error reply after commit:** VAIS records the call as `observed` with a `requested` effect,
-  and the error text becomes the tool result. An MCP error result is not an exception, so VAIS
-  does not treat it as uncertain. This is added to gap R5 in the inventory.
+- **An error reply after commit:** VAIS 1.0 recorded the call as `observed` with a `requested`
+  effect, and the error text became the tool result (FIND-078). A tool marked `consequential` in
+  a version 2 profile now records it as `indeterminate` (DEC-074, `docs/gateway.md`).
+  `tests/test_gateway_indeterminate.py` runs the gateway against this store with every fault.

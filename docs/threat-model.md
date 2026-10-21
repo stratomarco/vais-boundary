@@ -67,6 +67,7 @@ Recorded in the research ledger rather than here, so they carry evidence and sta
 - labels are not persisted: a value read back from a store is labelled by the reading tool, so a store can carry confidential data or minted authority into a later session unless the operator declares it and its writers are configured to match its readers (LIM-074, DEC-070); trust cannot be laundered this way (FIND-075);
 - without an `ApprovalStore` or a `SessionLedger`, a contract-held approval is reusable for the life of the contract; VERIFY reports the reuse and ENFORCE does not prevent it (LIM-044);
 - without a `SessionLedger`, a bound over several actions is checked in VERIFY and not enforced in flight (LIM-035). With one, `max_calls` is enforced in flight, but the ledger lives in one process and a restart starts a fresh one (LIM-055).
+- a consequential call whose outcome is unknown holds its tool only if a version 2 profile marks the tool consequential; settling it as "did not happen" needs an operator whose identity is not authenticated, and an idempotency key prevents a duplicate only at a backend that honours it (LIM-078).
 
 ## Current non-goals
 

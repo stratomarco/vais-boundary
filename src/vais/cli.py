@@ -497,6 +497,17 @@ def _parser() -> argparse.ArgumentParser:
     gateway_approve.add_argument("request", help="request id, as the gateway reported it")
     gateway_approve.add_argument("--ttl", type=float, default=None, help="seconds the grant stays usable (default: until used)")
 
+    gateway_resolve = subparsers.add_parser(
+        "gateway-resolve", help="operator: record whether a consequential call with an unknown outcome happened")
+    gateway_resolve.add_argument("--config", required=True, help="gateway configuration YAML")
+    gateway_resolve.add_argument("call", help="call id, as the audit's indeterminate_recorded event gives it")
+    outcome = gateway_resolve.add_mutually_exclusive_group(required=True)
+    outcome.add_argument("--happened", dest="outcome", action="store_const", const="happened",
+                         help="the backend made the change")
+    outcome.add_argument("--did-not-happen", dest="outcome", action="store_const", const="did_not_happen",
+                         help="the backend did not make the change; the exact retry may go")
+    gateway_resolve.add_argument("--by", required=True, help="the operator's name, as recorded (not authenticated)")
+
     gateway_revoke = subparsers.add_parser("gateway-revoke", help="operator: withdraw a gateway session, or one capability, at its next call")
     gateway_revoke.add_argument("--config", required=True, help="gateway configuration YAML, with 'revocations' set")
     gateway_revoke.add_argument("contract", help="the session's contract file")
@@ -598,7 +609,7 @@ def _write_and_check(args, results) -> int:
 # The boundary's commands. Everything else is benchmark or research tooling under ``vais lab``.
 CORE_COMMANDS = frozenset({
     "validate-policy", "validate-invariants", "validate-mcp-profile", "check-invariants", "audit-verify",
-    "gateway", "gateway-approve", "gateway-revoke", "gateway-token", "version",
+    "gateway", "gateway-approve", "gateway-resolve", "gateway-revoke", "gateway-token", "version",
 })
 
 
@@ -1297,6 +1308,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         fingerprint = grant_pending_request(config.pending / f"{args.request}.json", ContractRegistry(config.contracts),
                                             ApprovalStore(config.approvals), ttl_seconds=args.ttl)
         print(f"granted {fingerprint}")
+        return 0
+
+    if args.command == "gateway-resolve":
+        from .gateway import resolve_indeterminate_call
+        from .gateway_server import load_gateway_config
+
+        config = load_gateway_config(args.config)
+        path = resolve_indeterminate_call(config.pending, args.call, args.outcome, by=args.by)
+        print(f"recorded {args.outcome} for {args.call}; the gateway applies it at the session's next call to the tool")
+        print(path)
         return 0
 
     if args.command == "gateway-revoke":

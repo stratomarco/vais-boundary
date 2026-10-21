@@ -96,6 +96,11 @@ def build_server(store: Store) -> MCPServer:
         return {"payments": read("list_payments", invoice_id=invoice_id, idempotency_key=idempotency_key)}
 
     @server.tool()
+    async def find_payment(idempotency_key: str) -> dict[str, Any]:
+        """Read the payment made with an idempotency key, if there is one."""
+        return read("find_payment", idempotency_key=idempotency_key)
+
+    @server.tool()
     async def get_receipt(receipt_id: str) -> dict[str, Any]:
         """Read one receipt, with its digest and its place in the receipt chain."""
         return read("get_receipt", receipt_id=receipt_id)

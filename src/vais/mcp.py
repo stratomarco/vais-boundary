@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field, replace
 from enum import Enum
+import hashlib
+import json
 from pathlib import Path
 from typing import Any, Mapping, Protocol
 import math
@@ -176,9 +178,25 @@ class MCPToolBinding:
     # data or authority from one session into another can be found (DEC-070, vais.stores).
     writes: tuple[str, ...] = ()
     reads: tuple[str, ...] = ()
+    # Profile version 2 (DEC-074). A consequential tool's error reply is indeterminate, not
+    # observed, and at the gateway an indeterminate call holds the tool until it is
+    # reconciled. ``idempotency_argument`` names the argument the gateway fills with a key
+    # derived from the session and the exact action; the agent may never supply it.
+    # ``receipt`` names the top-level reply field the audit records as the backend's receipt.
+    consequential: bool = False
+    idempotency_argument: str | None = None
+    receipt: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "mints", tuple(self.mints))
+        if not isinstance(self.consequential, bool):
+            raise ValueError("consequential must be true or false")
+        for label in ("idempotency_argument", "receipt"):
+            value = getattr(self, label)
+            if value is not None:
+                if not isinstance(value, str) or not value.strip():
+                    raise ValueError(f"{label} must be a non-empty string")
+                object.__setattr__(self, label, unicodedata.normalize("NFC", value))
         for label in ("writes", "reads"):
             raw = tuple(getattr(self, label))
             if any(not isinstance(store, str) or not store.strip() for store in raw):
@@ -209,8 +227,13 @@ class MCPProfile:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "bindings", tuple(self.bindings))
-        if isinstance(self.version, bool) or not isinstance(self.version, int) or self.version != 1:
-            raise ValueError("MCP profile version must be 1")
+        if isinstance(self.version, bool) or not isinstance(self.version, int) or self.version not in (1, 2):
+            raise ValueError("MCP profile version must be 1 or 2")
+        if self.version == 1:
+            for item in self.bindings:
+                if item.consequential or item.idempotency_argument is not None or item.receipt is not None:
+                    raise ValueError(f"{item.canonical_tool}: consequential, idempotency_argument and receipt "
+                                     "need profile version 2")
         canonical = [item.canonical_tool for item in self.bindings]
         endpoints = [(item.server_id, item.tool_name) for item in self.bindings]
         if len(canonical) != len(set(canonical)):
@@ -381,6 +404,30 @@ class MCPExecutionRecord:
     error: str | None = None
     request_id: str | None = None
     retry_safe: bool = False
+    # The gateway's correlation id for this call, and the idempotency key sent with it (DEC-074).
+    call_id: str | None = None
+    idempotency_key: str | None = None
+
+
+def idempotency_key(action: PlannedAction, contract: TaskContract) -> str:
+    """The key sent with a call to a tool that declares an idempotency argument (DEC-074).
+
+    Derived from the session's identity and the exact action, so a retry of the same action in
+    the same session carries the same key and a backend that honours keys makes it once. Two
+    identical actions in one session share a key, and the second is the backend's duplicate.
+    """
+    identity = [contract.principal_id, contract.session_id, contract.tenant_id, contract.capability_id]
+    material = json.dumps([*identity, action_fingerprint(action)]).encode("utf-8")
+    return "vais-" + hashlib.sha256(material).hexdigest()[:40]
+
+
+def is_error_reply(raw_result: Any) -> bool:
+    """Whether an MCP reply is a tool error (``isError``), which is a reply, not an exception."""
+    for attribute in ("isError", "is_error"):
+        value = getattr(raw_result, attribute, None)
+        if isinstance(value, bool):
+            return value
+    return isinstance(raw_result, Mapping) and raw_result.get("isError") is True
 
 
 def canonical_mcp_tool(server_id: str, tool_name: str) -> str:
@@ -483,26 +530,32 @@ class MCPProtectedClient:
         self.call_timeout = call_timeout
 
     def _audit_decision(
-        self, action: PlannedAction, contract: TaskContract, decision: Decision
+        self, action: PlannedAction, contract: TaskContract, decision: Decision, call_id: str | None = None
     ) -> None:
         if self.audit:
+            details = action_audit_details(action, contract)
+            if call_id is not None:
+                details["call_id"] = call_id
             self.audit.record(
                 "authorization_decision",
                 tool=action.tool,
                 decision=decision.type.value,
                 reasons=decision.reasons,
-                details=action_audit_details(action, contract),
+                details=details,
             )
 
-    async def execute(self, action: PlannedAction, contract: TaskContract) -> MCPExecutionRecord:
+    async def execute(self, action: PlannedAction, contract: TaskContract, *,
+                      call_id: str | None = None) -> MCPExecutionRecord:
+        """Decide ``action`` and, if allowed, send it. ``call_id`` correlates this call's audit events."""
         try:
             request_id = action_fingerprint(action)
         except ValueError:
             request_id = None
+        correlation = {"call_id": call_id} if call_id is not None else {}
         binding = self.profile.by_canonical_tool(action.tool)
         if binding is None:
             decision = Decision(DecisionType.DENY, (f"mcp_binding_missing:{action.tool}",))
-            self._audit_decision(action, contract, decision)
+            self._audit_decision(action, contract, decision, call_id)
             return MCPExecutionRecord(
                 action=action,
                 binding=None,
@@ -516,7 +569,7 @@ class MCPProtectedClient:
                 DecisionType.DENY,
                 (f"mcp_server_mismatch:{binding.server_id}!={self.server_id}",),
             )
-            self._audit_decision(action, contract, decision)
+            self._audit_decision(action, contract, decision, call_id)
             return MCPExecutionRecord(
                 action=action,
                 binding=binding,
@@ -526,23 +579,32 @@ class MCPProtectedClient:
                 call_state=MCPCallState.NOT_CALLED,
             )
 
+        reserved = binding.idempotency_argument
+        if reserved is not None and reserved in action.arguments:
+            # The key is the gateway's; an agent that could choose it could replay another call's.
+            decision = Decision(DecisionType.DENY, (f"reserved_argument:{reserved}",))
+            self._audit_decision(action, contract, decision, call_id)
+            return MCPExecutionRecord(action, binding, decision, None, None, MCPCallState.NOT_CALLED, call_id=call_id)
+
         decision = self.monitor.evaluate(action, contract, self.approval_store, self.ledger)
-        self._audit_decision(action, contract, decision)
+        self._audit_decision(action, contract, decision, call_id)
         if decision.type != DecisionType.ALLOW:
             return MCPExecutionRecord(
-                action, binding, decision, None, None, MCPCallState.NOT_CALLED
+                action, binding, decision, None, None, MCPCallState.NOT_CALLED, call_id=call_id
             )
 
-        try:
-            raw_result = await asyncio.wait_for(
-                self.session.call_tool(binding.tool_name, action.plain_arguments()), self.call_timeout)
-        except Exception as exc:
+        sent = action.plain_arguments()
+        key = None
+        if reserved is not None and request_id is not None:
+            key = idempotency_key(action, contract)
+            sent = {**sent, reserved: key}
+
+        def indeterminate(error: str) -> MCPExecutionRecord:
             if self.audit:
-                # The exception class only. Messages can carry secrets (FIND-020, FIND-040).
                 self.audit.record(
                     "effect_indeterminate",
                     tool=action.tool,
-                    details={"error": type(exc).__name__, "action_fingerprint": request_id},
+                    details={"error": error, "action_fingerprint": request_id, **correlation},
                 )
             return MCPExecutionRecord(
                 action=action,
@@ -551,13 +613,30 @@ class MCPProtectedClient:
                 effect=None,
                 result=None,
                 call_state=MCPCallState.INDETERMINATE,
-                error=type(exc).__name__,
+                error=error,
                 request_id=request_id,
-                retry_safe=False,
+                # With a key, resending the same action cannot make a second effect at a
+                # backend that honours keys.
+                retry_safe=key is not None,
+                call_id=call_id,
+                idempotency_key=key,
             )
 
+        try:
+            raw_result = await asyncio.wait_for(
+                self.session.call_tool(binding.tool_name, sent), self.call_timeout)
+        except Exception as exc:
+            # The exception class only. Messages can carry secrets (FIND-020, FIND-040).
+            return indeterminate(type(exc).__name__)
+
+        tool_error = is_error_reply(raw_result)
+        if tool_error and binding.consequential:
+            # An error reply says the call failed; it does not say the backend changed
+            # nothing. For a consequential tool that is unknown, not observed (FIND-078).
+            return indeterminate("tool_error")
+
         result_data = extract_mcp_result_data(raw_result)
-        effect = acknowledge_effect(_effect_from_binding(action, binding), binding.effect.acknowledge, result_data)
+        effect = acknowledge_effect(_effect_from_binding(action, binding, sent), binding.effect.acknowledge, result_data)
         reconciler = self.reconcilers.get(effect.kind)
         if reconciler is not None:
             try:
@@ -567,19 +646,27 @@ class MCPProtectedClient:
                 # The effect happened; only what is known about it is unchanged.
                 if self.audit:
                     self.audit.record("reconciliation_failed", tool=action.tool,
-                                      details={"error": type(exc).__name__, "action_fingerprint": request_id})
+                                      details={"error": type(exc).__name__, "action_fingerprint": request_id,
+                                               **correlation})
         if self.audit:
-            self.audit.record(
-                "effect_observed",
-                tool=action.tool,
-                details={
-                    "effect": effect.kind,
-                    "fields": sorted(effect.attributes),
-                    "action_fingerprint": effect.action_fingerprint,
-                    "confidence": effect.confidence.value,
-                    "contradicted_fields": list(effect.contradicted_fields),
-                },
-            )
+            details = {
+                "effect": effect.kind,
+                "fields": sorted(effect.attributes),
+                "action_fingerprint": effect.action_fingerprint,
+                "confidence": effect.confidence.value,
+                "contradicted_fields": list(effect.contradicted_fields),
+                # What the backend said, by digest, so a reviewer can match it to the backend's
+                # own record without the audit holding the reply (DEC-074).
+                "reply_sha256": _reply_digest(result_data),
+                **correlation,
+            }
+            if tool_error:
+                details["tool_error"] = True
+            if key is not None:
+                details["idempotency_key"] = key
+            if binding.receipt is not None and isinstance(result_data, Mapping) and binding.receipt in result_data:
+                details["receipt"] = _thaw(deep_freeze(result_data[binding.receipt]))
+            self.audit.record("effect_observed", tool=action.tool, details=details)
         result = label_mcp_input(
             result_data,
             server_id=binding.server_id,
@@ -589,7 +676,8 @@ class MCPProtectedClient:
         )
         return MCPExecutionRecord(
             action, binding, decision, effect, result, MCPCallState.OBSERVED,
-            request_id=request_id
+            error="tool_error" if tool_error else None,
+            request_id=request_id, call_id=call_id, idempotency_key=key,
         )
 
 
@@ -697,17 +785,29 @@ def extract_mcp_result_data(raw_result: Any) -> Any:
     return str(raw_result)
 
 
-def _effect_from_binding(action: PlannedAction, binding: MCPToolBinding) -> Effect:
-    plain = action.plain_arguments()
+_GATEWAY_KEY = Provenance(source="gateway:idempotency_key", trust=TrustLevel.TRUSTED,
+                          confidentiality=ConfidentialityLevel.PUBLIC)
+
+
+def _reply_digest(data: Any) -> str:
+    return hashlib.sha256(json.dumps(data, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+
+
+def _effect_from_binding(action: PlannedAction, binding: MCPToolBinding,
+                         sent: Mapping[str, Any] | None = None) -> Effect:
+    """The effect of an executed call. ``sent`` is what went to the server: the action's
+    arguments plus, for a tool with an idempotency argument, the key the gateway added."""
+    plain = action.plain_arguments() if sent is None else dict(sent)
     if binding.effect.argument_fields:
         attributes = {
             effect_field: plain.get(argument_name)
             for effect_field, argument_name in binding.effect.argument_fields.items()
         }
         provenance = {
-            effect_field: action.arguments[argument_name].provenance
+            effect_field: (action.arguments[argument_name].provenance if argument_name in action.arguments
+                           else _GATEWAY_KEY)
             for effect_field, argument_name in binding.effect.argument_fields.items()
-            if argument_name in action.arguments
+            if argument_name in action.arguments or argument_name == binding.idempotency_argument
         }
     else:
         attributes = {
@@ -815,8 +915,13 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
     raw = _mapping(raw, "mcp_profile")
     _known_keys(raw, {"version", "servers"}, "mcp_profile")
     version = raw.get("version", 1)
-    if isinstance(version, bool) or not isinstance(version, int) or version != 1:
-        _fail("mcp_profile.version", "only version 1 is supported")
+    if isinstance(version, bool) or not isinstance(version, int) or version not in (1, 2):
+        _fail("mcp_profile.version", "must be 1 or 2")
+    # Version 2 adds consequential, idempotency_argument and receipt (DEC-074); version 1
+    # files keep their meaning and reject them (docs/formats.md).
+    tool_keys = {"canonical_tool", "result_confidentiality", "effect", "mints", "writes", "reads"}
+    if version == 2:
+        tool_keys |= {"consequential", "idempotency_argument", "receipt"}
 
     servers = _mapping(raw.get("servers", {}), "mcp_profile.servers")
     bindings: list[MCPToolBinding] = []
@@ -834,11 +939,7 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
             _string(tool_name, f"{server_path}.tools.<tool_name>")
             tool_path = f"{server_path}.tools.{tool_name}"
             tool_raw = _mapping(tool_raw, tool_path)
-            _known_keys(
-                tool_raw,
-                {"canonical_tool", "result_confidentiality", "effect", "mints", "writes", "reads"},
-                tool_path,
-            )
+            _known_keys(tool_raw, tool_keys, tool_path)
             canonical = tool_raw.get("canonical_tool")
             if canonical is None:
                 try:
@@ -909,6 +1010,11 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                 if not isinstance(raw_stores, list):
                     _fail(f"{tool_path}.{label}", "must be a list of store names")
                 stores[label] = tuple(_string(store, f"{tool_path}.{label}") for store in raw_stores)
+            consequential = tool_raw.get("consequential", False)
+            if not isinstance(consequential, bool):
+                _fail(f"{tool_path}.consequential", "must be true or false")
+            optional = {label: _string(tool_raw[label], f"{tool_path}.{label}") if label in tool_raw else None
+                        for label in ("idempotency_argument", "receipt")}
             try:
                 binding = MCPToolBinding(
                     server_id=server_id,
@@ -919,6 +1025,8 @@ def load_mcp_profile(path: str | Path) -> MCPProfile:
                     mints=mints,
                     writes=stores["writes"],
                     reads=stores["reads"],
+                    consequential=consequential,
+                    **optional,
                 )
             except ValueError as exc:
                 _fail(tool_path, str(exc))

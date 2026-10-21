@@ -136,6 +136,59 @@ The gateway then refuses to start (DEC-070) unless, for every declared store:
 
 Stores that are not declared are not checked (LIM-074).
 
+## Consequential tools: unknown outcomes, retries and idempotency keys
+
+*From profile version 2 (DEC-074).* A payment, a transfer or a record change is the kind of call
+whose reply can be lost after the backend acted. Mark such a tool `consequential` in a version 2
+profile, and give it an idempotency argument if its backend accepts one:
+
+```yaml
+version: 2
+servers:
+  ap:
+    tools:
+      pay:
+        consequential: true
+        idempotency_argument: idempotency_key   # the backend's own parameter name
+        receipt: receipt                        # the reply field the audit records
+        effect:
+          kind: payment
+          argument_fields: {invoice_id: invoice_id, amount: amount, idempotency_key: idempotency_key}
+          confirm: {server: ap, tool: find_payment, arguments: {idempotency_key: effect.idempotency_key},
+                    expect: {invoice_id: invoice_id, amount: amount}}
+```
+
+For a consequential tool:
+
+- **An error reply is an unknown outcome.** A tool error is a reply, not an exception, and says
+  the call failed, not that the backend changed nothing. It is `indeterminate`, like a timeout or
+  a dropped connection (FIND-078). Other tools keep version 1's meaning: the call is observed, and
+  the audit flags `tool_error`.
+- **An unknown outcome holds the tool for the session.** The gateway writes the call to
+  `pending/indeterminate/<call id>.json` and refuses further calls to that tool in that session
+  (`call_held`) until the call is reconciled:
+  - **by the system of record:** at the next call, the binding's `confirm` read-back runs; if it
+    confirms the change happened, the call is settled. Not finding the record settles nothing;
+  - **by an operator,** after checking the backend:
+    `vais gateway-resolve --config gateway.yaml <call id> --happened` or `--did-not-happen`, with
+    `--by <name>`. The name is recorded, not authenticated.
+- **The exact retry is the same call.** With an idempotency argument, the gateway sends a key
+  derived from the session and the exact action. The agent never sees it (it is removed from the
+  tool's schema) and a call that supplies it is refused. Retrying the identical action reuses the
+  key, so the backend makes the change once or replays its first reply, and the agent gets the
+  result either way. Without an idempotency argument, the exact retry waits for reconciliation
+  like any other call, and goes once an operator says the first did not happen.
+- **A retry counts once.** The retry is decided against the session's ledger without the first
+  attempt's entry and records none of its own, so call limits, single-use values and budgets count
+  the call once. An approval the first attempt consumed is not reused: the retry asks again (R4).
+
+Every event of one call carries its `call_id`. The audit also records each call's contract-file
+digest (`gateway_call`); the policy, profile and configuration digests and the VAIS version at
+start (`gateway_configuration`); and for each observed effect a digest of the reply, the
+idempotency key, and the backend's receipt when the profile names it. A reviewer can follow a
+call from decision to dispatch, receipt and reconciliation, and match the receipt to the
+backend's own record.
+
 ## Quick start
 
 The files are in [`examples/gateway/`](../examples/gateway/); the upstream is the repository's
@@ -228,7 +281,8 @@ the agent away from everything the gateway holds**. VAIS cannot check any of thi
    network policy; for stdio upstreams, the gateway starts them itself and nothing else can.
 3. **Operator files.** `contracts/`, `approvals.json` and `pending/` are writable by operators
    and not by the agent. Anyone who can write a contract can grant themselves a session, and
-   `pending/` holds argument values an approver needs to see.
+   `pending/` holds argument values an approver needs to see, including those of calls with
+   unknown outcomes in `pending/indeterminate/`. Whoever can write there can settle such a call.
 4. **Transport.** The gateway listens on `127.0.0.1` by default. Across hosts, terminate TLS in
    front of it; the session token is a bearer secret.
 
@@ -242,7 +296,8 @@ account, the agent in another with network access to the gateway's port and noth
 - Upstream tool descriptions, unchanged. They are data and carry no authority (LIM-049), but they
   do reach the model.
 - For a refusal, the outcome only: `denied`, `approval_required; request <id> is waiting for an
-  operator`, `indeterminate` or `unauthenticated`. Set `reason_disclosure: reasons` to add the
+  operator`, `indeterminate` or `unauthenticated`. A call held behind an unknown outcome is
+  `denied` with a note that an earlier call must be reconciled first. Set `reason_disclosure: reasons` to add the
   monitor's reason codes, which help an attacker probe the policy (S13, IMP-003).
 
 ## Limits
@@ -262,3 +317,7 @@ account, the agent in another with network access to the gateway's port and noth
   mint, which trusts the minting server (LIM-068, LIM-070).
 - Labels are not persisted. Only declared stores are checked for carrying confidentiality or minted
   authority into a later session (LIM-074).
+- Unknown outcomes hold only tools a version 2 profile marks consequential, per session, on one
+  machine. A read-back settles only "it happened"; an idempotency key prevents a duplicate only at
+  a backend that honours it; a retry whose arguments differ in form is a new call and is held.
+  A crashed stdio upstream is not reconnected (LIM-078).

@@ -287,14 +287,15 @@ def test_a_payment_and_its_receipt_over_mcp(db):
     assert refused.is_error and len(Store(db).list_payments()) == 1
 
 
-def _protected_pay(db, timeout):
+def _protected_pay(db, timeout, consequential=False):
     """One payment through VAIS's MCPProtectedClient, as the gateway would send it."""
     from vais import ArgumentPolicy, Policy, ReferenceMonitor, ToolPolicy
     from vais.mcp import MCPEffectMapping, MCPProfile, MCPProtectedClient, MCPToolBinding
     from vais.models import PlannedAction, TaskContract, TrustedValue
 
     profile = MCPProfile((MCPToolBinding("ap", "pay", "mcp:ap:pay", effect=MCPEffectMapping(
-        "payment", {name: name for name in PAYMENT}, acknowledge={"invoice_id": "invoice_id"})),))
+        "payment", {name: name for name in PAYMENT}, acknowledge={"invoice_id": "invoice_id"}),
+        consequential=consequential),), version=2 if consequential else 1)
     policy = Policy(version=3, default_action="deny", tools={"mcp:ap:pay": ToolPolicy(True, {n: ArgumentPolicy() for n in PAYMENT})})
     action = PlannedAction("mcp:ap:pay", {name: TrustedValue(value, source="user") for name, value in PAYMENT.items()})
 
@@ -315,11 +316,15 @@ def test_a_reply_lost_after_commit_is_indeterminate_to_vais_while_the_backend_pa
     assert len(payments) == 1 and payments[0]["invoice_id"] == "INV-1001"
 
 
-def test_an_error_reply_after_commit_is_recorded_by_vais_as_an_observed_call(db):
-    # Inventory gap R5: an MCP error result is not an exception, so VAIS records the call as
-    # observed with a requested effect, although the reply says it failed. The sandbox makes
-    # this visible; closing it is step 2 of the integration sequence.
-    Store(db).arm_fault("pay", "error_after_commit")
-    record = _protected_pay(db, timeout=10)
-    assert record.call_state.value == "observed" and record.effect.confidence.value == "requested"
-    assert len(Store(db).list_payments()) == 1
+def test_an_error_reply_after_commit_is_observed_unless_the_tool_is_consequential(db):
+    # FIND-078: an MCP error result is not an exception, so VAIS recorded the call as observed
+    # with a requested effect, although the backend had paid. A tool marked consequential in a
+    # version 2 profile now records it as indeterminate (DEC-074); others keep version 1's meaning.
+    store = Store(db)
+    store.arm_fault("pay", "error_after_commit", count=2)
+    plain = _protected_pay(db, timeout=10)
+    assert plain.call_state.value == "observed" and plain.effect.confidence.value == "requested"
+    assert plain.error == "tool_error"
+    marked = _protected_pay(db, timeout=10, consequential=True)
+    assert marked.call_state.value == "indeterminate" and marked.effect is None and marked.error == "tool_error"
+    assert len(store.list_payments()) == 2

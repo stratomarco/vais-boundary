@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from enum import Enum
 import hashlib
@@ -36,15 +36,17 @@ import re
 import threading
 import time
 from typing import Any, Mapping
+import uuid
 
 
 from .approvals import ApprovalStore
 from .audit import AuditTrail
 from .durable import SharedStateLock, write_json_atomic
 from .exceptions import PolicyValidationError
-from .ledger import SessionLedger
+from .ledger import LedgerEntry, SessionLedger
 from .mcp import (
     MCPCallState,
+    MCPExecutionRecord,
     MCPProfile,
     MCPReadBackReconciler,
     MCPProtectedClient,
@@ -52,6 +54,7 @@ from .mcp import (
     MCPToolSession,
     MCPUnprotectedClient,
     _confidentiality,
+    _effect_from_binding,
     _fail,
     _known_keys,
     _mapping,
@@ -241,28 +244,45 @@ class ContractRegistry:
         self.directory = Path(directory)
 
     def scan(self) -> tuple[dict[str, TaskContract], tuple[str, ...]]:
+        contracts, _, problems = self._scan()
+        return contracts, problems
+
+    def _scan(self) -> tuple[dict[str, TaskContract], dict[str, str], tuple[str, ...]]:
         contracts: dict[str, TaskContract] = {}
+        files: dict[str, str] = {}
         duplicates: set[str] = set()
         problems: list[str] = []
         for path in sorted(self.directory.glob("*.yaml")):
             try:
                 digest, contract = load_gateway_contract(path)
+                content = hashlib.sha256(path.read_bytes()).hexdigest()
             except PolicyValidationError as exc:
                 problems.append(str(exc))
+                continue
+            except OSError:
+                problems.append(f"{path}: cannot read contract")
                 continue
             if digest in contracts:
                 duplicates.add(digest)
             contracts[digest] = contract
+            files[digest] = content
         for digest in duplicates:
             contracts.pop(digest)
+            files.pop(digest)
             problems.append(f"token digest {digest[:12]}... appears in more than one contract; none apply")
-        return contracts, tuple(problems)
+        return contracts, files, tuple(problems)
 
     def lookup(self, token: str) -> TaskContract | None:
+        found = self.lookup_with_digest(token)
+        return found[0] if found is not None else None
+
+    def lookup_with_digest(self, token: str) -> tuple[TaskContract, str] | None:
+        """The contract for ``token`` and the SHA-256 of the file that granted it, for the audit."""
         if not isinstance(token, str) or not token:
             return None
-        contracts, _ = self.scan()
-        return contracts.get(token_digest(token))
+        contracts, files, _ = self._scan()
+        digest = token_digest(token)
+        return (contracts[digest], files[digest]) if digest in contracts else None
 
     def find_identity(self, principal_id: str, session_id: str, tenant_id: str,
                       capability_id: str) -> TaskContract | None:
@@ -451,6 +471,91 @@ class _SessionState:
         return self.context.current()[1]
 
 
+class _RetryLedger:
+    """A session ledger seen as if one earlier call had not been made: for deciding a retry of it.
+
+    A consequential call whose outcome is unknown was counted when it was allowed. Its exact
+    retry, sent with the same idempotency key or after an operator said it did not happen, is
+    the same call, so it is decided against the ledger without that entry and records nothing
+    new: limits, single-use values and budgets count it once (DEC-074).
+    """
+
+    def __init__(self, base: SessionLedger, fingerprint: str) -> None:
+        self.base = base
+        self.identity = base.identity
+        self.lock = base.lock
+        self.fingerprint = fingerprint
+
+    @property
+    def _entries(self) -> list[LedgerEntry]:
+        with self.base.lock:
+            entries = list(self.base._entries)
+        for index in range(len(entries) - 1, -1, -1):
+            if entries[index].action_fingerprint == self.fingerprint:
+                del entries[index]
+                break
+        return entries
+
+    matches = SessionLedger.matches
+    entries = SessionLedger.entries
+    calls = SessionLedger.calls
+    contract_approval_used = SessionLedger.contract_approval_used
+    used_values = SessionLedger.used_values
+    total = SessionLedger.total
+    total_for = SessionLedger.total_for
+
+    def record(self, entry: LedgerEntry) -> None:
+        """Nothing: the original entry already stands for this call."""
+
+
+INDETERMINATE_DIR = "indeterminate"
+_INDETERMINATE_KEYS = {"version", "call_id", "tool", "arguments", "action_fingerprint", "idempotency_key",
+                       "principal_id", "session_id", "tenant_id", "capability_id", "status"}
+_RESOLUTION_KEYS = {"version", "call_id", "outcome", "by", "at"}
+RESOLUTION_OUTCOMES = ("happened", "did_not_happen")
+
+
+@dataclass(frozen=True)
+class IndeterminateCall:
+    """A consequential call whose outcome is unknown, kept until it is reconciled (DEC-074).
+
+    The gateway writes one file per call in ``<pending>/indeterminate/``, beside approval
+    requests, for operators to see. ``status`` is ``unresolved``, or ``did_not_happen`` once an
+    operator has said so: then it no longer holds the tool, and its exact retry is decided as
+    the same call.
+    """
+
+    path: Path
+    call_id: str
+    tool: str
+    arguments: dict[str, Any]
+    action_fingerprint: str
+    idempotency_key: str | None
+    identity: tuple[str, str, str, str]
+    status: str
+
+    @classmethod
+    def load(cls, path: Path) -> "IndeterminateCall":
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict) or raw.get("version") != 1 or set(raw) != _INDETERMINATE_KEYS:
+            raise ValueError(f"{path}: not a version 1 indeterminate call record")
+        if raw["status"] not in ("unresolved", "did_not_happen") or not isinstance(raw["arguments"], dict):
+            raise ValueError(f"{path}: malformed indeterminate call record")
+        identity = tuple(raw[key] for key in ("principal_id", "session_id", "tenant_id", "capability_id"))
+        return cls(path, raw["call_id"], raw["tool"], raw["arguments"], raw["action_fingerprint"],
+                   raw["idempotency_key"], identity, raw["status"])  # type: ignore[arg-type]
+
+    def body(self, status: str | None = None) -> dict[str, Any]:
+        principal, session, tenant, capability = self.identity
+        return {"version": 1, "call_id": self.call_id, "tool": self.tool, "arguments": _plain(self.arguments),
+                "action_fingerprint": self.action_fingerprint, "idempotency_key": self.idempotency_key,
+                "principal_id": principal, "session_id": session, "tenant_id": tenant,
+                "capability_id": capability, "status": status or self.status}
+
+    def resolution_path(self) -> Path:
+        return self.path.with_name(f"{self.call_id}.resolution.json")
+
+
 @dataclass(frozen=True)
 class ExposedTool:
     name: str
@@ -505,6 +610,7 @@ class Gateway:
         call_timeout: float | None = None,
         observe_until: float | None = None,
         clock: Callable[[], float] | None = None,
+        configuration: Mapping[str, str] | None = None,
     ) -> None:
         self._clock = clock or time.time
         if observe_until is not None:
@@ -551,6 +657,10 @@ class Gateway:
         problems = store_flow_problems(profile, monitor.policy)
         if problems:
             raise PolicyValidationError("unsafe store flows: " + "; ".join(problems))
+        if configuration is not None:
+            # What this gateway runs with, by digest, so each later event can be tied to the
+            # exact policy, profile and configuration that produced it (R8, DEC-074).
+            self.audit.record("gateway_configuration", details=dict(configuration))
         if self.observe_until is not None:
             self.audit.record("observe_only_configured", details={
                 "observe_until": _iso(self.observe_until), "active": self.observing()})
@@ -590,19 +700,27 @@ class Gateway:
             self._flush_audit()
 
     async def _call(self, token: str, name: str, arguments: dict[str, Any]) -> GatewayOutcome:
-        contract = self.registry.lookup(token)
-        if contract is None:
+        # One id for every event this call produces, so a reviewer can follow it from
+        # decision to dispatch, effect, receipt and reconciliation (R8, DEC-074).
+        call_id = uuid.uuid4().hex
+        found = self.registry.lookup_with_digest(token)
+        if found is None:
             # Nothing about the token is recorded; its digest would help an attacker more
             # than the operator.
-            self.audit.record("gateway_unauthenticated", tool=name if isinstance(name, str) else None)
+            self.audit.record("gateway_unauthenticated", tool=name if isinstance(name, str) else None,
+                              details={"call_id": call_id})
             return GatewayOutcome(GatewayOutcomeKind.UNAUTHENTICATED, "unauthenticated")
+        contract, contract_sha256 = found
+        identity = {"principal_id": contract.principal_id, "session_id": contract.session_id,
+                    "tenant_id": contract.tenant_id, "capability_id": contract.capability_id}
+        self.audit.record("gateway_call", tool=name if isinstance(name, str) else None,
+                          details={"call_id": call_id, "contract_sha256": contract_sha256, **identity})
 
         exposed = self._tools.get(name)
         if exposed is None or exposed.binding.canonical_tool not in contract.allowed_tools:
             self.audit.record("gateway_unknown_tool", tool=name if isinstance(name, str) else None,
                               decision=DecisionType.DENY.value, reasons=("tool_not_exposed",),
-                              details={"principal_id": contract.principal_id, "session_id": contract.session_id,
-                                       "tenant_id": contract.tenant_id, "capability_id": contract.capability_id})
+                              details={"call_id": call_id, **identity})
             return self._refusal(GatewayOutcomeKind.DENIED, ("tool_not_exposed",))
 
         binding = exposed.binding
@@ -613,11 +731,21 @@ class Gateway:
                                         state.context.minted_for(binding.canonical_tool))
         except ValueError:
             self.audit.record("gateway_malformed_arguments", tool=binding.canonical_tool,
-                              decision=DecisionType.DENY.value, reasons=("malformed_arguments",))
+                              decision=DecisionType.DENY.value, reasons=("malformed_arguments",),
+                              details={"call_id": call_id})
             return self._refusal(GatewayOutcomeKind.DENIED, ("malformed_arguments",))
 
         if self.observing():
-            return await self._observe(binding, action, contract, state)
+            return await self._observe(binding, action, contract, state, call_id)
+
+        retry_of: IndeterminateCall | None = None
+        ledger: Any = state.ledger
+        if binding.consequential:
+            held, retry_of = await self._hold(binding, action, contract, call_id)
+            if held is not None:
+                return held
+            if retry_of is not None:
+                ledger = _RetryLedger(state.ledger, retry_of.action_fingerprint)
 
         client = MCPProtectedClient(
             server_id=binding.server_id,
@@ -626,17 +754,23 @@ class Gateway:
             monitor=self.monitor,
             approval_store=self.approval_store,
             audit=self.audit,
-            ledger=state.ledger,
+            ledger=ledger,
             reconcilers=self._reconcilers(binding),
             call_timeout=self.call_timeout,
         )
-        record = await client.execute(action, contract)
+        record = await client.execute(action, contract, call_id=call_id)
 
+        if record.call_state is not MCPCallState.NOT_CALLED and retry_of is not None:
+            # The retry went out, so the earlier attempt is settled by it: either this reply
+            # or a new record of this call's own unknown outcome takes its place.
+            self._settle(retry_of, "superseded_by_retry", "retry", call_id)
         if record.call_state is MCPCallState.OBSERVED:
             state.context.observe(binding.result_policy.confidentiality)
-            self._mint(binding, record.result.data if record.result else None, state, contract)
+            self._mint(binding, record.result.data if record.result else None, state, contract, call_id)
             return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
         if record.call_state is MCPCallState.INDETERMINATE:
+            if binding.consequential:
+                self._record_indeterminate(record, contract)
             return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,
                                   "the call was dispatched and failed; its effect is unknown")
         if record.decision.type is DecisionType.REQUIRE_APPROVAL:
@@ -645,7 +779,7 @@ class Gateway:
         return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
 
     async def _observe(self, binding: MCPToolBinding, action: PlannedAction, contract: TaskContract,
-                       state: _SessionState) -> GatewayOutcome:
+                       state: _SessionState, call_id: str | None = None) -> GatewayOutcome:
         """Observe-only: audit what enforcement would decide, then forward the call anyway.
 
         The decision is made against the session ledger with no approval store, so the ledger
@@ -654,7 +788,7 @@ class Gateway:
         """
         decision = self.monitor.evaluate(action, contract, ledger=state.ledger)
         identity = {"principal_id": contract.principal_id, "session_id": contract.session_id,
-                    "tenant_id": contract.tenant_id, "capability_id": contract.capability_id}
+                    "tenant_id": contract.tenant_id, "capability_id": contract.capability_id, "call_id": call_id}
         self.audit.record("observe_only_decision", tool=action.tool, decision=f"would_{decision.type.value}",
                           reasons=decision.reasons, details={**identity, "observe_until": _iso(self.observe_until)})
         call = MCPUnprotectedClient(server_id=binding.server_id, session=self.sessions[binding.server_id],
@@ -667,14 +801,15 @@ class Gateway:
         self.audit.record("observe_only_dispatch", tool=action.tool, details={**identity, "call_state": state_name})
         if record is not None and record.call_state is MCPCallState.OBSERVED:
             state.context.observe(binding.result_policy.confidentiality)
-            self._mint(binding, record.result.data if record.result else None, state, contract)
+            self._mint(binding, record.result.data if record.result else None, state, contract, call_id)
             return GatewayOutcome(GatewayOutcomeKind.ALLOWED, "ok", result=record.result.data if record.result else None)
         if record is None or record.call_state is MCPCallState.INDETERMINATE:
             return GatewayOutcome(GatewayOutcomeKind.INDETERMINATE,
                                   "the call was dispatched and failed; its effect is unknown")
         return self._refusal(GatewayOutcomeKind.DENIED, record.decision.reasons)
 
-    def _mint(self, binding: MCPToolBinding, result: Any, state: _SessionState, contract: TaskContract) -> None:
+    def _mint(self, binding: MCPToolBinding, result: Any, state: _SessionState, contract: TaskContract,
+              call_id: str | None = None) -> None:
         """Make each declared mint's value authority for its targets in this session (DEC-064).
 
         Only an observed call mints, so the monitor allowed the minting call itself. The audit
@@ -682,6 +817,8 @@ class Gateway:
         """
         identity = {"principal_id": contract.principal_id, "session_id": contract.session_id,
                     "tenant_id": contract.tenant_id, "capability_id": contract.capability_id}
+        if call_id is not None:
+            identity["call_id"] = call_id
         for spec in binding.mints:
             value = spec.value(result)
             source = "result" if spec.field is None else f"result.{spec.field}"
@@ -698,6 +835,156 @@ class Gateway:
                 "from": source, "targets": [f"{tool}.{argument}" for tool, argument in targets],
                 "value_sha256": hashlib.sha256(json.dumps(value).encode("utf-8")).hexdigest(), **identity,
             })
+
+    # --- consequential calls with unknown outcomes (R5, DEC-074) -------------------------
+
+    @property
+    def indeterminate_dir(self) -> Path:
+        return self.pending_dir / INDETERMINATE_DIR
+
+    def _record_indeterminate(self, record: MCPExecutionRecord, contract: TaskContract) -> None:
+        """Keep a consequential call whose outcome is unknown, so the tool is held until it is reconciled."""
+        if record.request_id is None or record.call_id is None:
+            return
+        entry = IndeterminateCall(
+            self.indeterminate_dir / f"{record.call_id}.json", record.call_id, record.action.tool,
+            dict(record.action.plain_arguments()), record.request_id, record.idempotency_key,
+            (contract.principal_id, contract.session_id, contract.tenant_id, contract.capability_id), "unresolved")
+        self.indeterminate_dir.mkdir(parents=True, exist_ok=True)
+        write_json_atomic(entry.path, entry.body())
+        self.audit.record("indeterminate_recorded", tool=entry.tool, details={
+            "call_id": entry.call_id, "action_fingerprint": entry.action_fingerprint,
+            "retry_safe": record.retry_safe, **_identity_details(entry.identity)})
+
+    def _entries(self, binding: MCPToolBinding, contract: TaskContract) -> list[IndeterminateCall]:
+        """This session's unknown-outcome calls to this tool. One session: principal, session, tenant."""
+        if not self.indeterminate_dir.is_dir():
+            return []
+        session = (contract.principal_id, contract.session_id, contract.tenant_id)
+        entries = []
+        for path in sorted(self.indeterminate_dir.glob("*.json")):
+            if path.name.endswith(".resolution.json"):
+                continue
+            try:
+                entry = IndeterminateCall.load(path)
+            except (OSError, ValueError, KeyError):
+                # A record that cannot be read holds every consequential call in every
+                # session, rather than letting a retry through on a guess.
+                self.audit.record("indeterminate_record_unreadable", details={"file": path.name})
+                raise _Unreadable() from None
+            if entry.identity[:3] == session and entry.tool == binding.canonical_tool:
+                entries.append(entry)
+        return entries
+
+    async def _hold(self, binding: MCPToolBinding, action: PlannedAction, contract: TaskContract,
+                    call_id: str) -> tuple[GatewayOutcome | None, IndeterminateCall | None]:
+        """Refuse a consequential call while an earlier one to the same tool has an unknown outcome.
+
+        The exact retry of a held call, when the tool takes an idempotency key, goes to the
+        backend as the same call: it makes the change once, or replays its first reply, so the
+        agent gets the result either way. Every other earlier call is first reconciled if it can
+        be: by an operator's resolution, or by the binding's read-back confirming it happened.
+        What remains holds the tool, except the exact retry of a call an operator said did not
+        happen. Returns the refusal, or the earlier call this one retries.
+        """
+        try:
+            fingerprint = action_fingerprint(action)
+        except ValueError:
+            fingerprint = None
+        try:
+            entries = self._entries(binding, contract)
+            retry_of = next((entry for entry in entries if entry.action_fingerprint == fingerprint
+                             and binding.idempotency_argument is not None), None)
+            remaining = [entry for entry in [await self._reconcile(binding, e, call_id) for e in entries
+                                             if e is not retry_of] if entry is not None]
+        except _Unreadable:
+            return self._held(action, contract, call_id, ("indeterminate_record_unreadable",), []), None
+        if retry_of is None:
+            retry_of = next((entry for entry in remaining if entry.action_fingerprint == fingerprint
+                             and entry.status == "did_not_happen"), None)
+        holding = [entry for entry in remaining if entry.status == "unresolved" and entry is not retry_of]
+        if holding:
+            return self._held(action, contract, call_id, ("indeterminate_unresolved",), holding), None
+        return None, retry_of
+
+    def _held(self, action: PlannedAction, contract: TaskContract, call_id: str, reasons: tuple[str, ...],
+              holding: list[IndeterminateCall]) -> GatewayOutcome:
+        identity = (contract.principal_id, contract.session_id, contract.tenant_id, contract.capability_id)
+        self.audit.record("call_held", tool=action.tool, decision=DecisionType.DENY.value, reasons=reasons,
+                          details={"call_id": call_id, "held_by": [entry.call_id for entry in holding],
+                                   **_identity_details(identity)})
+        outcome = self._refusal(GatewayOutcomeKind.DENIED, reasons)
+        return GatewayOutcome(outcome.kind, outcome.message + "; an earlier call to this tool has an unknown "
+                              "outcome and must be reconciled first", reasons=outcome.reasons)
+
+    async def _reconcile(self, binding: MCPToolBinding, entry: IndeterminateCall,
+                         call_id: str) -> IndeterminateCall | None:
+        """Settle ``entry`` if an operator or the system of record can say what happened.
+
+        Returns None once it is settled, else the entry as it now stands.
+        """
+        resolution = entry.resolution_path()
+        if resolution.exists():
+            try:
+                raw = json.loads(resolution.read_text(encoding="utf-8"))
+                valid = (isinstance(raw, dict) and raw.get("version") == 1 and set(raw) == _RESOLUTION_KEYS
+                         and raw["call_id"] == entry.call_id and raw["outcome"] in RESOLUTION_OUTCOMES)
+            except (OSError, ValueError):
+                valid = False
+            if not valid:
+                self.audit.record("indeterminate_resolution_unreadable", tool=entry.tool,
+                                  details={"call_id": entry.call_id})
+                return entry
+            if raw["outcome"] == "happened":
+                self._settle(entry, "happened", "operator", call_id, by=raw["by"])
+                return None
+            # Kept, no longer holding, so its exact retry is decided as the same call.
+            released = replace(entry, status="did_not_happen")
+            write_json_atomic(entry.path, released.body())
+            resolution.unlink()
+            self.audit.record("indeterminate_resolved", tool=entry.tool, details={
+                "call_id": entry.call_id, "outcome": "did_not_happen", "method": "operator",
+                "by": raw["by"], "resolved_during": call_id, **_identity_details(entry.identity)})
+            return released
+        spec = binding.effect.confirm
+        if entry.status != "unresolved" or spec is None:
+            return entry
+        sent = dict(entry.arguments)
+        if binding.idempotency_argument is not None and entry.idempotency_key is not None:
+            sent[binding.idempotency_argument] = entry.idempotency_key
+        action = PlannedAction(entry.tool, {name: TrustedValue(value, source="gateway:indeterminate_record")
+                                            for name, value in entry.arguments.items()})
+        reconciler = MCPReadBackReconciler(self.sessions[spec.server_id], spec.tool_name,
+                                           arguments=spec.arguments, expect=spec.expect)
+        try:
+            read = reconciler.reconcile(_effect_from_binding(action, binding, sent), None)
+            outcome = await (asyncio.wait_for(read, self.call_timeout) if self.call_timeout else read)
+        except Exception as exc:
+            self.audit.record("reconciliation_failed", tool=entry.tool,
+                              details={"call_id": entry.call_id, "error": type(exc).__name__})
+            return entry
+        # Only "it happened" is settled from a read-back. Not finding the record is not proof
+        # that nothing happened; that takes an operator.
+        if outcome.confidence.value == "confirmed":
+            self._settle(entry, "happened", "read_back", call_id)
+            return None
+        self.audit.record("reconciliation_inconclusive", tool=entry.tool, details={
+            "call_id": entry.call_id, "confidence": outcome.confidence.value,
+            "contradicted_fields": list(outcome.contradicted_fields)})
+        return entry
+
+    def _settle(self, entry: IndeterminateCall, outcome: str, method: str, call_id: str, *,
+                by: str | None = None) -> None:
+        details = {"call_id": entry.call_id, "outcome": outcome, "method": method, "resolved_during": call_id,
+                   **_identity_details(entry.identity)}
+        if by is not None:
+            details["by"] = by
+        for path in (entry.resolution_path(), entry.path):
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+        self.audit.record("indeterminate_resolved", tool=entry.tool, details=details)
 
     def _reconcilers(self, binding: MCPToolBinding) -> dict[str, MCPReadBackReconciler]:
         """The read-back for this binding's effect, over the gateway's own upstream session (P1b-7).
@@ -804,6 +1091,40 @@ def grant_pending_request(
     store.grant(action, contract, ttl_seconds=ttl_seconds)
     path.unlink()
     return raw["action_fingerprint"]
+
+
+def resolve_indeterminate_call(pending_dir: str | Path, call_id: str, outcome: str, *, by: str) -> Path:
+    """Record an operator's finding about a consequential call whose outcome was unknown.
+
+    Run by an operator after checking the backend, never by the gateway. ``outcome`` is
+    ``happened`` or ``did_not_happen``. The gateway applies it at the session's next call to the
+    tool: ``happened`` settles the call; ``did_not_happen`` stops it holding the tool and lets its
+    exact retry be decided as the same call. ``by`` names the operator, as recorded; it is not
+    authenticated (R4 in docs/workflow-integration-inventory.md). Returns the file written.
+    """
+    if outcome not in RESOLUTION_OUTCOMES:
+        raise PolicyValidationError(f"outcome must be one of: {', '.join(RESOLUTION_OUTCOMES)}")
+    if not isinstance(by, str) or not by.strip():
+        raise PolicyValidationError("the operator's name is required")
+    if not re.fullmatch(r"[0-9a-f]{32}", call_id or ""):
+        raise PolicyValidationError("a call id is 32 hexadecimal characters, as the audit records it")
+    directory = Path(pending_dir) / INDETERMINATE_DIR
+    entry = directory / f"{call_id}.json"
+    if not entry.exists():
+        raise PolicyValidationError(f"no unresolved call {call_id} in {directory}")
+    IndeterminateCall.load(entry)
+    path = directory / f"{call_id}.resolution.json"
+    write_json_atomic(path, {"version": 1, "call_id": call_id, "outcome": outcome, "by": by.strip(),
+                             "at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+    return path
+
+
+class _Unreadable(Exception):
+    pass
+
+
+def _identity_details(identity: tuple[str, ...]) -> dict[str, str]:
+    return dict(zip(("principal_id", "session_id", "tenant_id", "capability_id"), identity))
 
 
 def _plain(value: Any) -> Any:

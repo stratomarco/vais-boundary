@@ -1,0 +1,35 @@
+# MCP integration profile, version 2 (DEC-074): every version 1 feature plus consequential,
+# idempotency_argument and receipt. Frozen on 2026-10-21; never edited.
+version: 2
+servers:
+  ap:
+    default_confidentiality: internal
+    tools:
+      pay:
+        canonical_tool: mcp:ap:pay
+        result_confidentiality: internal
+        consequential: true
+        idempotency_argument: idempotency_key
+        receipt: receipt
+        effect:
+          kind: payment
+          argument_fields: {vendor_id: vendor_id, bank_account_id: bank_account_id, invoice_id: invoice_id, amount: amount, idempotency_key: idempotency_key}
+          acknowledge: {invoice_id: invoice_id}
+          confirm:
+            server: ap
+            tool: find_payment
+            arguments: {idempotency_key: effect.idempotency_key}
+            expect: {invoice_id: invoice_id, amount: amount}
+        mints:
+          - {from: result.payment_id, to: [mcp:ap:build_remittance.payment_id]}
+      build_remittance:
+        canonical_tool: mcp:ap:build_remittance
+        consequential: true
+        idempotency_argument: idempotency_key
+        effect: {kind: remittance_built, argument_fields: {payment_id: payment_id}}
+      find_payment:
+        canonical_tool: mcp:ap:find_payment
+      get_vendor:
+        canonical_tool: mcp:ap:get_vendor
+        writes: []
+        reads: [vendor_master]

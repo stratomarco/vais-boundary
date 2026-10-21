@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **Consequential tools, idempotency keys and correlation (DEC-074, FIND-078, LIM-078).** Step 2
+  of the workflow integration. MCP profile version 2 adds three keys per tool; version 1 profiles
+  keep their meaning.
+  - `consequential: true`: an error reply is `indeterminate`, not observed, and an unknown outcome
+    holds the tool for the session until a read-back confirms it happened or an operator runs
+    `vais gateway-resolve`.
+  - `idempotency_argument`: the gateway sends a key derived from the session and the exact
+    action, hidden from and refused to the agent. The exact retry of a call with an unknown
+    outcome goes as the same call: the backend makes it once and the session's limits count it
+    once.
+  - `receipt`: the reply field the audit records as the backend's receipt.
+
+  Every gateway event now carries a per-call `call_id`; the audit records the policy, profile and
+  configuration digests at start, the contract file's digest per call, and a digest of each
+  observed reply. New formats, with samples in `tests/data/formats-1.1/`: the indeterminate call
+  record and its resolution. New operator command: `vais gateway-resolve`. The sandbox gains
+  `find_payment`, a lookup by idempotency key for read-backs.
 - **An accounts-payable sandbox backend** (`examples/ap_sandbox/`), step 1 of the workflow
   integration. A payment service in its own process, with its own SQLite database and credential:
   - idempotency keys that return the first result instead of making a second payment;

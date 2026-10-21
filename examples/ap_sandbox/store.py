@@ -442,6 +442,11 @@ class Store:
         with self._read() as connection:
             return [self._payment_view(row) for row in connection.execute(query + " ORDER BY payment_id", params)]
 
+    def find_payment(self, idempotency_key: str) -> dict[str, Any]:
+        """The payment made with this idempotency key: what a read-back after a lost reply asks."""
+        with self._read() as connection:
+            return self._payment_view(self._require(connection, "payments", "idempotency_key", idempotency_key))
+
     def get_receipt(self, receipt_id: str) -> dict[str, Any]:
         with self._read() as connection:
             return self._full_receipt(self._require(connection, "receipts", "receipt_id", receipt_id))
