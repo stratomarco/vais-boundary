@@ -16,7 +16,7 @@ production-ready authorization service.
 | **R2 Complete mediation** | Every call through `ProtectedExecutor`, `MCPProtectedClient` or the gateway is decided first; refused and approval-required calls are never sent (`not_called`). The gateway alone holds the upstream credentials, and tests check the agent and upstreams never see them. The `monitor_mediated` invariant reports any effect no recorded allow explains, after the fact. | A test in the reference workflow that **fails if a bypass is introduced**, checked against the backend's own records: every backend change must match a gateway allow. | Isolation in a real deployment: credentials, network paths, operator files (LIM-050, LIM-060). |
 | **R3 Provenance and confidentiality** | Labels assigned from sources (each tool's result confidentiality, MCP results untrusted); model output inherits what it read; per-argument trust requirements and confidentiality ceilings; the gateway's session high-water mark; declared stores checked at startup (DEC-070). | Classifying the real backend's data sources in the profile. | Labels against real data; adapters that drop provenance (`ATTACK-SURFACE.md` §4); stores that are not declared (LIM-074). |
 | **R4 Exact approvals** | A grant is bound to the action's fingerprint and to principal, session, tenant and capability; consumed once; optional expiry; file-backed under an operating-system lock, so it holds across processes and restarts on one machine. Operators grant pending gateway requests with `vais gateway-approve`. | Approvals made by an **authenticated approver**, with the approver's identity recorded. Today an approval is an operator command. | Across machines (LIM-057). |
-| **R5 Effects and uncertainty** | Every call is `not_called`, `observed` or `indeterminate`; an effect is recorded only after the call returns, with a confidence (requested, acknowledged, confirmed by a read-back from the system of record, or contradicted). An indeterminate call is never scored as a defence (DEC-040). Decision and effect are linked by the action fingerprint. | **Gap:** nothing requires reconciliation before an indeterminate high-consequence call is retried; a repeated proposal is decided and sent again. **Gap:** the backend's receipt is not captured; the effect records fields, not the receipt. | Reconciliation against a real backend. |
+| **R5 Effects and uncertainty** | Every call is `not_called`, `observed` or `indeterminate`; an effect is recorded only after the call returns, with a confidence (requested, acknowledged, confirmed by a read-back from the system of record, or contradicted). An indeterminate call is never scored as a defence (DEC-040). Decision and effect are linked by the action fingerprint. | **Gap:** nothing requires reconciliation before an indeterminate high-consequence call is retried; a repeated proposal is decided and sent again. **Gap:** the backend's receipt is not captured; the effect records fields, not the receipt. **Gap (found with the sandbox):** an MCP error result is not an exception, so a call whose reply is an error is recorded as `observed` with a `requested` effect, although the backend may or may not have made the change. | Reconciliation against a real backend. |
 | **R6 Duplicate prevention** | Where configured, single-use allowed values, call limits and consume-once approvals refuse a repeated proposal. | **Gap:** no idempotency key reaches the backend; the fingerprint never leaves VAIS. A transport failure after dispatch followed by a retry can duplicate an effect unless the backend deduplicates. | Both cases the requirements name: a repeated proposal and a transport failure after dispatch. |
 | **R7 Independent verification** | Declarative invariants evaluated over effects, separately from the decision; utility checks in the reference applications; read-back reconcilers query a system of record. | A verifier that reads the **backend's own state or receipts**, not VAIS's effect records. | Against a real backend. |
 | **R8 Auditability** | A hash-chained audit (`vais audit-verify`) with decisions, reasons, contract identity, action fingerprints, call state and effect confidence; secrets are refused in audit details and minted values recorded as digests; benchmark records carry a configuration hash. | **Gaps:** no per-call correlation ID (two identical calls share a fingerprint); the gateway's audit records no policy or configuration digest; no backend receipt; invariant verdicts are not in the gateway's audit. | A reviewer tracing a verdict from action to backend evidence to invariant. |
@@ -49,10 +49,13 @@ a read API, served over MCP behind the gateway.
 
 ## Proposed sequence
 
-1. **Sandbox backend** with idempotency keys, receipts and a read API.
+1. **Sandbox backend** with idempotency keys, receipts and a read API. **Done:**
+   `examples/ap_sandbox/` (its README), tested in `tests/test_ap_sandbox.py`, including faults
+   after commit sent through `MCPProtectedClient`.
 2. **Close the gaps in VAIS** that the requirements need, each a 1.x change under the format rules
    (`formats.md`):
    - reconciliation required before retrying an indeterminate high-consequence call (R5);
+   - an MCP error reply from a high-consequence tool treated as uncertain, not observed (R5);
    - an idempotency key sent to backends that accept one (R6);
    - per-call correlation IDs, a configuration digest at gateway start, receipt digests and
      invariant verdicts in the audit (R8).
@@ -66,6 +69,7 @@ a read API, served over MCP behind the gateway.
 
 ## Decisions for the owner
 
-- Whether the accounts-payable payment run is the workflow.
-- Whether the sandbox backend lives in this repository, under `examples/`, or in its own.
-- Who the workflow owner is for the pilot, when one is available.
+- Whether the accounts-payable payment run is the workflow: **yes** (2026-10-20).
+- Whether the sandbox backend lives in this repository, under `examples/`, or in its own:
+  **`examples/`** (2026-10-20).
+- Who the workflow owner is for the pilot, when one is available. Until then, the project owner.

@@ -28,3 +28,6 @@ research/evidence/*.jsonl
 campaigns/corpus_run/
 campaigns/reports/
 .coverage
+
+# Sandbox databases created by `python -m ap_sandbox init`
+examples/**/*.sqlite3*

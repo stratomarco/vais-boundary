@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **An accounts-payable sandbox backend** (`examples/ap_sandbox/`), step 1 of the workflow
+  integration. A payment service in its own process, with its own SQLite database and credential:
+  - idempotency keys that return the first result instead of making a second payment;
+  - a hash-chained receipt for every change;
+  - a read API for reconciliation;
+  - faults an operator arms to fail a write before or after it commits.
+
+  It is permissive about business rules on purpose, so a refusal in an evaluation is VAIS's.
+  Sending payments through `MCPProtectedClient` with faults armed found a further R5 gap: an MCP
+  error reply after the backend committed is recorded as an observed call with a requested
+  effect, not as uncertain.
 - **What AgentCore Policy's language can express of VAIS's decisions (FIND-077, DEC-073).** A
   pre-registered study replayed VAIS's 93 reference workflows through a Dogwood policy (AgentCore
   Policy's language, reference interpreter 1.1.0) generated from the same configuration. Both
