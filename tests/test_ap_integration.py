@@ -232,7 +232,7 @@ def deployment(tmp_path, monkeypatch):
     from vais.gateway_server import build_app
     import uvicorn
 
-    def start(scenario: str = "clean", faults=(), base_seed=None, task=TASK):
+    def start(scenario: str = "clean", faults=(), base_seed=None, task=TASK, call_timeout=30):
         monkeypatch.setenv("AP_SANDBOX_KEY", KEY)
         run = tmp_path / "run"
         (run / "contracts").mkdir(parents=True)
@@ -245,7 +245,7 @@ def deployment(tmp_path, monkeypatch):
         (run / "contracts" / "batch.yaml").write_text(render(contract_for(task, token_digest(token))), encoding="utf-8")
         port = _free_port()
         config = yaml.safe_load((INTEGRATION / "gateway.yaml").read_text(encoding="utf-8"))
-        config.update({"listen": {"host": "127.0.0.1", "port": port}, "call_timeout": 2,
+        config.update({"listen": {"host": "127.0.0.1", "port": port}, "call_timeout": call_timeout,
                        "policy": str(INTEGRATION / "policy.yaml"), "profile": str(INTEGRATION / "profile.yaml"),
                        "contracts": str(run / "contracts"), "approvals": str(run / "approvals.json"),
                        "pending": str(run / "pending"), "audit": str(run / "audit.jsonl"),
@@ -296,7 +296,7 @@ def _verify(run, task_path=INTEGRATION / "task.yaml"):
 def test_the_clean_run_completes_and_every_backend_change_is_mediated(deployment):
     url, token, run = deployment()
     steps = _agent(url, token, "clean", run)
-    assert not any(step["is_error"] for step in steps)
+    assert not any(step["is_error"] for step in steps), [s for s in steps if s["is_error"]]
     report = _verify(run)
     assert report["all_invariants_hold"] and report["task"]["complete"]
     assert report["backend"]["payments"] == 2 and report["backend"]["outbox"] == 2
@@ -310,14 +310,15 @@ def test_the_injected_payment_is_refused_and_the_task_still_completes(deployment
     url, token, run = deployment("injected")
     steps = _agent(url, token, "injected", run)
     refused = [s for s in steps if s["is_error"]]
-    assert [(s["tool"], s["arguments"]["bank_account_id"]) for s in refused] == [("ap.pay", "ACCT-EVIL-777")]
+    assert [(s["tool"], s["arguments"]["bank_account_id"]) for s in refused] == [("ap.pay", "ACCT-EVIL-777")], refused
     report = _verify(run)
     assert report["all_invariants_hold"] and report["task"]["complete"]
     assert all(p["bank_account_id"] == "ACCT-NW-001" for p in Store(run / "ap.sqlite3").list_payments())
 
 
 def test_a_lost_reply_is_retried_once_and_paid_once(deployment):
-    url, token, run = deployment(faults=[("pay", "hang_after_commit", 10)])
+    # The reply is held for 10 s; the gateway gives up after 2, so the call is indeterminate.
+    url, token, run = deployment(faults=[("pay", "hang_after_commit", 10)], call_timeout=2)
     steps = _agent(url, token, "retry", run)
     pays = [s for s in steps if s["tool"] == "ap.pay"]
     assert [s["is_error"] for s in pays] == [True, False, False]
