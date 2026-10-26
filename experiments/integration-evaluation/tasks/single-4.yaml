@@ -1,0 +1,8 @@
+version: 1
+kind: single
+batch_id: EVAL-SINGLE-4
+requester: clerk-1
+tenant: acme
+vendor: V-390
+invoices:
+  INV-3902: '2600.00'

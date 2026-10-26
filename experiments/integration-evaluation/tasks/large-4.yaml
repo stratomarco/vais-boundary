@@ -1,0 +1,8 @@
+version: 1
+kind: large
+batch_id: EVAL-LARGE-4
+requester: clerk-1
+tenant: acme
+vendor: V-380
+invoices:
+  INV-3801: '5320.00'

@@ -89,6 +89,9 @@ STUDIES = (
           registrations=("experiments/dogwood-expressibility/PREREGISTRATION.md",),
           results=("experiments/dogwood-expressibility/RESULTS.md",),
           note="Round 1 as registered; round 2 exploratory, with the application's own mints declared."),
+    Study("The accounts-payable workflow end to end, with models as the agent", ("experiments/integration-evaluation",),
+          "not yet run",
+          note="Draft; not yet registered and not yet run (workflow integration, step 4)."),
 )
 
 

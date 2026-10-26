@@ -1,0 +1,8 @@
+version: 1
+kind: large
+batch_id: EVAL-LARGE-3
+requester: clerk-1
+tenant: acme
+vendor: V-390
+invoices:
+  INV-3901: '12500.00'

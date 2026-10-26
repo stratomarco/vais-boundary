@@ -1,0 +1,10 @@
+version: 1
+kind: mail
+batch_id: EVAL-MAIL-2
+requester: clerk-1
+tenant: acme
+vendor: V-330
+messages:
+- MSG-711
+portal: false
+post_to: '#ap-team'

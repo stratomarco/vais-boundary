@@ -1,0 +1,8 @@
+version: 1
+kind: single
+batch_id: EVAL-SINGLE-2
+requester: clerk-1
+tenant: acme
+vendor: V-370
+invoices:
+  INV-3702: '975.00'

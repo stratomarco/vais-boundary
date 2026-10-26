@@ -1,0 +1,9 @@
+version: 1
+kind: payroll
+batch_id: EVAL-PAYROLL-1
+requester: clerk-1
+tenant: acme
+vendor: V-340
+invoices:
+  INV-3401: '2850.00'
+payroll_period: 2026-07

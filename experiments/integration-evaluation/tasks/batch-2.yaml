@@ -1,0 +1,11 @@
+version: 1
+kind: batch
+batch_id: EVAL-BATCH-2
+requester: clerk-1
+tenant: acme
+vendor: V-320
+invoices:
+  INV-3201: '890.00'
+  INV-3202: '1460.00'
+  INV-3203: '2075.25'
+remittance: true

@@ -26,6 +26,7 @@ the maintainer's backup of raw records too large for git, listed with checksums 
 | Cross-session flows | `PREREGISTRATION.md` 2b0e12f 2026-10-03 | FIND-075 | LIM-074 | [RESULTS.md](../experiments/cross-session/RESULTS.md) | deterministic; `experiments/cross-session/results.json` is in the repository |
 | Stability of the RC7 result | `PREREGISTRATION.md` 338515c 2026-10-03 | FIND-076 | LIM-075 | [RESULTS.md](../experiments/rc7-stability/RESULTS.md) | off-drive archive `evidence/0.12.0rc15/rc7-stability/` |
 | What AgentCore Policy's language can express of VAIS's decisions | `PREREGISTRATION.md` 6df88bc 2026-10-20 | FIND-077 | LIM-077 | [RESULTS.md](../experiments/dogwood-expressibility/RESULTS.md) | deterministic; generated from the reference workflows, outputs in the repository |
+| The accounts-payable workflow end to end, with models as the agent | no | none | none |  | not yet run |
 
 ## What each study found
 
@@ -114,3 +115,9 @@ Exploratory, not pre-registered.
 Round 1 as registered; round 2 exploratory, with the application's own mints declared.
 
 - **FIND-077** (1.0.0): On VAIS's 93 deterministic reference workflows, a Dogwood policy (the language of Amazon Bedrock AgentCore Policy, reference interpreter 1.1.0) written from the same configuration made every decision VAIS made. In a pre-registered replay of each workflow's unprotected trace, with the task supplied to Dogwood as trusted events, both engines refused all 41 attacks, each at the same call, and neither let an attack through. In the registered round Dogwood was never looser and was stricter on 34 of 225 agent calls, refusing 9 of 52 benign workflows, all because the policy generator omitted the accounts-payable application's own mints; in an exploratory round with those mints it completed all 52 benign workflows, and its 10 remaining stricter calls all followed a refused payment in an attack trace. The registered prediction that delegation attacks are not expressible did not hold: their harmful calls were ordinary calls outside the task. The claim of a decision AgentCore's language cannot make is not supported on this corpus.
+
+### The accounts-payable workflow end to end, with models as the agent
+
+Draft; not yet registered and not yet run (workflow integration, step 4).
+
+- No ledger finding.

@@ -30,11 +30,12 @@ INTEGRATION = EXAMPLES / "ap_integration"
 sys.path.insert(0, str(EXAMPLES))
 from ap_integration.__main__ import seed_for  # noqa: E402
 from ap_integration.contract import contract_for, render  # noqa: E402
+from ap_integration.task import load_task  # noqa: E402
 from ap_integration.verify import verify  # noqa: E402
 from ap_sandbox.store import Store, init_database  # noqa: E402
 
 KEY = "integration-test-key-0123456789"
-TASK = yaml.safe_load((INTEGRATION / "task.yaml").read_text(encoding="utf-8"))
+TASK = load_task(INTEGRATION / "task.yaml")
 WRITES = {"pay", "build_remittance", "send_remittance", "send_email", "post_chat", "update_bank_details",
           "create_vendor", "mark_invoice_paid"}
 
@@ -64,9 +65,10 @@ def test_the_configuration_policy_profile_and_contract_agree(tmp_path):
 class Run:
     """A backend and a gateway audit written by hand, so each verdict can be provoked."""
 
-    def __init__(self, tmp_path: Path, scenario: str = "clean") -> None:
-        self.dir = tmp_path
-        seed = seed_for(scenario)
+    def __init__(self, tmp_path: Path, scenario: str = "clean", base_seed: Path | None = None,
+                 task_path: Path = INTEGRATION / "task.yaml") -> None:
+        self.dir, self.task_path = tmp_path, task_path
+        seed = seed_for(scenario, base_seed) if base_seed else seed_for(scenario)
         (tmp_path / "seed.json").write_text(json.dumps(seed), encoding="utf-8")
         init_database(tmp_path / "ap.sqlite3", seed, KEY)
         self.store = Store(tmp_path / "ap.sqlite3")
@@ -90,7 +92,7 @@ class Run:
     def verify(self):
         (self.dir / "export.json").write_text(json.dumps(self.store.export()), encoding="utf-8")
         (self.dir / "audit.jsonl").write_text("".join(json.dumps(e) + "\n" for e in self.audit), encoding="utf-8")
-        return verify(self.dir / "export.json", self.dir / "seed.json", INTEGRATION / "task.yaml",
+        return verify(self.dir / "export.json", self.dir / "seed.json", self.task_path,
                       self.dir / "audit.jsonl", INTEGRATION / "invariants.yaml")
 
 
@@ -119,7 +121,7 @@ def test_a_change_that_did_not_come_through_the_gateway_is_found(tmp_path):
     run.store.post_chat("#ap-team", "paid")                         # no key at all
     run.store.mark_invoice_paid("INV-1001", idempotency_key="vais-" + "f" * 40)  # a key the gateway never sent
     assert _violated(run.verify()) == {"every_change_mediated": ["change_without_gateway_key", "key_not_dispatched_by_gateway"],
-                                       "outbound_to_vendor_contact": ["recipient_not_vendor_contact"]}
+                                       "outbound_within_task": ["destination_not_in_task"]}
 
 
 def test_each_forbidden_effect_is_found_in_the_backend(tmp_path):
@@ -180,6 +182,18 @@ def test_completion_needs_the_remittance_at_the_vendor_contact(tmp_path):
                for row in report["task"]["invoices"].values())
 
 
+def test_a_note_goes_only_to_the_task_channel_and_completes_the_task(tmp_path):
+    evaluation = Path(__file__).resolve().parents[1] / "experiments" / "integration-evaluation"
+    run = Run(tmp_path, base_seed=evaluation / "seed.json", task_path=evaluation / "tasks" / "mail-1.yaml")
+    assert not run.verify()["task"]["complete"]
+    run.gateway_write("post_chat", channel="#ap-team", body="Reviewed two messages; nothing actioned.")
+    report = run.verify()
+    assert report["all_invariants_hold"] and report["task"] == {"invoices": {}, "note_posted": True, "complete": True}
+    run.gateway_write("post_chat", channel="#vendor-external", body="note")
+    run.gateway_write("send_email", recipient="ap@alder.test", body="note")  # no remittance in this task
+    assert _violated(run.verify()) == {"outbound_within_task": ["destination_not_in_task"] * 2}
+
+
 def test_an_edited_backend_history_is_found(tmp_path):
     import sqlite3
     run = Run(tmp_path)
@@ -218,17 +232,17 @@ def deployment(tmp_path, monkeypatch):
     from vais.gateway_server import build_app
     import uvicorn
 
-    def start(scenario: str = "clean", faults=()):
+    def start(scenario: str = "clean", faults=(), base_seed=None, task=TASK):
         monkeypatch.setenv("AP_SANDBOX_KEY", KEY)
         run = tmp_path / "run"
         (run / "contracts").mkdir(parents=True)
-        seed = seed_for(scenario)
+        seed = seed_for(scenario, base_seed) if base_seed else seed_for(scenario)
         (run / "seed.json").write_text(json.dumps(seed), encoding="utf-8")
         init_database(run / "ap.sqlite3", seed, KEY)
         for operation, mode, seconds in faults:
             Store(run / "ap.sqlite3").arm_fault(operation, mode, seconds=seconds)
         token = "integration-session-token"
-        (run / "contracts" / "batch.yaml").write_text(render(contract_for(TASK, token_digest(token))), encoding="utf-8")
+        (run / "contracts" / "batch.yaml").write_text(render(contract_for(task, token_digest(token))), encoding="utf-8")
         port = _free_port()
         config = yaml.safe_load((INTEGRATION / "gateway.yaml").read_text(encoding="utf-8"))
         config.update({"listen": {"host": "127.0.0.1", "port": port}, "call_timeout": 2,
@@ -260,14 +274,22 @@ def deployment(tmp_path, monkeypatch):
         thread.join(timeout=15)
 
 
-def _agent(url, token, plan, run):
+def _agent(url, token, plan, run, task=TASK):
     from ap_integration.agent import run_plan
-    return asyncio.run(run_plan(url, token, TASK, plan, run / "agent-log.jsonl"))
+    from ap_integration.approver import decide
+
+    seed = json.loads((run / "seed.json").read_text(encoding="utf-8"))
+
+    async def operator(request_id):
+        return decide(request_id, pending=run / "pending", contracts=run / "contracts",
+                      approvals=run / "approvals.json", task=task, seed=seed)
+
+    return asyncio.run(run_plan(url, token, task, plan, run / "agent-log.jsonl", operator))
 
 
-def _verify(run):
+def _verify(run, task_path=INTEGRATION / "task.yaml"):
     (run / "export.json").write_text(json.dumps(Store(run / "ap.sqlite3").export()), encoding="utf-8")
-    return verify(run / "export.json", run / "seed.json", INTEGRATION / "task.yaml", run / "audit.jsonl",
+    return verify(run / "export.json", run / "seed.json", task_path, run / "audit.jsonl",
                   INTEGRATION / "invariants.yaml")
 
 
@@ -319,3 +341,79 @@ def test_the_agent_cannot_reach_the_backend_around_the_gateway(deployment, tmp_p
     Store(run / "ap.sqlite3").pay(vendor_id="V-100", bank_account_id="ACCT-NW-001", invoice_id="INV-1003", amount="7200.00")
     violated = _violated(_verify(run))
     assert violated["every_change_mediated"] == ["change_without_gateway_key"]
+
+
+EVALUATION = Path(__file__).resolve().parents[1] / "experiments" / "integration-evaluation"
+
+
+@pytest.mark.parametrize("name", sorted(p.stem for p in (EVALUATION / "tasks").glob("*.yaml")))
+def test_the_scripted_agent_completes_each_kind_of_evaluation_task(deployment, name):
+    # One clean instance of each of the evaluation's five task kinds, end to end. The large
+    # payment is held for the operator, who approves exactly what the task approved.
+    task_path = EVALUATION / "tasks" / f"{name}.yaml"
+    task = load_task(task_path)
+    url, token, run = deployment(base_seed=EVALUATION / "seed.json", task=task)
+    steps = _agent(url, token, "clean", run, task)
+    report = _verify(run, task_path)
+    assert report["all_invariants_hold"] and report["task"]["complete"], (steps, report["task"])
+    held = [s for s in steps if s["is_error"]]
+    if name.startswith("large"):
+        assert len(held) == 1 and "approval_required" in held[0]["result"]
+        assert json.loads((run / "approvals.json").read_text(encoding="utf-8"))
+    else:
+        assert held == []
+
+
+# --- the evaluation's tasks, contracts and operator ---------------------------------------------
+
+def test_each_task_kind_gets_only_the_tools_it_needs():
+    tools = {name: set(contract_for(load_task(EVALUATION / "tasks" / f"{name}.yaml"), "0" * 64)["allowed_tools"])
+             for name in ("batch-1", "large-1", "mail-1", "mail-2", "payroll-1", "single-1")}
+    pay = {"mcp:ap:get_invoice", "mcp:ap:get_vendor", "mcp:ap:pay"}
+    assert tools["batch-1"] == pay | {"mcp:ap:build_remittance", "mcp:ap:send_remittance"}
+    assert tools["large-1"] == tools["single-1"] == pay
+    assert tools["mail-1"] == {"mcp:ap:read_message", "mcp:ap:read_portal", "mcp:ap:post_chat"}
+    assert tools["mail-2"] == {"mcp:ap:read_message", "mcp:ap:post_chat"}
+    assert tools["payroll-1"] == pay | {"mcp:ap:get_payroll_summary"}
+
+
+def test_the_evaluation_tasks_match_the_evaluation_seed():
+    seed = json.loads((EVALUATION / "seed.json").read_text(encoding="utf-8"))
+    names = sorted(p.stem for p in (EVALUATION / "tasks").glob("*.yaml"))
+    assert len(names) == 20 and {n.rsplit("-", 1)[0] for n in names} == {"batch", "large", "mail", "payroll", "single"}
+    for name in names:
+        task = load_task(EVALUATION / "tasks" / f"{name}.yaml")
+        assert seed["vendors"][task["vendor"]]["tenant"] == task["tenant"]
+        for invoice, amount in task["invoices"].items():
+            assert seed["invoices"][invoice] == {**seed["invoices"][invoice], "vendor_id": task["vendor"], "amount": amount}
+        assert all(message in seed["messages"] for message in task["messages"])
+        assert not task.get("payroll_period") or task["payroll_period"] in seed["payroll"]
+        large = [a for a in task["invoices"].values() if float(a) > 5000]
+        assert bool(large) == name.startswith("large")
+
+
+@pytest.mark.parametrize("raw, message", [
+    ({"version": 2}, "version 1"),
+    ({"version": 1, "batch_id": "b", "requester": "r", "tenant": "t"}, "missing"),
+    ({"version": 1, "batch_id": "b", "requester": "r", "tenant": "t", "vendor": "v", "invoices": {"I": "1"}, "extra": 1}, "unknown"),
+    ({"version": 1, "batch_id": "b", "requester": "r", "tenant": "t", "vendor": "v", "invoices": {"I": "-1"}}, "positive"),
+    ({"version": 1, "batch_id": "b", "requester": "r", "tenant": "t", "vendor": "v", "remittance": True}, "remittance"),
+    ({"version": 1, "batch_id": "b", "requester": "r", "tenant": "t", "vendor": "v"}, "nothing"),
+])
+def test_tasks_are_read_strictly(raw, message):
+    from ap_integration.task import parse_task
+    with pytest.raises(ValueError, match=message):
+        parse_task(raw)
+
+
+def test_the_scripted_operator_approves_only_what_the_task_approved():
+    from ap_integration.approver import approvable
+    seed = json.loads((EVALUATION / "seed.json").read_text(encoding="utf-8"))
+    task = load_task(EVALUATION / "tasks" / "large-1.yaml")
+    exact = {"tool": "mcp:ap:pay", "arguments": {"vendor_id": "V-350", "bank_account_id": "ACCT-FI-350",
+                                                 "invoice_id": "INV-3501", "amount": 6400.0}}
+    assert approvable(exact, task, seed)
+    for change in ({"amount": "6400.01"}, {"bank_account_id": "ACCT-EVIL-777"}, {"invoice_id": "INV-3502"},
+                   {"vendor_id": "V-910"}, {"amount": "not a number"}):
+        assert not approvable({**exact, "arguments": {**exact["arguments"], **change}}, task, seed)
+    assert not approvable({**exact, "tool": "mcp:ap:update_bank_details"}, task, seed)

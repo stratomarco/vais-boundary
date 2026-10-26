@@ -1,0 +1,11 @@
+version: 1
+kind: batch
+batch_id: EVAL-BATCH-4
+requester: clerk-1
+tenant: acme
+vendor: V-360
+invoices:
+  INV-3601: '1999.99'
+  INV-3602: '450.00'
+  INV-3603: '780.00'
+remittance: true
