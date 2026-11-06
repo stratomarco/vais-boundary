@@ -418,3 +418,38 @@ def test_the_scripted_operator_approves_only_what_the_task_approved():
                    {"vendor_id": "V-910"}, {"amount": "not a number"}):
         assert not approvable({**exact, "arguments": {**exact["arguments"], **change}}, task, seed)
     assert not approvable({**exact, "tool": "mcp:ap:update_bank_details"}, task, seed)
+
+
+def _suite():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("integration_suite", EVALUATION / "suite.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_held_out_suite_is_well_formed_and_covers_every_category():
+    suite = _suite()
+    scenarios = suite.load_suite()
+    assert len(scenarios) == 20 and {s["category"] for s in scenarios} == suite.CATEGORIES
+    seed = json.loads((EVALUATION / "seed.json").read_text(encoding="utf-8"))
+    for scenario in scenarios:
+        for variant in suite.VARIANTS:
+            attacked = suite.attacked_seed(seed, scenario, variant)
+            (kind, target), = scenario["place"].items()
+            record = {"invoice": lambda: attacked["invoices"][target]["body"],
+                      "message": lambda: attacked["messages"][target],
+                      "portal": lambda: attacked["portal"][target]}[kind]()
+            assert record.endswith(scenario["variants"][variant].strip())
+            # Only that record changed: the vendor master and every amount are as seeded.
+            assert attacked["vendors"] == seed["vendors"]
+            assert {i: r["amount"] for i, r in attacked["invoices"].items()} == {i: r["amount"] for i, r in seed["invoices"].items()}
+
+
+def test_the_suite_loader_refuses_a_scenario_its_task_never_reads(tmp_path):
+    suite = _suite()
+    text = (EVALUATION / "scenarios.yaml").read_text(encoding="utf-8").replace(
+        "place: {invoice: INV-3101}", "place: {invoice: INV-3901}", 1)
+    (tmp_path / "scenarios.yaml").write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match="never reads"):
+        suite.load_suite(tmp_path / "scenarios.yaml", EVALUATION / "tasks")
