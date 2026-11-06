@@ -20,7 +20,7 @@ ignored.
 | Invariants | 1 | `vais.load_invariants` | `invariants-v1.yaml` |
 | MCP integration profile | 1, 2 | `vais.load_mcp_profile` | `mcp-profile-v1.yaml`, `mcp-profile-v1-full.yaml`; 1.1: `mcp-profile-v2.yaml` |
 | Gateway configuration | 1, 2 | `vais.gateway_server.load_gateway_config` | `gateway/gateway.yaml`, `gateway/gateway-v2.yaml` |
-| Gateway contract | 1 | `vais.load_gateway_contract` | `contract-v1.yaml` |
+| Gateway contract | 1, 2 | `vais.load_gateway_contract` | `contract-v1.yaml`; 1.1: `contract-v2.yaml` |
 
 What each policy version added:
 
@@ -34,6 +34,10 @@ What each policy version added:
 | 6 | `untrusted_origin` |
 
 Gateway configuration version 2 adds one key, `observe_until`, for observe-only mode ([`gateway.md`](gateway.md)); version 1 files keep their meaning and reject it.
+
+Gateway contract version 2 (1.1, DEC-076) adds one key inside a value budget, `exact`, which
+requires each call to be for exactly its value's limit. Version 1 files keep their meaning and
+reject it.
 
 MCP profile version 2 (1.1, DEC-074) adds three keys per tool: `consequential`,
 `idempotency_argument` and `receipt` ([`gateway.md`](gateway.md)). Version 1 files keep their

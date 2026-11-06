@@ -1,0 +1,19 @@
+# Gateway contract, version 2 (DEC-076): every version 1 field, plus `exact` on a value budget.
+# Frozen on 2026-11-06; never edited. The token behind this digest is "formats-1.1-contract-v2".
+version: 2
+token_sha256: c606c95007b0a5fea032f5fbf0932d0f0744ee27f02828e8faf8b39e41568512
+principal_id: clerk-1
+session_id: AP-RUN-2026-11-06
+tenant_id: acme
+capability_id: ap-task
+allowed_tools: [mcp:ap:get_invoice, mcp:ap:get_vendor, mcp:ap:pay]
+granted_scopes: [invoices:read, vendors:read, payments:send]
+bound_arguments:
+  mcp:ap:get_vendor: {vendor_id: V-330}
+  mcp:ap:pay: {vendor_id: V-330}
+allowed_values:
+  mcp:ap:get_invoice: {invoice_id: {values: [INV-3301, INV-3302]}}
+  mcp:ap:pay: {invoice_id: {values: [INV-3301, INV-3302], once: true}}
+value_budgets:
+  mcp:ap:pay:
+    amount: {per: invoice_id, exact: true, limits: {INV-3301: "3120.00", INV-3302: "640.00"}}

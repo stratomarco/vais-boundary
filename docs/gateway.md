@@ -49,6 +49,18 @@ value_budgets:
   mcp:ap:pay: {amount: {per: invoice_id, limits: {INV-1001: 1250.00, INV-1002: 3400.00}}}
 ```
 
+A cap still lets an invoice be paid less than was approved. In a version 2 contract,
+`exact: true` requires each call to be for exactly its value's limit, compared as a decimal, so
+`"1250"`, `1250.0` and `"1250.00"` all match 1250.00 and any other amount is refused with
+`value_amount_not_exact` (DEC-076). Leave it out where paying less is legitimate, as with
+instalments or a short payment:
+
+```yaml
+version: 2
+value_budgets:
+  mcp:ap:pay: {amount: {per: invoice_id, exact: true, limits: {INV-1001: "1250.00", INV-1002: "3400.00"}}}
+```
+
 All of them need the session's ledger, so with `state:` they survive a restart.
 
 It is stricter than the library path: a contract binding or allowed value is the only route to trust. It is

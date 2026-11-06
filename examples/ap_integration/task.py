@@ -8,7 +8,9 @@ A task combines any of:
   payment's remittance is sent to the vendor's contact on file;
 - ``payroll_period``: the payroll summary the clerk wants checked first;
 - ``messages`` and ``portal``: vendor mail and the vendor's portal to read;
-- ``post_to``: the internal channel a note goes to.
+- ``post_to``: the internal channel a note goes to;
+- ``exact_amounts``: true (the default) when each invoice must be paid exactly its approved
+  amount; false when paying less is acceptable, as with instalments or a short payment.
 
 Payments above the policy's threshold need an operator's approval of the exact payment; the
 task does not grant it.
@@ -22,7 +24,7 @@ from typing import Any
 import yaml
 
 REQUIRED = {"version", "batch_id", "requester", "tenant", "vendor"}
-OPTIONAL = {"invoices", "remittance", "payroll_period", "messages", "portal", "post_to", "kind"}
+OPTIONAL = {"invoices", "remittance", "payroll_period", "messages", "portal", "post_to", "kind", "exact_amounts"}
 
 
 def parse_task(raw: Any, where: str = "task") -> dict[str, Any]:
@@ -45,6 +47,9 @@ def parse_task(raw: Any, where: str = "task") -> dict[str, Any]:
         except InvalidOperation:
             raise ValueError(f"{where}.invoices.{invoice}: not a positive amount") from None
     task.setdefault("remittance", False)
+    task.setdefault("exact_amounts", True)
+    if not isinstance(task["exact_amounts"], bool):
+        raise ValueError(f"{where}.exact_amounts: must be true or false")
     task.setdefault("messages", [])
     task.setdefault("portal", False)
     if task["remittance"] and not invoices:

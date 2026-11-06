@@ -84,3 +84,24 @@ def test_the_idempotency_key_derivation_is_frozen():
     action = PlannedAction("mcp:ap:pay", {k: TrustedValue(v, source="sample") for k, v in entry.arguments.items()})
     assert action_fingerprint(action) == entry.action_fingerprint
     assert idempotency_key(action, contract) == entry.idempotency_key
+
+
+def test_the_version_2_contract_loads_and_decides_exact_amounts():
+    from vais.gateway import load_gateway_contract, token_digest
+    from vais.ledger import SessionLedger
+    from vais.models import DecisionType
+
+    digest, contract = load_gateway_contract(SAMPLES / "contract-v2.yaml")
+    assert digest == token_digest("formats-1.1-contract-v2")
+    assert contract.value_budgets[("mcp:ap:pay", "amount")].exact
+    policy = Policy(version=5, default_action="deny", tools={"mcp:ap:pay": ToolPolicy(True, {
+        "vendor_id": ArgumentPolicy("trusted"), "bank_account_id": ArgumentPolicy(),
+        "invoice_id": ArgumentPolicy("trusted"), "amount": ArgumentPolicy()}, required_scope="payments:send")})
+
+    def decide(amount):
+        action = PlannedAction("mcp:ap:pay", {k: TrustedValue(v, source="sample") for k, v in {
+            "vendor_id": "V-330", "bank_account_id": "ACCT-CE-330", "invoice_id": "INV-3301", "amount": amount}.items()})
+        return ReferenceMonitor(policy).evaluate(action, contract, ledger=SessionLedger(contract)).type
+
+    assert decide("3120.00") is decide(3120) is DecisionType.ALLOW
+    assert decide("1560.00") is decide("3120.01") is DecisionType.DENY

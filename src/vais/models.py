@@ -291,14 +291,22 @@ class ValueBudget:
     caps the sum of ``amount`` over the session's allowed actions separately for each
     invoice id. ``per`` must have allowed values in the same contract, and ``limits``
     must give exactly one cap to each of them, so no allowed value is left uncapped.
+
+    With ``exact`` (DEC-076, contract version 2) each call must be for exactly its value's
+    limit, compared as a decimal, so "1180", 1180.0 and "1180.00" all match 1180.00. A cap
+    alone lets an invoice be paid less than was approved; an exact amount does not, and with
+    the cap it also allows one such call per value.
     """
 
     per: str
     limits: Mapping[Any, Decimal]
+    exact: bool = False
 
     def __post_init__(self) -> None:
         if not isinstance(self.per, str) or not self.per.strip():
             raise ValueError("a value budget needs the argument it is per")
+        if not isinstance(self.exact, bool):
+            raise ValueError("a value budget's exact must be true or false")
         if not isinstance(self.limits, Mapping) or not self.limits:
             raise ValueError("a value budget must give at least one limit")
         limits: dict[str, Decimal] = {}

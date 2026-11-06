@@ -111,7 +111,8 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
     take, each at most once per session with ``once``, and ``budgets: {tool: {argument:
     4650.00}}`` caps the sum of a numeric argument over the session. ``value_budgets:
     {tool: {argument: {per: other_argument, limits: {value: 1250.00, ...}}}}`` caps it for
-    each allowed value of another argument (DEC-069).
+    each allowed value of another argument (DEC-069). In a version 2 contract, ``exact: true``
+    on a value budget requires each call to be for exactly its value's limit (DEC-076).
     """
     location = str(path)
     try:
@@ -120,8 +121,9 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
         raise PolicyValidationError(f"{location}: cannot read contract ({type(exc).__name__})") from None
     raw = _mapping(raw, location)
     _known_keys(raw, _CONTRACT_KEYS, location)
-    if raw.get("version") != 1 or isinstance(raw.get("version"), bool):
-        _fail(f"{location}.version", "must be 1")
+    version = raw.get("version")
+    if isinstance(version, bool) or version not in (1, 2):
+        _fail(f"{location}.version", "must be 1 or 2")
     digest = raw.get("token_sha256")
     if not isinstance(digest, str) or not _HEX64.fullmatch(digest):
         _fail(f"{location}.token_sha256", "must be 64 lowercase hex characters")
@@ -191,11 +193,15 @@ def load_gateway_contract(path: str | Path) -> tuple[str, TaskContract]:
             argument_path = f"{tool_path}.{argument}"
             argument = _string(argument, argument_path)
             spec = _mapping(spec, argument_path)
-            _known_keys(spec, {"per", "limits"}, argument_path)
+            # Version 2 adds ``exact`` (DEC-076); version 1 files keep their meaning and reject it.
+            _known_keys(spec, {"per", "limits", "exact"} if version == 2 else {"per", "limits"}, argument_path)
+            exact = spec.get("exact", False)
+            if not isinstance(exact, bool):
+                _fail(f"{argument_path}.exact", "must be true or false")
             try:
                 value_budgets[(tool, argument)] = ValueBudget(
                     per=_string(spec.get("per"), f"{argument_path}.per"),
-                    limits=_mapping(spec.get("limits"), f"{argument_path}.limits"))
+                    limits=_mapping(spec.get("limits"), f"{argument_path}.limits"), exact=exact)
             except ValueError as exc:
                 if isinstance(exc, PolicyValidationError):
                     raise

@@ -285,6 +285,9 @@ def _session_limits(action: PlannedAction, contract: TaskContract, ledger) -> De
         limit = budget.limit_for(key)
         if limit is None:
             return Decision(DecisionType.DENY, (f"argument_not_allowed:{budget.per}",))
+        if budget.exact and amount != limit:
+            # Not more, and not less: the amount the task approved for this value (DEC-076).
+            return Decision(DecisionType.DENY, (f"value_amount_not_exact:{tool}:{field}:{budget.per}",))
         if ledger.total_for(tool, field, budget.per, value_key(key)) + amount > limit:
             return Decision(DecisionType.DENY, (f"value_budget_exceeded:{tool}:{field}:{budget.per}",))
     return None

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Exact amounts per value (DEC-076).** A value budget capped the amount paid against each
+  invoice, which still let an invoice be paid less than was approved. Gateway contract version 2
+  adds `exact: true` to a value budget: each call must then be for exactly its value's limit,
+  compared as a decimal, and anything else is refused with `value_amount_not_exact`. Version 1
+  contracts keep their meaning and reject the key. The reference integration's contracts use it
+  for every invoice unless a task sets `exact_amounts: false`. Sample in
+  `tests/data/formats-1.1/contract-v2.yaml`.
 - **The accounts-payable reference integration (DEC-075, LIM-079).** Step 3 of the workflow
   integration, in `examples/ap_integration/`: the gateway as the only path between an agent and
   the sandbox backend, with the task, the contract built from it, the policy, an MCP profile

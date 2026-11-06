@@ -42,10 +42,12 @@ def contract_for(task: dict[str, Any], token_sha256: str) -> dict[str, Any]:
         bound["mcp:ap:get_vendor"] = {"vendor_id": task["vendor"]}
         bound["mcp:ap:pay"] = {"vendor_id": task["vendor"]}
         allowed["mcp:ap:get_invoice"] = {"invoice_id": {"values": invoices}}
-        # Each invoice is paid at most once in the session, for at most its approved amount.
+        # Each invoice is paid at most once in the session, for exactly its approved amount
+        # (or, with exact_amounts false, at most it). Amounts stay decimal strings, so the
+        # contract holds the approved figure itself, not a float's rounding of it.
         allowed["mcp:ap:pay"] = {"invoice_id": {"values": invoices, "once": True}}
-        budgets["mcp:ap:pay"] = {"amount": {"per": "invoice_id", "limits": {
-            invoice: float(amount) for invoice, amount in task["invoices"].items()}}}
+        budgets["mcp:ap:pay"] = {"amount": {"per": "invoice_id", "exact": task["exact_amounts"], "limits": {
+            invoice: str(amount) for invoice, amount in task["invoices"].items()}}}
     if task["remittance"]:
         allow("build_remittance", "payments:remit")
         allow("send_remittance", "email:external")
@@ -54,7 +56,8 @@ def contract_for(task: dict[str, Any], token_sha256: str) -> dict[str, Any]:
         bound["mcp:ap:post_chat"] = {"channel": task["post_to"]}
 
     contract: dict[str, Any] = {
-        "version": 1,
+        # Version 2 for exact amounts (DEC-076).
+        "version": 2,
         "token_sha256": token_sha256,
         "principal_id": task["requester"],
         "session_id": task["batch_id"],
