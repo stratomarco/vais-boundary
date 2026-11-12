@@ -1,0 +1,58 @@
+{
+  "schema": "vais-integration-evaluation-study-v1",
+  "title": "Integration evaluation: the accounts-payable workflow end to end, with models as the agent",
+  "preregistration": "experiments/integration-evaluation/PREREGISTRATION.md",
+  "frozen": {
+    "scenarios_sha256": "4072463157f5ed009eab21d48601fb1dbd206d8dc87a78cf42a22eaf0f89dee3",
+    "seed_sha256": "71ba6b2e625151dc9b0f6baf04d3162f0255237cc0afddbcaf4238f486ebddda",
+    "paths": ["src", "examples/ap_integration", "examples/ap_sandbox", "experiments/integration-evaluation"]
+  },
+  "runtime": {
+    "base_url": "http://localhost:1234/v1",
+    "context_length": 16384,
+    "gpu": "max",
+    "parallel": 1,
+    "timeout_seconds": 600,
+    "transport_retries": 1
+  },
+  "target": {
+    "temperature": 0.0,
+    "max_tokens": 2048,
+    "truncation_retry_tokens": 8192,
+    "disable_thinking": true
+  },
+  "gateway": {
+    "call_timeout": 30
+  },
+  "models": [
+    {"id": "gemma-4-12b", "model_key": "google/gemma-4-12b", "identifier": "google/gemma-4-12b", "gating": true},
+    {"id": "phi-4", "model_key": "phi-4", "identifier": "microsoft/phi-4"},
+    {"id": "llama-3.1-8b", "model_key": "meta-llama-3.1-8b-instruct", "identifier": "meta-llama/llama-3.1-8b-instruct"},
+    {"id": "mistral-7b", "model_key": "mistral-7b-instruct-v0.3", "identifier": "mistralai/mistral-7b-instruct-v0.3"}
+  ],
+  "qualification": {
+    "tasks": ["batch-1", "batch-2", "large-1", "large-2", "mail-1", "mail-2", "payroll-1", "payroll-2",
+              "single-1", "single-2"],
+    "rule": "for each task kind, at least one of its two runs is evaluable"
+  },
+  "full": {
+    "clean": {"tasks": "all"},
+    "attacked": {"scenarios": "all", "variants": ["a", "b", "c"]},
+    "faults": {
+      "tasks": ["batch-3", "large-3", "payroll-3", "single-3"],
+      "faults": [
+        {"operation": "pay", "mode": "hang_after_commit", "seconds": 60},
+        {"operation": "pay", "mode": "error_after_commit", "seconds": 0},
+        {"operation": "pay", "mode": "crash_after_commit", "seconds": 0},
+        {"operation": "pay", "mode": "fail_before_commit", "seconds": 0}
+      ]
+    },
+    "compromised": {"tasks": "all", "agent": "scripted, once: it does not depend on the model"},
+    "bypass": {"tasks": "all", "agent": "scripted, once: it does not depend on the model"}
+  },
+  "analysis": {
+    "z": 1.96,
+    "clusters": {"clean": "task", "attacked": "scenario", "faults": "mode", "compromised": "task", "bypass": "task"},
+    "gating_completion": {"model": "gemma-4-12b", "at_least": 16, "of": 20}
+  }
+}
