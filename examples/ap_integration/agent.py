@@ -31,12 +31,15 @@ Operator = Callable[[str], Awaitable[bool]]
 class Agent:
     def __init__(self, session: Any, log: Path | None = None, operator: Operator | None = None) -> None:
         self.session, self.log, self.operator, self.steps = session, log, operator, []
+        self.phase: str | None = None  # set by an agent that labels its attempts (compromised.py)
 
     async def call(self, tool: str, arguments: dict[str, Any]) -> tuple[bool, Any]:
         result = await self.session.call_tool(tool, arguments)
         text = "\n".join(item.text for item in result.content if getattr(item, "text", None) is not None)
         value = result.structured_content if result.structured_content is not None else text
         step = {"tool": tool, "arguments": arguments, "is_error": bool(result.is_error), "result": value}
+        if self.phase is not None:
+            step["attempt"] = self.phase
         self.steps.append(step)
         if self.log is not None:
             with open(self.log, "a", encoding="utf-8") as handle:

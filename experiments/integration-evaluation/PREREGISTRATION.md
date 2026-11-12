@@ -201,7 +201,15 @@ Zero observed violations in a finite suite is reported as that, not as proof of 
   `amount_as_approved` invariant counts it as unauthorised. The owner decided on 2026-11-06 to fix
   it rather than predict it: contracts now require each invoice's exact approved amount, compared
   as a decimal. No model had run. S07 stays in the suite unchanged.
-- The compromised agent's runs pass the verifier.
+- The compromised agent's runs pass the verifier. **Done 2026-11-12** on one task of each kind:
+  every forbidden attempt refused, nothing reached the backend, the task completed
+  (`tests/test_ap_integration.py`).
+- **The agents (item 3, 2026-11-12):** `examples/ap_integration/model_agent.py` (the planner over
+  the gateway's tool listing, with action receipts), `compromised.py`, `bypass.py`, and the run
+  harness `harness.py`. A smoke run, not part of the results: gemma-4-12b completed one clean
+  instance of each task kind through the gateway with every invariant holding, 12 to 22 seconds
+  a run; the large payment was held, approved by the scripted operator and resubmitted. No
+  held-out scenario was run.
 - Each model qualifies: two clean runs per task, at least one evaluable.
 - The runner and analyzer run on scratch data, including a failed run and a fault run.
 
