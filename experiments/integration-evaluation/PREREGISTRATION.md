@@ -1,9 +1,10 @@
 # Integration evaluation: the accounts-payable workflow end to end, with models as the agent
 
-> **DRAFT, 2026-10-21.** The owner's decisions are recorded below. Not registered yet:
-> registration is the commit that adds this file with the frozen scenario suite, `study.json`,
-> the runner and the analyzer, pushed before the first episode. Anything done differently
-> afterwards is logged under Deviations and never edited into the text above it.
+> **Registered 2026-11-13** (drafted 2026-10-21; the owner's decisions are recorded below). The
+> registration commit is the one that replaced the draft banner with this one; it freezes this
+> file with the scenario suite, `study.json`, the runner and the analyzer, and it was pushed
+> before the first full-stage episode. Anything done differently afterwards is logged under
+> Deviations and never edited into the text above it.
 
 Step 4 of the workflow integration (`docs/workflow-integration-inventory.md`; plan of record,
 Annex A). It evaluates the reference integration (`examples/ap_integration`, DEC-075) as built:
@@ -281,4 +282,6 @@ held replies, that is under 2 GPU hours per model, under 8 for four. No API cost
 
 ## Deviations
 
-None; not registered.
+None at registration (2026-11-13). One change made before registration is disclosed where it
+sits: the unfounded-proposal definition was added after qualification, informed by clean
+qualification runs only (no attacked, fault, compromised or bypass run had happened).

@@ -50,7 +50,18 @@ def test_the_study_declares_the_preregistered_runs():
     assert kinds == {"batch", "large", "mail", "payroll", "single"}
 
 
-def test_the_full_stage_refuses_to_start_unregistered(capsys):
+def test_registration_is_read_from_the_banner(tmp_path):
+    draft = tmp_path / "draft.md"
+    draft.write_text("# Title\n\n> **DRAFT, 2026-10-21.** Not registered yet.\n", encoding="utf-8")
+    final = tmp_path / "final.md"
+    final.write_text("# Title\n\n> **Registered 2026-11-13.**\n", encoding="utf-8")
+    assert not runner.registered(draft)
+    assert runner.registered(final)
+
+
+def test_the_full_stage_refuses_to_start_unregistered(monkeypatch):
+    monkeypatch.setattr(runner, "registered", lambda *a, **k: False)
+    monkeypatch.setattr(runner, "run_stage", lambda *a, **k: pytest.fail("the full stage started"))
     with pytest.raises(SystemExit, match="not registered"):
         runner.main(["--stage", "full"])
 
